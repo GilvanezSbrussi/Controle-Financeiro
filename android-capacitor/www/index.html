@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>Controle sua Fortuna</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Controle financeiro</p>
+          <h1>Controle sua Fortuna</h1>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary-grid" aria-label="Resumo financeiro">
+          <article class="metric primary">
+            <span>Saldo total</span>
+            <strong id="totalBalance">R$ 0,00</strong>
+          </article>
+          <article class="metric">
+            <span>Receitas</span>
+            <strong id="incomeTotal">R$ 0,00</strong>
+          </article>
+          <article class="metric">
+            <span>Despesas</span>
+            <strong id="expenseTotal">R$ 0,00</strong>
+          </article>
+          <article class="metric">
+            <span>Investimentos</span>
+            <strong id="investmentTotal">R$ 0,00</strong>
+          </article>
+        </section>
+
+        <section class="panel accounts-panel">
+          <div class="section-title">
+            <h2>Contas</h2>
+            <span id="accountCount">0 contas</span>
+          </div>
+          <div class="account-list" id="accountList"></div>
+        </section>
+
+        <section class="panel form-panel">
+          <div class="section-title">
+            <h2 id="formTitle">Novo lancamento</h2>
+            <button class="text-button hidden" id="cancelEditButton" type="button">Cancelar edicao</button>
+          </div>
+
+          <form id="transactionForm" autocomplete="off">
+            <div class="segmented" role="radiogroup" aria-label="Tipo de lancamento">
+              <label>
+                <input type="radio" name="type" value="income" checked />
+                <span>Receita</span>
+              </label>
+              <label>
+                <input type="radio" name="type" value="expense" />
+                <span>Despesa</span>
+              </label>
+              <label>
+                <input type="radio" name="type" value="transfer" />
+                <span>Transferencia</span>
+              </label>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                Descricao
+                <input id="description" name="description" type="text" placeholder="Ex: salario, mercado" required />
+              </label>
+              <label>
+                Valor
+                <input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required />
+              </label>
+              <label>
+                Data
+                <input id="date" name="date" type="date" required />
+              </label>
+              <label id="fromAccountWrap">
+                Conta
+                <select id="fromAccount" name="fromAccount" required></select>
+              </label>
+              <label id="toAccountWrap" class="hidden">
+                Conta destino
+                <select id="toAccount" name="toAccount"></select>
+              </label>
+              <label id="categoryWrap">
+                Categoria
+                <input id="category" name="category" type="text" placeholder="Ex: casa, alimentacao" />
+              </label>
+            </div>
+
+            <button class="primary-button" id="saveButton" type="submit">Salvar lancamento</button>
+          </form>
+        </section>
+
+        <section class="chart-section">
+          <article class="panel chart-panel">
+            <div class="section-title">
+              <h2>Receitas x despesas</h2>
+              <span>Mes atual</span>
+            </div>
+            <canvas id="flowChart" width="640" height="360" aria-label="Grafico de receitas e despesas"></canvas>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="section-title">
+              <h2>Saldo por conta</h2>
+              <span>Atual</span>
+            </div>
+            <canvas id="accountChart" width="640" height="360" aria-label="Grafico de saldo por conta"></canvas>
+          </article>
+        </section>
+
+        <section class="panel reports-panel">
+          <div class="section-title">
+            <h2>Relatorios</h2>
+            <span id="reportPeriod">Todos os lancamentos</span>
+          </div>
+          <div class="report-grid">
+            <article class="report-card">
+              <span>Resultado</span>
+              <strong id="netResult">R$ 0,00</strong>
+              <small>Receitas menos despesas</small>
+            </article>
+            <article class="report-card">
+              <span>Maior despesa</span>
+              <strong id="topExpense">R$ 0,00</strong>
+              <small id="topExpenseLabel">Sem despesas</small>
+            </article>
+            <article class="report-card">
+              <span>Taxa de economia</span>
+              <strong id="savingRate">0%</strong>
+              <small>Quanto sobrou das receitas</small>
+            </article>
+          </div>
+          <div class="insights-list" id="insightsList"></div>
+        </section>
+
+        <section class="panel license-panel">
+          <div class="section-title">
+            <h2>Licenca</h2>
+            <span id="licenseStatus">Nao ativada</span>
+          </div>
+          <div class="license-grid">
+            <label>
+              Chave de licenca
+              <textarea id="licenseKey" rows="3" placeholder="Digite a chave de ativacao"></textarea>
+            </label>
+            <button class="secondary-button" id="activateLicenseButton" type="button">Ativar licenca</button>
+          </div>
+          <p class="helper-text" id="licenseMessage">Para teste, use a chave FINANCAS-2026. Ela vence 1 dia apos a ativacao.</p>
+        </section>
+
+        <section class="panel backup-panel">
+          <div class="section-title">
+            <h2>Backup dos dados</h2>
+            <span>Base local</span>
+          </div>
+          <div class="backup-actions">
+            <button class="secondary-button" id="exportButton" type="button">Exportar backup</button>
+            <label class="secondary-button file-button">
+              Importar backup
+              <input id="importFile" type="file" accept="application/json,.json" />
+            </label>
+          </div>
+          <p class="helper-text" id="backupStatus">Os dados ficam salvos neste aparelho. Use backup para guardar uma copia em uma pasta escolhida.</p>
+        </section>
+
+        <section class="panel transactions-panel">
+          <div class="section-title">
+            <h2>Lancamentos</h2>
+            <span id="transactionCount">0 registros</span>
+          </div>
+          <div class="transaction-list" id="transactionList"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+    </script>
+  </body>
+</html>

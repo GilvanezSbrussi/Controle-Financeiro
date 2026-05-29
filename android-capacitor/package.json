@@ -1,0 +1,21 @@
+{
+  "name": "financas-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Versao Android do app Controle sua Fortuna usando Capacitor.",
+  "scripts": {
+    "preview": "npx serve www",
+    "cap:init": "npx cap init \"Controle sua Fortuna\" \"br.com.financas.app\" --web-dir www",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

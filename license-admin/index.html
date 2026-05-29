@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gerador de Licencas</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header>
+        <p class="eyebrow">Administrador</p>
+        <h1>Gerador de licencas</h1>
+      </header>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>Pesquisar cliente</h2>
+          <div class="title-actions">
+            <span id="clientCount">0 clientes</span>
+            <a class="secondary-link" href="clientes.html">Cadastrar cliente</a>
+          </div>
+        </div>
+        <label>
+          Nome, CPF ou CNPJ
+          <input id="clientSearch" type="search" placeholder="Digite para pesquisar" />
+        </label>
+        <div class="client-list" id="clientList"></div>
+      </section>
+
+      <section class="panel">
+        <form id="licenseForm">
+          <label>
+            Cliente selecionado
+            <input id="holder" type="text" placeholder="Selecione ou digite um cliente" required />
+          </label>
+
+          <label>
+            CPF ou CNPJ
+            <input id="holderDocument" type="text" placeholder="Documento do cliente" />
+          </label>
+
+          <label>
+            Dias de validade
+            <input id="days" type="number" min="1" step="1" value="30" required />
+          </label>
+
+          <button type="submit">Gerar licenca</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>Licenca gerada</h2>
+          <button id="copyButton" type="button">Copiar</button>
+        </div>
+        <textarea id="licenseOutput" rows="8" readonly placeholder="A licenca vai aparecer aqui"></textarea>
+        <p id="status">Esta tela e somente sua. Nao envie esta pasta para usuarios.</p>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cadastro de Clientes</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header>
+        <p class="eyebrow">Administrador</p>
+        <div class="page-heading">
+          <h1>Cadastro de clientes</h1>
+          <a class="secondary-link" href="index.html">Voltar ao gerador</a>
+        </div>
+      </header>
+
+      <section class="panel">
+        <form id="clientForm" class="client-form">
+          <label>
+            Nome do cliente
+            <input id="clientName" type="text" placeholder="Ex: Cliente Teste" required />
+          </label>
+          <label>
+            CPF ou CNPJ
+            <input id="clientDocument" type="text" placeholder="Ex: 000.000.000-00" required />
+          </label>
+          <button type="submit">Salvar cliente</button>
+        </form>
+        <p id="status">Cadastre ou atualize clientes por CPF/CNPJ.</p>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>Clientes cadastrados</h2>
+          <span id="clientCount">0 clientes</span>
+        </div>
+        <label>
+          Pesquisar cliente
+          <input id="clientSearch" type="search" placeholder="Nome, CPF ou CNPJ" />
+        </label>
+        <div class="client-list" id="clientList"></div>
+      </section>
+    </main>
+
+    <script src="clientes.js"></script>
+  </body>
+</html>
