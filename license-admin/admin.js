@@ -60,12 +60,18 @@ async function loadClients() {
 
 function renderClients() {
   const query = normalize(clientSearchInput.value);
+  clientCount.textContent = `${clients.length} clientes`;
+
+  // Esconde a lista se não houver texto digitado
+  if (!query) {
+    clientList.innerHTML = "";
+    return;
+  }
+
   const filtered = clients.filter((client) => {
     const text = normalize(`${client.name} ${client.document}`);
     return text.includes(query);
   });
-
-  clientCount.textContent = `${clients.length} clientes`;
 
   if (!filtered.length) {
     clientList.innerHTML = '<div class="empty-state">Nenhum cliente encontrado.</div>';
@@ -94,6 +100,8 @@ function renderClients() {
 function selectClient(client) {
   holderInput.value = client.name;
   holderDocumentInput.value = client.document;
+  clientSearchInput.value = "";
+  clientList.innerHTML = "";
   statusText.textContent = `Cliente selecionado: ${client.name}.`;
 }
 
