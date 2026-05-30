@@ -1,6 +1,7 @@
 const clientForm = document.querySelector("#clientForm");
 const clientNameInput = document.querySelector("#clientName");
 const clientDocumentInput = document.querySelector("#clientDocument");
+const clientEmailInput = document.querySelector("#clientEmail");
 const clientSearchInput = document.querySelector("#clientSearch");
 const clientList = document.querySelector("#clientList");
 const clientCount = document.querySelector("#clientCount");
@@ -17,7 +18,8 @@ clientForm.addEventListener("submit", async (event) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: clientNameInput.value.trim(),
-        document: clientDocumentInput.value.trim()
+        document: clientDocumentInput.value.trim(),
+        email: clientEmailInput.value.trim()
       })
     });
     const result = await response.json();
@@ -50,7 +52,7 @@ async function loadClients() {
 function renderClients() {
   const query = normalize(clientSearchInput.value);
   const filtered = clients.filter((client) => {
-    const text = normalize(`${client.name} ${client.document}`);
+    const text = normalize(`${client.name} ${client.document} ${client.email || ""}`);
     return text.includes(query);
   });
 
@@ -66,7 +68,7 @@ function renderClients() {
       (client) => `
         <button class="client-item" type="button" data-id="${client.id}">
           <strong>${client.name}</strong>
-          <span>${client.document}</span>
+          <span>${client.document}${client.email ? ` — ${client.email}` : ""}</span>
         </button>
       `
     )
@@ -78,6 +80,7 @@ function renderClients() {
       if (!client) return;
       clientNameInput.value = client.name;
       clientDocumentInput.value = client.document;
+      clientEmailInput.value = client.email || "";
       statusText.textContent = `Editando cliente: ${client.name}.`;
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -89,5 +92,5 @@ function normalize(value) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\w]+/g, "");
+    .replace(/[^\w@.]+/g, "");
 }

@@ -62,14 +62,13 @@ function renderClients() {
   const query = normalize(clientSearchInput.value);
   clientCount.textContent = `${clients.length} clientes`;
 
-  // Esconde a lista se não houver texto digitado
   if (!query) {
     clientList.innerHTML = "";
     return;
   }
 
   const filtered = clients.filter((client) => {
-    const text = normalize(`${client.name} ${client.document}`);
+    const text = normalize(`${client.name} ${client.document} ${client.email || ""}`);
     return text.includes(query);
   });
 
@@ -83,7 +82,7 @@ function renderClients() {
       (client) => `
         <button class="client-item" type="button" data-id="${client.id}">
           <strong>${client.name}</strong>
-          <span>${client.document}</span>
+          <span>${client.document}${client.email ? ` — ${client.email}` : ""}</span>
         </button>
       `
     )
@@ -110,5 +109,5 @@ function normalize(value) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\w]+/g, "");
+    .replace(/[^\w@.]+/g, "");
 }

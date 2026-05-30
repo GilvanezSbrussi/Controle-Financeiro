@@ -11,7 +11,8 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
 
 const storageKey = "financas-v3";
 const licenseStorageKey = "financas-license-v1";
-const validLicenseKeys = ["FINANCAS-2026"];
+const deviceIdKey = "financas-device-id";
+const validLicenseKeys = [];
 const demoLicenseDays = 1;
 const licensePublicKey = {
   kty: "EC",
@@ -158,41 +159,76 @@ function saveLicense() {
   localStorage.setItem(licenseStorageKey, JSON.stringify(license));
 }
 
+// Gera ou recupera um ID unico para este dispositivo/navegador
+function getDeviceId() {
+  let deviceId = localStorage.getItem(deviceIdKey);
+  if (!deviceId) {
+    deviceId = `device-${Date.now()}-${crypto.randomUUID()}`;
+    localStorage.setItem(deviceIdKey, deviceId);
+  }
+  return deviceId;
+}
+
 async function activateLicense() {
   const key = elements.licenseKey.value.trim();
   const normalizedKey = key.toUpperCase();
 
-  if (validLicenseKeys.includes(normalizedKey)) {
+  elements.activateLicenseButton.disabled = true;
+  elements.licenseMessage.textContent = "Validando licenca...";
+
+  // Licenca assinada: valida localmente a assinatura primeiro
+  const localCheck = await verifySignedLicense(key);
+  if (!localCheck.valid) {
+    elements.licenseMessage.textContent = localCheck.message;
+    elements.activateLicenseButton.disabled = false;
+    return;
+  }
+
+  // Valida no servidor se a licenca ja foi usada em outro dispositivo
+  try {
+    const deviceId = getDeviceId();
+    const response = await fetch("/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ license: key, deviceId })
+    });
+    const result = await response.json();
+
+    if (!result.ok) {
+      elements.licenseMessage.textContent = result.message || "Licenca recusada pelo servidor.";
+      elements.activateLicenseButton.disabled = false;
+      return;
+    }
+
     license = {
       active: true,
-      type: "demo",
-      key: normalizedKey,
-      activatedAt: new Date().toISOString(),
-      expiresAt: addDays(new Date(), demoLicenseDays).toISOString()
+      type: "signed",
+      key,
+      holder: result.payload.holder || "Cliente",
+      issuedAt: result.payload.issuedAt,
+      expiresAt: result.payload.expiresAt
     };
     saveLicense();
     elements.licenseKey.value = "";
     renderLicense();
-    return;
+  } catch {
+    // Se o servidor nao estiver disponivel, aceita a licenca localmente (modo offline)
+    // mas nao impede uso — exibe aviso
+    license = {
+      active: true,
+      type: "signed",
+      key,
+      holder: localCheck.payload.holder || "Cliente",
+      issuedAt: localCheck.payload.issuedAt,
+      expiresAt: localCheck.payload.expiresAt
+    };
+    saveLicense();
+    elements.licenseKey.value = "";
+    elements.licenseMessage.textContent = "Servidor indisponivel. Licenca aceita localmente.";
+    renderLicense();
   }
 
-  const signedLicense = await verifySignedLicense(key);
-  if (!signedLicense.valid) {
-    elements.licenseMessage.textContent = signedLicense.message;
-    return;
-  }
-
-  license = {
-    active: true,
-    type: "signed",
-    key,
-    holder: signedLicense.payload.holder || "Cliente",
-    issuedAt: signedLicense.payload.issuedAt,
-    expiresAt: signedLicense.payload.expiresAt
-  };
-  saveLicense();
-  elements.licenseKey.value = "";
-  renderLicense();
+  elements.activateLicenseButton.disabled = false;
 }
 
 function exportBackup() {
