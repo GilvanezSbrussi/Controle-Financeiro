@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Licenca — Controle sua Fortuna</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f7f5; min-height: 100vh; padding: 0;
+    }
+    .topbar {
+      background: #0f766e; color: white; padding: 1rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .topbar a { color: white; text-decoration: none; font-size: 1.2rem; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 600; }
+    .content { padding: 1.5rem; max-width: 500px; margin: 0 auto; }
+    .card {
+      background: white; border-radius: 16px; padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 1rem; color: #17211f; margin-bottom: 1rem; }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600; margin-left: 8px;
+    }
+    .badge.ok { background: #dcfce7; color: #15803d; }
+    .badge.alert { background: #fee2e2; color: #b42318; }
+    .badge.warn { background: #fef9c3; color: #92400e; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 0.88rem; font-weight: 600; color: #17211f; margin-bottom: 1rem; }
+    textarea {
+      padding: 12px 14px; border: 1.5px solid #dce5e2; border-radius: 10px;
+      font-size: 0.88rem; font-family: monospace; resize: vertical;
+      outline: none; transition: border-color 0.2s; width: 100%;
+    }
+    textarea:focus { border-color: #0f766e; }
+    .btn {
+      width: 100%; padding: 13px; background: #0f766e; color: white;
+      border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s; margin-bottom: 0.75rem;
+    }
+    .btn:hover { background: #0d6560; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn.secondary {
+      background: none; color: #0f766e; border: 1.5px solid #0f766e;
+    }
+    .btn.secondary:hover { background: #f0f9f7; }
+    .btn.whatsapp { background: #25d366; }
+    .btn.whatsapp:hover { background: #1ebe5d; }
+    .status-msg {
+      padding: 10px 14px; border-radius: 8px; font-size: 0.88rem;
+      margin-bottom: 1rem; display: none;
+    }
+    .status-msg.show { display: block; }
+    .status-msg.success { background: #dcfce7; color: #15803d; }
+    .status-msg.error { background: #fee2e2; color: #b42318; }
+    .status-msg.loading { background: #f0f9ff; color: #0369a1; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f7f5; font-size: 0.88rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span { color: #61716d; }
+    .info-row strong { color: #17211f; }
+    .helper { font-size: 0.8rem; color: #61716d; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">&#8592;</a>
+    <h1>Licenca de uso</h1>
+  </div>
+
+  <div class="content">
+    <!-- Status atual -->
+    <div class="card" id="statusCard">
+      <h2>Status atual <span class="badge alert" id="statusBadge">Nao ativada</span></h2>
+      <div id="licenseInfo"></div>
+    </div>
+
+    <!-- Ativar licenca -->
+    <div class="card">
+      <h2>Ativar licenca</h2>
+      <div class="status-msg" id="activateMsg"></div>
+      <label>
+        Chave de licenca
+        <textarea id="licenseKey" rows="4" placeholder="Cole aqui a chave fornecida pelo administrador"></textarea>
+      </label>
+      <button class="btn" id="activateBtn">Ativar licenca</button>
+      <p class="helper">A chave e de uso unico e vinculada a este dispositivo.</p>
+    </div>
+
+    <!-- Solicitar renovacao -->
+    <div class="card">
+      <h2>Solicitar nova licenca</h2>
+      <p class="helper" style="margin-bottom:1rem;">Apos efetuar o pagamento, clique abaixo para solicitar sua licenca via WhatsApp.</p>
+      <button class="btn whatsapp" id="whatsappBtn">&#128362; Solicitar via WhatsApp</button>
+    </div>
+  </div>
+
+  <script>
+    const licenseStorageKey = "financas-license-v1";
+    const deviceIdKey = "financas-device-id";
+    const userProfileKey = "financas-user-profile";
+    const whatsappNumber = "5549988141894"; // ALTERE AQUI
+
+    const licensePublicKey = {
+      kty: "EC",
+      x: "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
+      y: "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0",
+      crv: "P-256"
+    };
+
+    let license = loadLicense();
+    const profile = loadProfile();
+
+    renderStatus();
+    setupWhatsapp();
+
+    document.querySelector("#activateBtn").addEventListener("click", activateLicense);
+
+    function loadLicense() {
+      try { return JSON.parse(localStorage.getItem(licenseStorageKey)) || { active: false }; }
+      catch { return { active: false }; }
+    }
+
+    function loadProfile() {
+      try { return JSON.parse(localStorage.getItem(userProfileKey)) || {}; }
+      catch { return {}; }
+    }
+
+    function saveLicense(data) {
+      localStorage.setItem(licenseStorageKey, JSON.stringify(data));
+    }
+
+    function getDeviceId() {
+      let id = localStorage.getItem(deviceIdKey);
+      if (!id) { id = `device-${Date.now()}-${Math.random().toString(36).slice(2)}`; localStorage.setItem(deviceIdKey, id); }
+      return id;
+    }
+
+    function renderStatus() {
+      const badge = document.querySelector("#statusBadge");
+      const info = document.querySelector("#licenseInfo");
+
+      if (license.active && license.expiresAt && new Date(license.expiresAt) > new Date()) {
+        const exp = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+        badge.textContent = "Ativa";
+        badge.className = "badge ok";
+        info.innerHTML = `
+          <div class="info-row"><span>Cliente</span><strong>${license.holder || "-"}</strong></div>
+          <div class="info-row"><span>Validade</span><strong>${exp}</strong></div>
+          <div class="info-row"><span>Tipo</span><strong>Licenca assinada</strong></div>`;
+      } else if (license.active && license.expiresAt && new Date(license.expiresAt) <= new Date()) {
+        badge.textContent = "Expirada";
+        badge.className = "badge alert";
+        const exp = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+        info.innerHTML = `<div class="info-row"><span>Expirou em</span><strong>${exp}</strong></div>`;
+      } else {
+        badge.textContent = "Nao ativada";
+        badge.className = "badge warn";
+        info.innerHTML = `<p class="helper">Nenhuma licenca ativa. Ative uma chave abaixo.</p>`;
+      }
+    }
+
+    function setMsg(id, text, type) {
+      const el = document.querySelector("#" + id);
+      el.textContent = text;
+      el.className = "status-msg show " + type;
+    }
+
+    async function activateLicense() {
+      const key = document.querySelector("#licenseKey").value.trim();
+      if (!key) { setMsg("activateMsg", "Cole a chave de licenca.", "error"); return; }
+
+      document.querySelector("#activateBtn").disabled = true;
+      setMsg("activateMsg", "Validando assinatura...", "loading");
+
+      const local = await verifySignedLicense(key);
+      if (!local.valid) {
+        setMsg("activateMsg", local.message, "error");
+        document.querySelector("#activateBtn").disabled = false;
+        return;
+      }
+
+      setMsg("activateMsg", "Verificando no servidor...", "loading");
+
+      try {
+        const res = await fetch("/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ license: key, deviceId: getDeviceId() })
+        });
+        const result = await res.json();
+
+        if (!result.ok) {
+          setMsg("activateMsg", result.message || "Licenca recusada.", "error");
+          document.querySelector("#activateBtn").disabled = false;
+          return;
+        }
+
+        const data = {
+          active: true, type: "signed", key,
+          holder: result.payload.holder || "Cliente",
+          issuedAt: result.payload.issuedAt,
+          expiresAt: result.payload.expiresAt
+        };
+        saveLicense(data);
+        license = data;
+        document.querySelector("#licenseKey").value = "";
+        setMsg("activateMsg", "Licenca ativada com sucesso!", "success");
+        renderStatus();
+      } catch {
+        // Sem servidor — aceita localmente
+        const data = {
+          active: true, type: "signed", key,
+          holder: local.payload.holder || "Cliente",
+          issuedAt: local.payload.issuedAt,
+          expiresAt: local.payload.expiresAt
+        };
+        saveLicense(data);
+        license = data;
+        document.querySelector("#licenseKey").value = "";
+        setMsg("activateMsg", "Licenca ativada (modo offline).", "success");
+        renderStatus();
+      }
+
+      document.querySelector("#activateBtn").disabled = false;
+    }
+
+    function setupWhatsapp() {
+      const name = profile.fullname || "Cliente";
+      const username = profile.username || "";
+      const cpf = profile.cpf || "";
+      const msg = encodeURIComponent(
+        `Ola! Gostaria de solicitar uma nova licenca do Controle sua Fortuna.\n\nNome: ${name}\nUsuario: ${username}\nCPF: ${cpf}\n\nJa efetuei o pagamento.`
+      );
+      document.querySelector("#whatsappBtn").onclick = () => {
+        window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
+      };
+    }
+
+    async function verifySignedLicense(value) {
+      const parts = value.split(".");
+      if (parts.length !== 2) return { valid: false, message: "Chave invalida." };
+      try {
+        const payloadBytes = base64UrlToBytes(parts[0]);
+        const signatureBytes = base64UrlToBytes(parts[1]);
+        const key = await crypto.subtle.importKey("jwk", licensePublicKey, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+        const verified = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, signatureBytes, payloadBytes);
+        if (!verified) return { valid: false, message: "Assinatura invalida." };
+        const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+        if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) return { valid: false, message: "Licenca expirada." };
+        return { valid: true, payload };
+      } catch { return { valid: false, message: "Erro ao validar licenca." }; }
+    }
+
+    function base64UrlToBytes(value) {
+      const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+      return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    }
+  </script>
+</body>
+</html>

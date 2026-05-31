@@ -1,25 +1,21 @@
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL"
-});
-
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric"
-});
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 
 const storageKey = "financas-v3";
 const licenseStorageKey = "financas-license-v1";
 const deviceIdKey = "financas-device-id";
-const validLicenseKeys = [];
-const demoLicenseDays = 1;
+const userProfileKey = "financas-user-profile";
+
+// Numero do WhatsApp do administrador — altere aqui
+const whatsappNumber = "5549988141894";
+
 const licensePublicKey = {
   kty: "EC",
   x: "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
   y: "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0",
   crv: "P-256"
 };
+
 let editingTransactionId = null;
 
 const defaultState = {
@@ -32,16 +28,40 @@ const defaultState = {
 
 let state = loadState();
 let license = loadLicense();
+let userProfile = loadUserProfile();
 
 const elements = {
+  // Setup modal
+  setupModal: document.querySelector("#setupModal"),
+  setupUsername: document.querySelector("#setupUsername"),
+  setupFullname: document.querySelector("#setupFullname"),
+  setupEmail: document.querySelector("#setupEmail"),
+  setupCpf: document.querySelector("#setupCpf"),
+  setupSaveButton: document.querySelector("#setupSaveButton"),
+  setupStatus: document.querySelector("#setupStatus"),
+  // Menu
+  menuButton: document.querySelector("#menuButton"),
+  dropdownMenu: document.querySelector("#dropdownMenu"),
+  menuLicense: document.querySelector("#menuLicense"),
+  menuBackup: document.querySelector("#menuBackup"),
+  // Panels
+  licensePanel: document.querySelector("#licensePanel"),
+  backupPanel: document.querySelector("#backupPanel"),
+  // Summary
   totalBalance: document.querySelector("#totalBalance"),
   incomeTotal: document.querySelector("#incomeTotal"),
   expenseTotal: document.querySelector("#expenseTotal"),
   investmentTotal: document.querySelector("#investmentTotal"),
   accountCount: document.querySelector("#accountCount"),
   accountList: document.querySelector("#accountList"),
-  transactionList: document.querySelector("#transactionList"),
-  transactionCount: document.querySelector("#transactionCount"),
+  // Transaction lists
+  incomeList: document.querySelector("#incomeList"),
+  expenseList: document.querySelector("#expenseList"),
+  transferList: document.querySelector("#transferList"),
+  incomeCount: document.querySelector("#incomeCount"),
+  expenseCount: document.querySelector("#expenseCount"),
+  transferCount: document.querySelector("#transferCount"),
+  // Form
   form: document.querySelector("#transactionForm"),
   formTitle: document.querySelector("#formTitle"),
   saveButton: document.querySelector("#saveButton"),
@@ -54,23 +74,63 @@ const elements = {
   toAccount: document.querySelector("#toAccount"),
   toAccountWrap: document.querySelector("#toAccountWrap"),
   categoryWrap: document.querySelector("#categoryWrap"),
+  // Charts
   flowChart: document.querySelector("#flowChart"),
   accountChart: document.querySelector("#accountChart"),
+  // Reports
   netResult: document.querySelector("#netResult"),
   topExpense: document.querySelector("#topExpense"),
   topExpenseLabel: document.querySelector("#topExpenseLabel"),
   savingRate: document.querySelector("#savingRate"),
   insightsList: document.querySelector("#insightsList"),
+  // License
   licenseStatus: document.querySelector("#licenseStatus"),
   licenseKey: document.querySelector("#licenseKey"),
   activateLicenseButton: document.querySelector("#activateLicenseButton"),
   licenseMessage: document.querySelector("#licenseMessage"),
+  whatsappRenewal: document.querySelector("#whatsappRenewal"),
+  // Backup
   exportButton: document.querySelector("#exportButton"),
   importFile: document.querySelector("#importFile"),
   backupStatus: document.querySelector("#backupStatus")
 };
 
+// --- INIT ---
+
 elements.date.value = new Date().toISOString().slice(0, 10);
+
+// Mostra modal de cadastro se nao tiver perfil
+if (!userProfile) {
+  elements.setupModal.classList.remove("hidden");
+}
+
+elements.setupSaveButton.addEventListener("click", saveUserProfile);
+
+// Menu dropdown
+elements.menuButton.addEventListener("click", (e) => {
+  e.stopPropagation();
+  elements.dropdownMenu.classList.toggle("hidden");
+});
+
+document.addEventListener("click", () => {
+  elements.dropdownMenu.classList.add("hidden");
+});
+
+elements.menuLicense.addEventListener("click", () => {
+  togglePanel(elements.licensePanel);
+  elements.backupPanel.classList.add("hidden");
+  elements.licensePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+elements.menuBackup.addEventListener("click", () => {
+  togglePanel(elements.backupPanel);
+  elements.licensePanel.classList.add("hidden");
+  elements.backupPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+function togglePanel(panel) {
+  panel.classList.toggle("hidden");
+}
 
 elements.form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -114,52 +174,73 @@ document.querySelectorAll('input[name="type"]').forEach((input) => {
 });
 
 elements.cancelEditButton.addEventListener("click", resetForm);
-elements.transactionList.addEventListener("click", handleTransactionAction);
+elements.incomeList.addEventListener("click", handleTransactionAction);
+elements.expenseList.addEventListener("click", handleTransactionAction);
+elements.transferList.addEventListener("click", handleTransactionAction);
 elements.activateLicenseButton.addEventListener("click", activateLicense);
 elements.exportButton.addEventListener("click", exportBackup);
 elements.importFile.addEventListener("change", importBackup);
 
-window.addEventListener("resize", () => {
-  drawCharts(calculateSummary());
-});
+window.addEventListener("resize", () => { drawCharts(calculateSummary()); });
 
+updateWhatsappLink();
 render();
+
+// --- USER PROFILE ---
+
+function loadUserProfile() {
+  const raw = localStorage.getItem(userProfileKey);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+function saveUserProfile() {
+  const username = elements.setupUsername.value.trim();
+  const fullname = elements.setupFullname.value.trim();
+  const email = elements.setupEmail.value.trim();
+  const cpf = elements.setupCpf.value.trim();
+
+  if (!username || !fullname || !email || !cpf) {
+    elements.setupStatus.textContent = "Preencha todos os campos para continuar.";
+    return;
+  }
+
+  userProfile = { username, fullname, email, cpf, registeredAt: new Date().toISOString() };
+  localStorage.setItem(userProfileKey, JSON.stringify(userProfile));
+  elements.setupModal.classList.add("hidden");
+  updateWhatsappLink();
+}
+
+// --- STATE ---
 
 function loadState() {
   const raw = localStorage.getItem(storageKey);
   if (!raw) return structuredClone(defaultState);
-
   try {
     const parsed = JSON.parse(raw);
     return {
       accounts: parsed.accounts?.length ? parsed.accounts : defaultState.accounts,
       transactions: Array.isArray(parsed.transactions) ? parsed.transactions : []
     };
-  } catch {
-    return structuredClone(defaultState);
-  }
+  } catch { return structuredClone(defaultState); }
 }
 
 function saveState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
 }
 
+// --- LICENSE ---
+
 function loadLicense() {
   const raw = localStorage.getItem(licenseStorageKey);
   if (!raw) return { active: false, key: "" };
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { active: false, key: "" };
-  }
+  try { return JSON.parse(raw); } catch { return { active: false, key: "" }; }
 }
 
 function saveLicense() {
   localStorage.setItem(licenseStorageKey, JSON.stringify(license));
 }
 
-// Gera ou recupera um ID unico para este dispositivo/navegador
 function getDeviceId() {
   let deviceId = localStorage.getItem(deviceIdKey);
   if (!deviceId) {
@@ -171,12 +252,12 @@ function getDeviceId() {
 
 async function activateLicense() {
   const key = elements.licenseKey.value.trim();
-  const normalizedKey = key.toUpperCase();
+  if (!key) { elements.licenseMessage.textContent = "Digite a chave de licenca."; return; }
 
   elements.activateLicenseButton.disabled = true;
   elements.licenseMessage.textContent = "Validando licenca...";
 
-  // Licenca assinada: valida localmente a assinatura primeiro
+  // Valida assinatura localmente primeiro
   const localCheck = await verifySignedLicense(key);
   if (!localCheck.valid) {
     elements.licenseMessage.textContent = localCheck.message;
@@ -184,7 +265,7 @@ async function activateLicense() {
     return;
   }
 
-  // Valida no servidor se a licenca ja foi usada em outro dispositivo
+  // Valida no servidor (uso unico por dispositivo)
   try {
     const deviceId = getDeviceId();
     const response = await fetch("/validate", {
@@ -212,8 +293,7 @@ async function activateLicense() {
     elements.licenseKey.value = "";
     renderLicense();
   } catch {
-    // Se o servidor nao estiver disponivel, aceita a licenca localmente (modo offline)
-    // mas nao impede uso — exibe aviso
+    // Servidor indisponivel — aceita localmente com aviso
     license = {
       active: true,
       type: "signed",
@@ -231,6 +311,19 @@ async function activateLicense() {
   elements.activateLicenseButton.disabled = false;
 }
 
+function updateWhatsappLink() {
+  if (!elements.whatsappRenewal) return;
+  const name = userProfile ? userProfile.fullname : "Cliente";
+  const username = userProfile ? userProfile.username : "";
+  const cpf = userProfile ? userProfile.cpf : "";
+  const msg = encodeURIComponent(
+    `Ola! Gostaria de solicitar a renovacao da minha licenca do Controle sua Fortuna.\n\nNome: ${name}\nUsuario: ${username}\nCPF: ${cpf}`
+  );
+  elements.whatsappRenewal.href = `https://wa.me/${whatsappNumber}?text=${msg}`;
+}
+
+// --- BACKUP ---
+
 function exportBackup() {
   const backup = {
     app: "Controle sua Fortuna",
@@ -247,32 +340,26 @@ function exportBackup() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  setBackupStatus("Backup exportado. No celular, escolha a pasta de destino quando o sistema perguntar.");
+  setBackupStatus("Backup exportado com sucesso.");
 }
 
 function importBackup(event) {
   const [file] = event.target.files;
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
       const importedState = parsed.data || parsed;
-
       if (!Array.isArray(importedState.accounts) || !Array.isArray(importedState.transactions)) {
         throw new Error("Arquivo invalido");
       }
-
-      state = {
-        accounts: importedState.accounts,
-        transactions: importedState.transactions
-      };
+      state = { accounts: importedState.accounts, transactions: importedState.transactions };
       saveState();
       render();
       setBackupStatus("Backup importado com sucesso.");
     } catch {
-      setBackupStatus("Nao foi possivel importar este arquivo de backup.");
+      setBackupStatus("Nao foi possivel importar este arquivo.");
     } finally {
       event.target.value = "";
     }
@@ -284,10 +371,11 @@ function setBackupStatus(message) {
   elements.backupStatus.textContent = message;
 }
 
+// --- FORM ---
+
 function updateFormMode() {
   const type = document.querySelector('input[name="type"]:checked').value;
   const isTransfer = type === "transfer";
-
   elements.toAccountWrap.classList.toggle("hidden", !isTransfer);
   elements.categoryWrap.classList.toggle("hidden", isTransfer);
   elements.toAccount.required = isTransfer;
@@ -304,12 +392,14 @@ function resetForm() {
   updateFormMode();
 }
 
+// --- RENDER ---
+
 function render() {
   fillAccountSelects();
   const summary = calculateSummary();
   renderSummary(summary);
   renderAccounts(summary.accountBalances);
-  renderTransactions();
+  renderTransactionsByType();
   renderReports(summary);
   renderLicense();
   drawCharts(summary);
@@ -317,7 +407,7 @@ function render() {
 
 function fillAccountSelects() {
   const options = state.accounts
-    .map((account) => `<option value="${account.id}">${account.name}</option>`)
+    .map((a) => `<option value="${a.id}">${a.name}</option>`)
     .join("");
   elements.fromAccount.innerHTML = options;
   elements.toAccount.innerHTML = options;
@@ -325,45 +415,19 @@ function fillAccountSelects() {
 
 function calculateSummary() {
   const balances = Object.fromEntries(
-    state.accounts.map((account) => [account.id, account.openingBalance || 0])
+    state.accounts.map((a) => [a.id, a.openingBalance || 0])
   );
-
-  let income = 0;
-  let expense = 0;
-
-  state.transactions.forEach((transaction) => {
-    const amount = Number(transaction.amount) || 0;
-
-    if (transaction.type === "income") {
-      income += amount;
-      balances[transaction.fromAccount] += amount;
-    }
-
-    if (transaction.type === "expense") {
-      expense += amount;
-      balances[transaction.fromAccount] -= amount;
-    }
-
-    if (transaction.type === "transfer") {
-      balances[transaction.fromAccount] -= amount;
-      balances[transaction.toAccount] += amount;
-    }
+  let income = 0, expense = 0;
+  state.transactions.forEach((t) => {
+    const amount = Number(t.amount) || 0;
+    if (t.type === "income") { income += amount; balances[t.fromAccount] += amount; }
+    if (t.type === "expense") { expense += amount; balances[t.fromAccount] -= amount; }
+    if (t.type === "transfer") { balances[t.fromAccount] -= amount; balances[t.toAccount] += amount; }
   });
-
-  const investmentIds = state.accounts
-    .filter((account) => account.kind === "investment")
-    .map((account) => account.id);
-
+  const investmentIds = state.accounts.filter((a) => a.kind === "investment").map((a) => a.id);
   const investmentTotal = investmentIds.reduce((total, id) => total + (balances[id] || 0), 0);
-  const totalBalance = Object.values(balances).reduce((total, value) => total + value, 0);
-
-  return {
-    income,
-    expense,
-    totalBalance,
-    investmentTotal,
-    accountBalances: balances
-  };
+  const totalBalance = Object.values(balances).reduce((total, v) => total + v, 0);
+  return { income, expense, totalBalance, investmentTotal, accountBalances: balances };
 }
 
 function renderSummary(summary) {
@@ -375,71 +439,70 @@ function renderSummary(summary) {
 }
 
 function renderAccounts(balances) {
-  elements.accountList.innerHTML = state.accounts
-    .map((account) => {
-      const initial = account.kind === "investment" ? "I" : "C";
-      return `
-        <article class="account-card">
-          <div>
-            <small>${account.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
-            <strong>${account.name}</strong>
-            <small>${money.format(balances[account.id] || 0)}</small>
-          </div>
-          <span class="account-icon ${account.kind}" aria-hidden="true">${initial}</span>
-        </article>
-      `;
-    })
-    .join("");
+  elements.accountList.innerHTML = state.accounts.map((account) => {
+    const initial = account.kind === "investment" ? "I" : "C";
+    return `
+      <article class="account-card">
+        <div>
+          <small>${account.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
+          <strong>${account.name}</strong>
+          <small>${money.format(balances[account.id] || 0)}</small>
+        </div>
+        <span class="account-icon ${account.kind}" aria-hidden="true">${initial}</span>
+      </article>`;
+  }).join("");
 }
 
-function renderTransactions() {
-  if (!state.transactions.length) {
-    elements.transactionList.innerHTML = '<div class="empty-state">Nenhum lancamento cadastrado ainda.</div>';
-    elements.transactionCount.textContent = "0 registros";
-    return;
+function renderTransactionsByType() {
+  const incomes = state.transactions.filter((t) => t.type === "income");
+  const expenses = state.transactions.filter((t) => t.type === "expense");
+  const transfers = state.transactions.filter((t) => t.type === "transfer");
+
+  elements.incomeCount.textContent = `${incomes.length} registros`;
+  elements.expenseCount.textContent = `${expenses.length} registros`;
+  elements.transferCount.textContent = `${transfers.length} registros`;
+
+  elements.incomeList.innerHTML = renderTransactionItems(incomes, "Nenhuma receita cadastrada ainda.");
+  elements.expenseList.innerHTML = renderTransactionItems(expenses, "Nenhuma despesa cadastrada ainda.");
+  elements.transferList.innerHTML = renderTransactionItems(transfers, "Nenhuma transferencia cadastrada ainda.");
+}
+
+function renderTransactionItems(transactions, emptyMsg) {
+  if (!transactions.length) {
+    return `<div class="empty-state">${emptyMsg}</div>`;
   }
+  return transactions.map((transaction) => {
+    const account = getAccountName(transaction.fromAccount);
+    const destination = getAccountName(transaction.toAccount);
+    const amountClass = `${transaction.type}-text`;
+    const label = getTypeLabel(transaction.type);
+    const meta = transaction.type === "transfer"
+      ? `${account} para ${destination}`
+      : `${account}${transaction.category ? ` - ${transaction.category}` : ""}`;
 
-  elements.transactionCount.textContent = `${state.transactions.length} registros`;
-  elements.transactionList.innerHTML = state.transactions
-    .map((transaction) => {
-      const account = getAccountName(transaction.fromAccount);
-      const destination = getAccountName(transaction.toAccount);
-      const amountClass = `${transaction.type}-text`;
-      const label = getTypeLabel(transaction.type);
-      const meta =
-        transaction.type === "transfer"
-          ? `${account} para ${destination}`
-          : `${account}${transaction.category ? ` - ${transaction.category}` : ""}`;
-
-      return `
-        <article class="transaction-item">
-          <div>
-            <div class="transaction-title">
-              <span>${transaction.description}</span>
-              <span class="badge ${transaction.type}">${label}</span>
-            </div>
-            <div class="transaction-meta">${formatDate(transaction.date)} - ${meta}</div>
+    return `
+      <article class="transaction-item">
+        <div>
+          <div class="transaction-title">
+            <span>${transaction.description}</span>
+            <span class="badge ${transaction.type}">${label}</span>
           </div>
-          <div class="transaction-actions">
-            <div class="transaction-amount ${amountClass}">${formatTransactionAmount(transaction)}</div>
-            <button class="small-button" type="button" data-action="edit" data-id="${transaction.id}">Editar</button>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+          <div class="transaction-meta">${formatDate(transaction.date)} - ${meta}</div>
+        </div>
+        <div class="transaction-actions">
+          <div class="transaction-amount ${amountClass}">${formatTransactionAmount(transaction)}</div>
+          <button class="small-button" type="button" data-action="edit" data-id="${transaction.id}">Editar</button>
+        </div>
+      </article>`;
+  }).join("");
 }
 
 function handleTransactionAction(event) {
   const button = event.target.closest("[data-action]");
   if (!button) return;
-
   const transaction = state.transactions.find((item) => item.id === button.dataset.id);
   if (!transaction) return;
-
-  if (button.dataset.action === "edit") {
-    startEdit(transaction);
-  }
+  if (button.dataset.action === "edit") startEdit(transaction);
 }
 
 function startEdit(transaction) {
@@ -476,69 +539,55 @@ function renderReports(summary) {
 
 function getExpenseByCategory() {
   const categories = {};
-  state.transactions
-    .filter((transaction) => transaction.type === "expense")
-    .forEach((transaction) => {
-      const category = transaction.category || "Sem categoria";
-      categories[category] = (categories[category] || 0) + Number(transaction.amount || 0);
-    });
-
+  state.transactions.filter((t) => t.type === "expense").forEach((t) => {
+    const category = t.category || "Sem categoria";
+    categories[category] = (categories[category] || 0) + Number(t.amount || 0);
+  });
   return Object.entries(categories)
     .map(([category, amount]) => ({ category, amount }))
     .sort((a, b) => b.amount - a.amount);
 }
 
 function buildInsights(summary, expenseByCategory, savingRate) {
-  if (!state.transactions.length) {
-    return ["Cadastre receitas e despesas para gerar analises automaticas."];
-  }
-
+  if (!state.transactions.length) return ["Cadastre receitas e despesas para gerar analises automaticas."];
   const insights = [];
   const top = expenseByCategory[0];
-
   if (summary.expense > summary.income && summary.income > 0) {
     insights.push("As despesas estao maiores que as receitas. Priorize cortar gastos recorrentes antes de assumir novos compromissos.");
   }
-
   if (top) {
     const percent = summary.expense > 0 ? Math.round((top.amount / summary.expense) * 100) : 0;
     insights.push(`${top.category} concentra ${percent}% das despesas. Revise essa categoria primeiro para encontrar economia rapida.`);
   }
-
   if (savingRate < 10 && summary.income > 0) {
     insights.push("A taxa de economia esta baixa. Uma meta inicial saudavel e guardar pelo menos 10% das receitas.");
   }
-
   if (summary.investmentTotal <= 0 && summary.income > 0) {
     insights.push("Ainda nao ha saldo em investimentos. Use transferencia para separar reserva ou aplicacoes.");
   }
-
-  if (!insights.length) {
-    insights.push("Seu resultado esta positivo. Continue acompanhando as maiores categorias para manter o controle.");
-  }
-
+  if (!insights.length) insights.push("Seu resultado esta positivo. Continue acompanhando as maiores categorias para manter o controle.");
   return insights;
 }
 
 function renderLicense() {
   const valid = isLicenseValid();
-
   if (valid) {
     const expiration = license.expiresAt ? formatDate(license.expiresAt.slice(0, 10)) : "sem data";
     elements.licenseStatus.textContent = "Ativada";
     elements.licenseStatus.className = "status-ok";
-    elements.licenseMessage.textContent = `Licenca ativa ate ${expiration}. ${license.holder ? `Cliente: ${license.holder}.` : ""}`;
+    elements.licenseMessage.textContent = `Licenca ativa ate ${expiration}.${license.holder ? ` Cliente: ${license.holder}.` : ""}`;
     setFormLocked(false);
+    showLicenseWarning(false);
     return;
   }
-
   const expired = license.active && license.expiresAt && new Date(license.expiresAt) <= new Date();
   elements.licenseStatus.textContent = expired ? "Expirada" : "Nao ativada";
   elements.licenseStatus.className = "status-alert";
   elements.licenseMessage.textContent = expired
-    ? "Licenca expirada. Ative uma nova chave para liberar novos lancamentos."
-    : "Para teste, use a chave FINANCAS-2026. Ela vence 1 dia apos a ativacao.";
+    ? "Licenca expirada. Solicite uma nova chave pelo WhatsApp abaixo."
+    : "Digite a chave de licenca fornecida pelo administrador.";
   setFormLocked(true);
+  showLicenseWarning(true);
 }
 
 function setFormLocked(locked) {
@@ -546,6 +595,11 @@ function setFormLocked(locked) {
   elements.form.querySelectorAll("input, select, button").forEach((control) => {
     control.disabled = locked;
   });
+}
+
+function showLicenseWarning(show) {
+  const el = document.querySelector("#licenseWarning");
+  if (el) el.classList.toggle("hidden", !show);
 }
 
 function isLicenseValid() {
@@ -556,50 +610,33 @@ function isLicenseValid() {
 async function verifySignedLicense(value) {
   const parts = value.split(".");
   if (parts.length !== 2) {
-    return { valid: false, message: "Chave invalida. Use FINANCAS-2026 ou uma licenca gerada pelo administrador." };
+    return { valid: false, message: "Chave invalida. Digite uma licenca gerada pelo administrador." };
   }
-
   try {
     const [payloadPart, signaturePart] = parts;
     const payloadBytes = base64UrlToBytes(payloadPart);
     const signatureBytes = base64UrlToBytes(signaturePart);
-    const key = await crypto.subtle.importKey(
-      "jwk",
-      licensePublicKey,
-      { name: "ECDSA", namedCurve: "P-256" },
-      false,
-      ["verify"]
-    );
-    const verified = await crypto.subtle.verify(
-      { name: "ECDSA", hash: "SHA-256" },
-      key,
-      signatureBytes,
-      payloadBytes
-    );
-
-    if (!verified) {
-      return { valid: false, message: "Assinatura da licenca invalida." };
-    }
-
+    const key = await crypto.subtle.importKey("jwk", licensePublicKey, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    const verified = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, signatureBytes, payloadBytes);
+    if (!verified) return { valid: false, message: "Assinatura da licenca invalida." };
     const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
     if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) {
       return { valid: false, message: "Esta licenca ja esta expirada." };
     }
-
     return { valid: true, payload };
   } catch {
     return { valid: false, message: "Nao foi possivel validar esta licenca." };
   }
 }
 
+// --- CHARTS ---
+
 function drawCharts(summary) {
   drawBarChart(elements.flowChart, [
     { label: "Receitas", value: summary.income, color: "#15803d" },
     { label: "Despesas", value: summary.expense, color: "#b42318" }
   ]);
-
-  drawBarChart(
-    elements.accountChart,
+  drawBarChart(elements.accountChart,
     state.accounts.map((account) => ({
       label: account.name,
       value: summary.accountBalances[account.id] || 0,
@@ -615,38 +652,31 @@ function drawBarChart(canvas, rows) {
   canvas.width = Math.max(320, Math.floor(rect.width * scale));
   canvas.height = Math.max(180, Math.floor(rect.height * scale));
   context.scale(scale, scale);
-
   const width = canvas.width / scale;
   const height = canvas.height / scale;
   const padding = 28;
   const chartHeight = height - padding * 2 - 26;
-  const max = Math.max(...rows.map((row) => Math.abs(row.value)), 1);
+  const max = Math.max(...rows.map((r) => Math.abs(r.value)), 1);
   const barWidth = Math.min(96, (width - padding * 2) / rows.length - 18);
-
   context.clearRect(0, 0, width, height);
   context.fillStyle = "#fbfdfc";
   context.fillRect(0, 0, width, height);
-
   context.strokeStyle = "#dce5e2";
   context.lineWidth = 1;
   context.beginPath();
   context.moveTo(padding, height - padding - 26);
   context.lineTo(width - padding, height - padding - 26);
   context.stroke();
-
   rows.forEach((row, index) => {
     const x = padding + index * ((width - padding * 2) / rows.length) + 12;
     const valueHeight = (Math.abs(row.value) / max) * chartHeight;
     const y = height - padding - 26 - valueHeight;
-
     context.fillStyle = row.color;
     roundRect(context, x, y, barWidth, valueHeight, 6);
     context.fill();
-
     context.fillStyle = "#17211f";
     context.font = "700 12px Arial";
     context.fillText(trimLabel(row.label, 15), x, height - padding - 7);
-
     context.fillStyle = "#61716d";
     context.font = "700 11px Arial";
     context.fillText(money.format(row.value), x, Math.max(18, y - 8));
@@ -664,16 +694,14 @@ function roundRect(context, x, y, width, height, radius) {
   context.closePath();
 }
 
+// --- UTILS ---
+
 function getAccountName(id) {
-  return state.accounts.find((account) => account.id === id)?.name || "Conta";
+  return state.accounts.find((a) => a.id === id)?.name || "Conta";
 }
 
 function getTypeLabel(type) {
-  return {
-    income: "Receita",
-    expense: "Despesa",
-    transfer: "Transferencia"
-  }[type];
+  return { income: "Receita", expense: "Despesa", transfer: "Transferencia" }[type];
 }
 
 function formatTransactionAmount(transaction) {

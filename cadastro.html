@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Cadastro — Controle sua Fortuna</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      background: white; border-radius: 20px; padding: 2rem;
+      width: 100%; max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .logo { text-align: center; margin-bottom: 1.5rem; }
+    .logo h1 { font-size: 1.4rem; color: #0f766e; font-weight: 700; }
+    .logo p { font-size: 0.85rem; color: #61716d; margin-top: 4px; }
+    .fields { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 0.88rem; font-weight: 600; color: #17211f; }
+    input {
+      padding: 12px 14px; border: 1.5px solid #dce5e2; border-radius: 10px;
+      font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+      width: 100%;
+    }
+    input:focus { border-color: #0f766e; }
+    input.error { border-color: #b42318; }
+    .btn {
+      width: 100%; padding: 14px; background: #0f766e; color: white;
+      border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover { background: #0d6560; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    .status {
+      margin-top: 1rem; padding: 10px 14px; border-radius: 8px;
+      font-size: 0.88rem; text-align: center; display: none;
+    }
+    .status.success { background: #dcfce7; color: #15803d; display: block; }
+    .status.error { background: #fee2e2; color: #b42318; display: block; }
+    .status.loading { background: #f0f9ff; color: #0369a1; display: block; }
+    .helper { font-size: 0.78rem; color: #61716d; text-align: center; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <h1>Controle sua Fortuna</h1>
+      <p>Preencha seus dados para comecar</p>
+    </div>
+    <div class="fields">
+      <label>Nome de usuario <input id="username" type="text" placeholder="Ex: joaosilva" autocomplete="username"/></label>
+      <label>Nome completo <input id="fullname" type="text" placeholder="Ex: Joao da Silva" autocomplete="name"/></label>
+      <label>E-mail <input id="email" type="email" placeholder="Ex: joao@email.com" autocomplete="email"/></label>
+      <label>CPF <input id="cpf" type="text" placeholder="000.000.000-00" inputmode="numeric"/></label>
+    </div>
+    <button class="btn" id="saveBtn">Salvar e continuar</button>
+    <div class="status" id="status"></div>
+    <p class="helper">Seus dados sao usados para vincular sua licenca de uso.</p>
+  </div>
+ 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    const EMAILJS_PUBLIC_KEY = "vKgN3F2Vl5fYIQv4f";
+    const EMAILJS_SERVICE_ID = "service_yks97t8";
+    const EMAILJS_TEMPLATE_ID = "template_j5ow2qa";
+    const userProfileKey = "financas-user-profile";
+ 
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+ 
+    // Se ja tem perfil, vai direto para o app
+    if (localStorage.getItem(userProfileKey)) {
+      window.location.href = "index.html";
+    }
+ 
+    function formatCpf(value) {
+      return value.replace(/\D/g, "")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+        .slice(0, 14);
+    }
+ 
+    document.querySelector("#cpf").addEventListener("input", (e) => {
+      e.target.value = formatCpf(e.target.value);
+    });
+ 
+    function setStatus(msg, type) {
+      const el = document.querySelector("#status");
+      el.textContent = msg;
+      el.className = "status " + type;
+    }
+ 
+    document.querySelector("#saveBtn").addEventListener("click", async () => {
+      const username = document.querySelector("#username").value.trim();
+      const fullname = document.querySelector("#fullname").value.trim();
+      const email = document.querySelector("#email").value.trim();
+      const cpf = document.querySelector("#cpf").value.trim();
+ 
+      // Limpa erros
+      document.querySelectorAll("input").forEach(i => i.classList.remove("error"));
+ 
+      let hasError = false;
+      if (!username) { document.querySelector("#username").classList.add("error"); hasError = true; }
+      if (!fullname) { document.querySelector("#fullname").classList.add("error"); hasError = true; }
+      if (!email || !email.includes("@")) { document.querySelector("#email").classList.add("error"); hasError = true; }
+      if (cpf.replace(/\D/g,"").length < 11) { document.querySelector("#cpf").classList.add("error"); hasError = true; }
+ 
+      if (hasError) { setStatus("Preencha todos os campos corretamente.", "error"); return; }
+ 
+      document.querySelector("#saveBtn").disabled = true;
+      setStatus("Salvando e enviando email...", "loading");
+ 
+      // Salva perfil localmente
+      const profile = { username, fullname, email, cpf, registeredAt: new Date().toISOString() };
+      localStorage.setItem(userProfileKey, JSON.stringify(profile));
+ 
+      // Envia email via EmailJS
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email: "gilvanezmh@gmail.com",
+          username,
+          fullname,
+          email,
+          cpf,
+          registered_at: new Date().toLocaleString("pt-BR")
+        });
+        setStatus("Cadastro realizado! Redirecionando...", "success");
+      } catch (err) {
+        // Mesmo se o email falhar, salva o perfil e continua
+        setStatus("Cadastro salvo. Redirecionando...", "success");
+      }
+ 
+      setTimeout(() => { window.location.href = "index.html"; }, 1500);
+    });
+  </script>
+</body>
+</html>

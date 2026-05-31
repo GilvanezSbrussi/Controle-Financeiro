@@ -1,191 +1,140 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f766e" />
-    <title>Controle sua Fortuna</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Controle financeiro</p>
-          <h1>Controle sua Fortuna</h1>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f766e"/>
+  <title>Controle sua Fortuna</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .topbar { display:flex; justify-content:space-between; align-items:center; }
+    .topbar-actions { position:relative; }
+    .icon-button { background:rgba(255,255,255,0.15); border:none; cursor:pointer; font-size:1.3rem; color:white; padding:7px 12px; border-radius:8px; }
+    .icon-button:hover { background:rgba(255,255,255,0.25); }
+    .dropdown-menu { position:absolute; right:0; top:calc(100% + 8px); background:white; border:1px solid #dce5e2; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.13); min-width:190px; z-index:100; overflow:hidden; }
+    .dropdown-item { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:13px 16px; background:none; border:none; cursor:pointer; font-size:0.95rem; color:#17211f; text-decoration:none; transition:background 0.15s; }
+    .dropdown-item:hover { background:#f0f7f5; }
+    .status-ok { color:#15803d; font-weight:600; }
+    .status-alert { color:#b42318; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Controle financeiro</p>
+        <h1>Controle sua Fortuna</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-button" id="menuButton" type="button" aria-label="Menu">&#9776;</button>
+        <div class="dropdown-menu hidden" id="dropdownMenu">
+          <a class="dropdown-item" href="licenca.html">&#128273; Licenca</a>
+          <a class="dropdown-item" href="backup.html">&#128190; Backup</a>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <main>
-        <section class="summary-grid" aria-label="Resumo financeiro">
-          <article class="metric primary">
-            <span>Saldo total</span>
-            <strong id="totalBalance">R$ 0,00</strong>
-          </article>
-          <article class="metric">
-            <span>Receitas</span>
-            <strong id="incomeTotal">R$ 0,00</strong>
-          </article>
-          <article class="metric">
-            <span>Despesas</span>
-            <strong id="expenseTotal">R$ 0,00</strong>
-          </article>
-          <article class="metric">
-            <span>Investimentos</span>
-            <strong id="investmentTotal">R$ 0,00</strong>
-          </article>
-        </section>
+    <main>
+      <section class="summary-grid" aria-label="Resumo financeiro">
+        <article class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></article>
+        <article class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></article>
+        <article class="metric"><span>Despesas</span><strong id="expenseTotal">R$ 0,00</strong></article>
+        <article class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></article>
+      </section>
 
-        <section class="panel accounts-panel">
-          <div class="section-title">
-            <h2>Contas</h2>
-            <span id="accountCount">0 contas</span>
+      <section class="panel accounts-panel">
+        <div class="section-title"><h2>Contas</h2><span id="accountCount">0 contas</span></div>
+        <div class="account-list" id="accountList"></div>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="section-title">
+          <h2 id="formTitle">Novo lancamento</h2>
+          <button class="text-button hidden" id="cancelEditButton" type="button">Cancelar edicao</button>
+        </div>
+        <form id="transactionForm" autocomplete="off">
+          <div class="segmented" role="radiogroup" aria-label="Tipo de lancamento">
+            <label><input type="radio" name="type" value="income" checked/><span>Receita</span></label>
+            <label><input type="radio" name="type" value="expense"/><span>Despesa</span></label>
+            <label><input type="radio" name="type" value="transfer"/><span>Transferencia</span></label>
           </div>
-          <div class="account-list" id="accountList"></div>
-        </section>
-
-        <section class="panel form-panel">
-          <div class="section-title">
-            <h2 id="formTitle">Novo lancamento</h2>
-            <button class="text-button hidden" id="cancelEditButton" type="button">Cancelar edicao</button>
+          <div class="field-grid">
+            <label>Descricao<input id="description" name="description" type="text" placeholder="Ex: salario, mercado" required/></label>
+            <label>Valor<input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+            <label>Data<input id="date" name="date" type="date" required/></label>
+            <label id="fromAccountWrap">Conta<select id="fromAccount" name="fromAccount" required></select></label>
+            <label id="toAccountWrap" class="hidden">Conta destino<select id="toAccount" name="toAccount"></select></label>
+            <label id="categoryWrap">Categoria<input id="category" name="category" type="text" placeholder="Ex: casa, alimentacao"/></label>
           </div>
+          <button class="primary-button" id="saveButton" type="submit">Salvar lancamento</button>
+        </form>
+      </section>
 
-          <form id="transactionForm" autocomplete="off">
-            <div class="segmented" role="radiogroup" aria-label="Tipo de lancamento">
-              <label>
-                <input type="radio" name="type" value="income" checked />
-                <span>Receita</span>
-              </label>
-              <label>
-                <input type="radio" name="type" value="expense" />
-                <span>Despesa</span>
-              </label>
-              <label>
-                <input type="radio" name="type" value="transfer" />
-                <span>Transferencia</span>
-              </label>
-            </div>
+      <section class="chart-section">
+        <article class="panel chart-panel">
+          <div class="section-title"><h2>Receitas x despesas</h2><span>Mes atual</span></div>
+          <canvas id="flowChart" width="640" height="360" aria-label="Grafico de receitas e despesas"></canvas>
+        </article>
+        <article class="panel chart-panel">
+          <div class="section-title"><h2>Saldo por conta</h2><span>Atual</span></div>
+          <canvas id="accountChart" width="640" height="360" aria-label="Grafico de saldo por conta"></canvas>
+        </article>
+      </section>
 
-            <div class="field-grid">
-              <label>
-                Descricao
-                <input id="description" name="description" type="text" placeholder="Ex: salario, mercado" required />
-              </label>
-              <label>
-                Valor
-                <input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required />
-              </label>
-              <label>
-                Data
-                <input id="date" name="date" type="date" required />
-              </label>
-              <label id="fromAccountWrap">
-                Conta
-                <select id="fromAccount" name="fromAccount" required></select>
-              </label>
-              <label id="toAccountWrap" class="hidden">
-                Conta destino
-                <select id="toAccount" name="toAccount"></select>
-              </label>
-              <label id="categoryWrap">
-                Categoria
-                <input id="category" name="category" type="text" placeholder="Ex: casa, alimentacao" />
-              </label>
-            </div>
+      <section class="panel reports-panel">
+        <div class="section-title"><h2>Relatorios</h2><span id="reportPeriod">Todos os lancamentos</span></div>
+        <div class="report-grid">
+          <article class="report-card"><span>Resultado</span><strong id="netResult">R$ 0,00</strong><small>Receitas menos despesas</small></article>
+          <article class="report-card"><span>Maior despesa</span><strong id="topExpense">R$ 0,00</strong><small id="topExpenseLabel">Sem despesas</small></article>
+          <article class="report-card"><span>Taxa de economia</span><strong id="savingRate">0%</strong><small>Quanto sobrou das receitas</small></article>
+        </div>
+        <div class="insights-list" id="insightsList"></div>
+      </section>
 
-            <button class="primary-button" id="saveButton" type="submit">Salvar lancamento</button>
-          </form>
-        </section>
+      <!-- RECEITAS -->
+      <section class="panel transactions-panel">
+        <div class="section-title"><h2>&#128200; Receitas</h2><span id="incomeCount">0 registros</span></div>
+        <div class="transaction-list" id="incomeList"></div>
+      </section>
 
-        <section class="chart-section">
-          <article class="panel chart-panel">
-            <div class="section-title">
-              <h2>Receitas x despesas</h2>
-              <span>Mes atual</span>
-            </div>
-            <canvas id="flowChart" width="640" height="360" aria-label="Grafico de receitas e despesas"></canvas>
-          </article>
+      <!-- DESPESAS -->
+      <section class="panel transactions-panel">
+        <div class="section-title"><h2>&#128201; Despesas</h2><span id="expenseCount">0 registros</span></div>
+        <div class="transaction-list" id="expenseList"></div>
+      </section>
 
-          <article class="panel chart-panel">
-            <div class="section-title">
-              <h2>Saldo por conta</h2>
-              <span>Atual</span>
-            </div>
-            <canvas id="accountChart" width="640" height="360" aria-label="Grafico de saldo por conta"></canvas>
-          </article>
-        </section>
+      <!-- INVESTIMENTOS -->
+      <section class="panel transactions-panel">
+        <div class="section-title"><h2>&#128176; Investimentos e transferencias</h2><span id="transferCount">0 registros</span></div>
+        <div class="transaction-list" id="transferList"></div>
+      </section>
 
-        <section class="panel reports-panel">
-          <div class="section-title">
-            <h2>Relatorios</h2>
-            <span id="reportPeriod">Todos os lancamentos</span>
-          </div>
-          <div class="report-grid">
-            <article class="report-card">
-              <span>Resultado</span>
-              <strong id="netResult">R$ 0,00</strong>
-              <small>Receitas menos despesas</small>
-            </article>
-            <article class="report-card">
-              <span>Maior despesa</span>
-              <strong id="topExpense">R$ 0,00</strong>
-              <small id="topExpenseLabel">Sem despesas</small>
-            </article>
-            <article class="report-card">
-              <span>Taxa de economia</span>
-              <strong id="savingRate">0%</strong>
-              <small>Quanto sobrou das receitas</small>
-            </article>
-          </div>
-          <div class="insights-list" id="insightsList"></div>
-        </section>
+      <!-- AVISO DE LICENCA (aparece quando expirada) -->
+      <div id="licenseWarning" class="hidden" style="position:fixed;bottom:0;left:0;right:0;background:#b42318;color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:0.9rem;">
+        <span>&#9888; Licenca expirada ou inativa</span>
+        <a href="licenca.html" style="color:white;font-weight:700;text-decoration:underline;">Ativar agora</a>
+      </div>
+    </main>
+  </div>
 
-        <section class="panel license-panel">
-          <div class="section-title">
-            <h2>Licenca</h2>
-            <span id="licenseStatus">Nao ativada</span>
-          </div>
-          <div class="license-grid">
-            <label>
-              Chave de licenca
-              <textarea id="licenseKey" rows="3" placeholder="Digite a chave de ativacao"></textarea>
-            </label>
-            <button class="secondary-button" id="activateLicenseButton" type="button">Ativar licenca</button>
-          </div>
-          <p class="helper-text" id="licenseMessage">Digite a chave de licenca fornecida pelo administrador.</p>
-        </section>
-
-        <section class="panel backup-panel">
-          <div class="section-title">
-            <h2>Backup dos dados</h2>
-            <span>Base local</span>
-          </div>
-          <div class="backup-actions">
-            <button class="secondary-button" id="exportButton" type="button">Exportar backup</button>
-            <label class="secondary-button file-button">
-              Importar backup
-              <input id="importFile" type="file" accept="application/json,.json" />
-            </label>
-          </div>
-          <p class="helper-text" id="backupStatus">Os dados ficam salvos neste aparelho. Use backup para guardar uma copia em uma pasta escolhida.</p>
-        </section>
-
-        <section class="panel transactions-panel">
-          <div class="section-title">
-            <h2>Lancamentos</h2>
-            <span id="transactionCount">0 registros</span>
-          </div>
-          <div class="transaction-list" id="transactionList"></div>
-        </section>
-      </main>
-    </div>
-
-    <script src="app.js"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js");
-      }
-    </script>
-  </body>
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+    // Redireciona para cadastro se nao tiver perfil
+    if (!localStorage.getItem("financas-user-profile")) {
+      window.location.href = "cadastro.html";
+    }
+    // Menu dropdown
+    document.querySelector("#menuButton").addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.querySelector("#dropdownMenu").classList.toggle("hidden");
+    });
+    document.addEventListener("click", () => {
+      document.querySelector("#dropdownMenu").classList.add("hidden");
+    });
+  </script>
+</body>
 </html>

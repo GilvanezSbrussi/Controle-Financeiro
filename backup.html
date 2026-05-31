@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Backup — Controle sua Fortuna</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f7f5; min-height: 100vh; }
+    .topbar { background: #0f766e; color: white; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    .topbar a { color: white; text-decoration: none; font-size: 1.2rem; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 600; }
+    .content { padding: 1.5rem; max-width: 500px; margin: 0 auto; }
+    .card { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 1rem; }
+    .card h2 { font-size: 1rem; color: #17211f; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.88rem; color: #61716d; margin-bottom: 1rem; line-height: 1.5; }
+    .btn { width: 100%; padding: 13px; background: #0f766e; color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 0.75rem; display: block; text-align: center; }
+    .btn:hover { background: #0d6560; }
+    .btn.secondary { background: none; color: #0f766e; border: 1.5px solid #0f766e; }
+    .btn.secondary:hover { background: #f0f9f7; }
+    .btn.danger { background: #b42318; }
+    .btn.danger:hover { background: #991b1b; }
+    .file-label { display: block; width: 100%; padding: 13px; background: none; color: #0f766e; border: 1.5px solid #0f766e; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-align: center; margin-bottom: 0.75rem; }
+    .file-label input { display: none; }
+    .status-msg { padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1rem; display: none; }
+    .status-msg.show { display: block; }
+    .status-msg.success { background: #dcfce7; color: #15803d; }
+    .status-msg.error { background: #fee2e2; color: #b42318; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f7f5; font-size: 0.85rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span { color: #61716d; }
+    .info-row strong { color: #17211f; }
+    .confirm-box { background: #fee2e2; border-radius: 10px; padding: 1rem; margin-top: 1rem; display: none; }
+    .confirm-box.show { display: block; }
+    .confirm-box p { color: #b42318; font-size: 0.88rem; margin-bottom: 0.75rem; }
+    .confirm-row { display: flex; gap: 0.5rem; }
+    .confirm-row button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .confirm-yes { background: #b42318; color: white; }
+    .confirm-no { background: #e5e7eb; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">&#8592;</a>
+    <h1>Backup dos dados</h1>
+  </div>
+
+  <div class="content">
+    <!-- Info -->
+    <div class="card">
+      <h2>Informacoes</h2>
+      <div id="backupInfo"></div>
+    </div>
+
+    <!-- Exportar -->
+    <div class="card">
+      <h2>Exportar backup</h2>
+      <p>Salva uma copia dos seus dados em um arquivo JSON no seu dispositivo.</p>
+      <div class="status-msg" id="exportMsg"></div>
+      <button class="btn" id="exportBtn">&#128190; Exportar backup</button>
+    </div>
+
+    <!-- Importar -->
+    <div class="card">
+      <h2>Importar backup</h2>
+      <p>Restaura seus dados a partir de um arquivo de backup exportado anteriormente.</p>
+      <div class="status-msg" id="importMsg"></div>
+      <label class="file-label">
+        &#128194; Selecionar arquivo de backup
+        <input type="file" id="importFile" accept=".json,application/json"/>
+      </label>
+    </div>
+
+    <!-- Limpar dados -->
+    <div class="card">
+      <h2>Limpar todos os dados</h2>
+      <p>Remove todos os lancamentos e contas. Esta acao nao pode ser desfeita. Faca um backup antes.</p>
+      <button class="btn danger" id="clearBtn">&#128465; Limpar todos os dados</button>
+      <div class="confirm-box" id="confirmBox">
+        <p>Tem certeza? Todos os lancamentos serao apagados permanentemente.</p>
+        <div class="confirm-row">
+          <button class="confirm-yes" id="confirmYes">Sim, apagar tudo</button>
+          <button class="confirm-no" id="confirmNo">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const storageKey = "financas-v3";
+
+    renderInfo();
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(storageKey)) || { accounts: [], transactions: [] }; }
+      catch { return { accounts: [], transactions: [] }; }
+    }
+
+    function renderInfo() {
+      const state = loadState();
+      const accounts = state.accounts?.length || 0;
+      const transactions = state.transactions?.length || 0;
+      const lastExport = localStorage.getItem("financas-last-export");
+      document.querySelector("#backupInfo").innerHTML = `
+        <div class="info-row"><span>Contas cadastradas</span><strong>${accounts}</strong></div>
+        <div class="info-row"><span>Lancamentos</span><strong>${transactions}</strong></div>
+        <div class="info-row"><span>Ultimo backup</span><strong>${lastExport ? new Date(lastExport).toLocaleString("pt-BR") : "Nenhum"}</strong></div>`;
+    }
+
+    function setMsg(id, text, type) {
+      const el = document.querySelector("#" + id);
+      el.textContent = text;
+      el.className = "status-msg show " + type;
+    }
+
+    document.querySelector("#exportBtn").addEventListener("click", () => {
+      const state = loadState();
+      const backup = { app: "Controle sua Fortuna", version: 1, exportedAt: new Date().toISOString(), data: state };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `financas-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      localStorage.setItem("financas-last-export", new Date().toISOString());
+      setMsg("exportMsg", "Backup exportado com sucesso!", "success");
+      renderInfo();
+    });
+
+    document.querySelector("#importFile").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const data = parsed.data || parsed;
+          if (!Array.isArray(data.accounts) || !Array.isArray(data.transactions)) throw new Error("Arquivo invalido");
+          localStorage.setItem(storageKey, JSON.stringify({ accounts: data.accounts, transactions: data.transactions }));
+          setMsg("importMsg", `Backup importado! ${data.transactions.length} lancamentos restaurados.`, "success");
+          renderInfo();
+        } catch { setMsg("importMsg", "Arquivo invalido ou corrompido.", "error"); }
+        finally { e.target.value = ""; }
+      };
+      reader.readAsText(file);
+    });
+
+    document.querySelector("#clearBtn").addEventListener("click", () => {
+      document.querySelector("#confirmBox").classList.add("show");
+    });
+
+    document.querySelector("#confirmNo").addEventListener("click", () => {
+      document.querySelector("#confirmBox").classList.remove("show");
+    });
+
+    document.querySelector("#confirmYes").addEventListener("click", () => {
+      localStorage.removeItem(storageKey);
+      document.querySelector("#confirmBox").classList.remove("show");
+      renderInfo();
+      alert("Todos os dados foram apagados.");
+    });
+  </script>
+</body>
+</html>
