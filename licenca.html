@@ -231,8 +231,9 @@
       const name = profile.fullname || "Cliente";
       const username = profile.username || "";
       const cpf = profile.cpf || "";
+      const email = profile.email || "";
       const msg = encodeURIComponent(
-        `Ola! Gostaria de solicitar uma nova licenca do Controle sua Fortuna.\n\nNome: ${name}\nUsuario: ${username}\nCPF: ${cpf}\n\nJa efetuei o pagamento.`
+        `Ola! Gostaria de solicitar uma nova licença do Controle sua Fortuna.\n\nNome: ${name}\nUsuario: ${username}\nCPF: ${cpf}\n\Email: ${email}\n\n`
       );
       document.querySelector("#whatsappBtn").onclick = () => {
         window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
