@@ -8,15 +8,40 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="stylesheet" href="styles.css"/>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* TOPBAR */
     .topbar { display:flex; justify-content:space-between; align-items:center; }
     .topbar-actions { position:relative; }
     .icon-button { background:rgba(255,255,255,0.15); border:none; cursor:pointer; font-size:1.3rem; color:white; padding:7px 12px; border-radius:8px; }
     .icon-button:hover { background:rgba(255,255,255,0.25); }
     .dropdown-menu { position:absolute; right:0; top:calc(100% + 8px); background:white; border:1px solid #dce5e2; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.13); min-width:190px; z-index:100; overflow:hidden; }
+    .dropdown-menu.hidden { display:none; }
     .dropdown-item { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:13px 16px; background:none; border:none; cursor:pointer; font-size:0.95rem; color:#17211f; text-decoration:none; transition:background 0.15s; }
     .dropdown-item:hover { background:#f0f7f5; }
+
+    /* ABAS */
+    .tab-nav { display:flex; background:#0b5e58; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .tab-btn { flex:1; min-width:100px; background:none; border:none; border-bottom:3px solid transparent; color:rgba(255,255,255,0.65); padding:13px 8px; font-size:0.88rem; font-weight:600; cursor:pointer; white-space:nowrap; transition:all 0.2s; }
+    .tab-btn:hover { color:white; background:rgba(255,255,255,0.08); }
+    .tab-btn.active { color:white; border-bottom-color:white; background:rgba(255,255,255,0.1); }
+
+    /* CONTEÚDO DAS ABAS */
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* NAVEGAÇÃO MÊS */
+    .month-nav { display:flex; align-items:center; gap:6px; }
+    .month-nav-btn { background:none; border:1px solid #dce5e2; border-radius:6px; padding:3px 9px; cursor:pointer; font-size:0.9rem; color:#61716d; line-height:1; }
+    .month-nav-btn:hover { background:#f0f7f5; }
+
+    /* STATUS */
     .status-ok { color:#15803d; font-weight:600; }
     .status-alert { color:#b42318; font-weight:600; }
+
+    /* AVISO LICENÇA */
+    #licenseWarning { display:none; position:fixed; bottom:0; left:0; right:0; background:#b42318; color:white; padding:12px 16px; justify-content:space-between; align-items:center; z-index:50; font-size:0.9rem; }
+    #licenseWarning a { color:white; font-weight:700; text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -29,111 +54,189 @@
       <div class="topbar-actions">
         <button class="icon-button" id="menuButton" type="button" aria-label="Menu">&#9776;</button>
         <div class="dropdown-menu hidden" id="dropdownMenu">
+          <a class="dropdown-item" href="extrato.html">&#128202; Extrato</a>
           <a class="dropdown-item" href="licenca.html">&#128273; Licenca</a>
           <a class="dropdown-item" href="backup.html">&#128190; Backup</a>
         </div>
       </div>
     </header>
 
+    <!-- ABAS -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-target="pane-visao">&#127968; Visao Geral</button>
+      <button class="tab-btn" data-target="pane-lancamentos">&#128203; Lancamentos</button>
+      <button class="tab-btn" data-target="pane-relatorios">&#128201; Relatorios</button>
+    </nav>
+
     <main>
-      <section class="summary-grid" aria-label="Resumo financeiro">
-        <article class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></article>
-        <article class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></article>
-        <article class="metric"><span>Despesas</span><strong id="expenseTotal">R$ 0,00</strong></article>
-        <article class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></article>
-      </section>
 
-      <section class="panel accounts-panel">
-        <div class="section-title"><h2>Contas</h2><span id="accountCount">0 contas</span></div>
-        <div class="account-list" id="accountList"></div>
-      </section>
+      <!-- ===== ABA: VISAO GERAL ===== -->
+      <div class="tab-pane active" id="pane-visao">
 
-      <section class="panel form-panel">
-        <div class="section-title">
-          <h2 id="formTitle">Novo lancamento</h2>
-          <button class="text-button hidden" id="cancelEditButton" type="button">Cancelar edicao</button>
-        </div>
-        <form id="transactionForm" autocomplete="off">
-          <div class="segmented" role="radiogroup" aria-label="Tipo de lancamento">
-            <label><input type="radio" name="type" value="income" checked/><span>Receita</span></label>
-            <label><input type="radio" name="type" value="expense"/><span>Despesa</span></label>
-            <label><input type="radio" name="type" value="transfer"/><span>Transferencia</span></label>
+        <section class="summary-grid" aria-label="Resumo financeiro">
+          <article class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></article>
+          <article class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></article>
+          <article class="metric"><span>Despesas</span><strong id="expenseTotal">R$ 0,00</strong></article>
+          <article class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></article>
+        </section>
+
+        <section class="panel accounts-panel">
+          <div class="section-title"><h2>Contas</h2><span id="accountCount">0 contas</span></div>
+          <div class="account-list" id="accountList"></div>
+        </section>
+
+        <section class="panel form-panel">
+          <div class="section-title">
+            <h2 id="formTitle">Novo lancamento</h2>
+            <button class="text-button hidden" id="cancelEditButton" type="button">Cancelar edicao</button>
           </div>
-          <div class="field-grid">
-            <label>Descricao<input id="description" name="description" type="text" placeholder="Ex: salario, mercado" required/></label>
-            <label>Valor<input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
-            <label>Data<input id="date" name="date" type="date" required/></label>
-            <label id="fromAccountWrap">Conta<select id="fromAccount" name="fromAccount" required></select></label>
-            <label id="toAccountWrap" class="hidden">Conta destino<select id="toAccount" name="toAccount"></select></label>
-            <label id="categoryWrap">Categoria<input id="category" name="category" type="text" placeholder="Ex: casa, alimentacao"/></label>
+          <form id="transactionForm" autocomplete="off">
+            <div class="segmented" role="radiogroup" aria-label="Tipo de lancamento">
+              <label><input type="radio" name="type" value="income" checked/><span>Receita</span></label>
+              <label><input type="radio" name="type" value="expense"/><span>Despesa</span></label>
+              <label><input type="radio" name="type" value="transfer"/><span>Transferencia</span></label>
+            </div>
+            <div class="field-grid">
+              <label>Descricao<input id="description" name="description" type="text" placeholder="Ex: salario, mercado" required/></label>
+              <label>Valor<input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+              <label>Data<input id="date" name="date" type="date" required/></label>
+              <label id="fromAccountWrap">Conta<select id="fromAccount" name="fromAccount" required></select></label>
+              <label id="toAccountWrap" class="hidden">Conta destino<select id="toAccount" name="toAccount"></select></label>
+              <label id="categoryWrap">Categoria<input id="category" name="category" type="text" placeholder="Ex: casa, alimentacao"/></label>
+            </div>
+            <button class="primary-button" id="saveButton" type="submit">Salvar lancamento</button>
+          </form>
+        </section>
+
+      </div><!-- fim pane-visao -->
+
+      <!-- ===== ABA: LANCAMENTOS ===== -->
+      <div class="tab-pane" id="pane-lancamentos">
+
+        <section class="panel transactions-panel">
+          <div class="section-title"><h2>&#128200; Receitas</h2><span id="incomeCount">0 registros</span></div>
+          <div class="transaction-list" id="incomeList"></div>
+        </section>
+
+        <section class="panel transactions-panel">
+          <div class="section-title"><h2>&#128201; Despesas</h2><span id="expenseCount">0 registros</span></div>
+          <div class="transaction-list" id="expenseList"></div>
+        </section>
+
+        <section class="panel transactions-panel">
+          <div class="section-title"><h2>&#128176; Investimentos e transferencias</h2><span id="transferCount">0 registros</span></div>
+          <div class="transaction-list" id="transferList"></div>
+        </section>
+
+      </div><!-- fim pane-lancamentos -->
+
+      <!-- ===== ABA: RELATORIOS ===== -->
+      <div class="tab-pane" id="pane-relatorios">
+
+        <!-- Gráfico economia mensal -->
+        <section class="panel">
+          <div class="section-title">
+            <h2>&#127381; Economia mensal</h2>
+            <div class="month-nav">
+              <button class="month-nav-btn" id="prevMonth">&#8592;</button>
+              <span id="economyMonth" style="font-size:0.85rem;color:#61716d;min-width:110px;text-align:center;"></span>
+              <button class="month-nav-btn" id="nextMonth">&#8594;</button>
+            </div>
           </div>
-          <button class="primary-button" id="saveButton" type="submit">Salvar lancamento</button>
-        </form>
-      </section>
+          <div style="display:flex;align-items:center;justify-content:space-around;flex-wrap:wrap;gap:1rem;padding:0.5rem 0;">
+            <div style="position:relative;width:140px;height:140px;flex-shrink:0;">
+              <canvas id="economyChart" width="140" height="140"></canvas>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+                <strong id="economyPercent" style="font-size:1.6rem;font-weight:800;color:#0f766e;">0%</strong>
+                <small style="font-size:0.7rem;color:#61716d;">de economia</small>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;flex:1;min-width:160px;">
+              <div><small style="font-size:0.78rem;color:#61716d;">Receitas consideradas</small><div style="font-size:1.1rem;font-weight:700;color:#15803d;" id="economyIncome">R$ 0,00</div></div>
+              <div><small style="font-size:0.78rem;color:#61716d;">Despesas consideradas</small><div style="font-size:1.1rem;font-weight:700;color:#b42318;" id="economyExpense">R$ 0,00</div></div>
+              <div style="border-top:1px solid #dce5e2;padding-top:0.75rem;"><small style="font-size:0.78rem;color:#61716d;">Valor economizado</small><div style="font-size:1.2rem;font-weight:800;" id="economySaved">R$ 0,00</div></div>
+            </div>
+          </div>
+        </section>
 
-      <section class="chart-section">
-        <article class="panel chart-panel">
-          <div class="section-title"><h2>Receitas x despesas</h2><span>Mes atual</span></div>
-          <canvas id="flowChart" width="640" height="360" aria-label="Grafico de receitas e despesas"></canvas>
-        </article>
-        <article class="panel chart-panel">
-          <div class="section-title"><h2>Saldo por conta</h2><span>Atual</span></div>
-          <canvas id="accountChart" width="640" height="360" aria-label="Grafico de saldo por conta"></canvas>
-        </article>
-      </section>
+        <!-- Relatórios -->
+        <section class="panel reports-panel">
+          <div class="section-title"><h2>Relatorios</h2><span id="reportPeriod">Todos os lancamentos</span></div>
+          <div class="report-grid">
+            <article class="report-card"><span>Resultado</span><strong id="netResult">R$ 0,00</strong><small>Receitas menos despesas</small></article>
+            <article class="report-card"><span>Maior despesa</span><strong id="topExpense">R$ 0,00</strong><small id="topExpenseLabel">Sem despesas</small></article>
+            <article class="report-card"><span>Taxa de economia</span><strong id="savingRate">0%</strong><small>Quanto sobrou das receitas</small></article>
+          </div>
+          <div class="insights-list" id="insightsList"></div>
+        </section>
 
-      <section class="panel reports-panel">
-        <div class="section-title"><h2>Relatorios</h2><span id="reportPeriod">Todos os lancamentos</span></div>
-        <div class="report-grid">
-          <article class="report-card"><span>Resultado</span><strong id="netResult">R$ 0,00</strong><small>Receitas menos despesas</small></article>
-          <article class="report-card"><span>Maior despesa</span><strong id="topExpense">R$ 0,00</strong><small id="topExpenseLabel">Sem despesas</small></article>
-          <article class="report-card"><span>Taxa de economia</span><strong id="savingRate">0%</strong><small>Quanto sobrou das receitas</small></article>
-        </div>
-        <div class="insights-list" id="insightsList"></div>
-      </section>
+        <!-- Gráficos de barras -->
+        <section class="chart-section">
+          <article class="panel chart-panel">
+            <div class="section-title"><h2>Receitas x despesas</h2><span>Mes atual</span></div>
+            <canvas id="flowChart" width="640" height="360"></canvas>
+          </article>
+          <article class="panel chart-panel">
+            <div class="section-title"><h2>Saldo por conta</h2><span>Atual</span></div>
+            <canvas id="accountChart" width="640" height="360"></canvas>
+          </article>
+        </section>
 
-      <!-- RECEITAS -->
-      <section class="panel transactions-panel">
-        <div class="section-title"><h2>&#128200; Receitas</h2><span id="incomeCount">0 registros</span></div>
-        <div class="transaction-list" id="incomeList"></div>
-      </section>
+      </div><!-- fim pane-relatorios -->
 
-      <!-- DESPESAS -->
-      <section class="panel transactions-panel">
-        <div class="section-title"><h2>&#128201; Despesas</h2><span id="expenseCount">0 registros</span></div>
-        <div class="transaction-list" id="expenseList"></div>
-      </section>
-
-      <!-- INVESTIMENTOS -->
-      <section class="panel transactions-panel">
-        <div class="section-title"><h2>&#128176; Investimentos e transferencias</h2><span id="transferCount">0 registros</span></div>
-        <div class="transaction-list" id="transferList"></div>
-      </section>
-
-      <!-- AVISO DE LICENCA (aparece quando expirada) -->
-      <div id="licenseWarning" class="hidden" style="position:fixed;bottom:0;left:0;right:0;background:#b42318;color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:0.9rem;">
-        <span>&#9888; Licenca expirada ou inativa</span>
-        <a href="licenca.html" style="color:white;font-weight:700;text-decoration:underline;">Ativar agora</a>
-      </div>
     </main>
-  </div>
+
+    <!-- Aviso licença expirada -->
+    <div id="licenseWarning">
+      <span>&#9888; Licenca expirada ou inativa</span>
+      <a href="licenca.html">Ativar agora</a>
+    </div>
+
+  </div><!-- fim app-shell -->
 
   <script src="app.js"></script>
   <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
-    }
-    // Redireciona para cadastro se nao tiver perfil
+    // Redireciona para cadastro se não tiver perfil
     if (!localStorage.getItem("financas-user-profile")) {
       window.location.href = "cadastro.html";
     }
+
+    // Service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+
     // Menu dropdown
-    document.querySelector("#menuButton").addEventListener("click", (e) => {
+    const menuBtn = document.querySelector("#menuButton");
+    const dropdown = document.querySelector("#dropdownMenu");
+    menuBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      document.querySelector("#dropdownMenu").classList.toggle("hidden");
+      dropdown.classList.toggle("hidden");
     });
-    document.addEventListener("click", () => {
-      document.querySelector("#dropdownMenu").classList.add("hidden");
+    document.addEventListener("click", () => dropdown.classList.add("hidden"));
+
+    // Abas
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabPanes = document.querySelectorAll(".tab-pane");
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        tabPanes.forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelector("#" + btn.dataset.target).classList.add("active");
+      });
+    });
+
+    // Navegação de mês
+    document.querySelector("#prevMonth").addEventListener("click", () => {
+      let m = economyMonth - 1, y = economyYear;
+      if (m < 0) { m = 11; y--; }
+      drawEconomyChart(m, y);
+    });
+    document.querySelector("#nextMonth").addEventListener("click", () => {
+      let m = economyMonth + 1, y = economyYear;
+      if (m > 11) { m = 0; y++; }
+      drawEconomyChart(m, y);
     });
   </script>
 </body>

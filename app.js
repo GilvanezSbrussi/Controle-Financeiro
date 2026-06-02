@@ -7,7 +7,7 @@ const deviceIdKey = "financas-device-id";
 const userProfileKey = "financas-user-profile";
 
 // Numero do WhatsApp do administrador — altere aqui
-const whatsappNumber = "5549988141894";
+const whatsappNumber = "5500000000000";
 
 const licensePublicKey = {
   kty: "EC",
@@ -74,6 +74,13 @@ const elements = {
   toAccount: document.querySelector("#toAccount"),
   toAccountWrap: document.querySelector("#toAccountWrap"),
   categoryWrap: document.querySelector("#categoryWrap"),
+  // Economy chart
+  economyChart: document.querySelector("#economyChart"),
+  economyPercent: document.querySelector("#economyPercent"),
+  economyIncome: document.querySelector("#economyIncome"),
+  economyExpense: document.querySelector("#economyExpense"),
+  economySaved: document.querySelector("#economySaved"),
+  economyMonth: document.querySelector("#economyMonth"),
   // Charts
   flowChart: document.querySelector("#flowChart"),
   accountChart: document.querySelector("#accountChart"),
@@ -83,7 +90,7 @@ const elements = {
   topExpenseLabel: document.querySelector("#topExpenseLabel"),
   savingRate: document.querySelector("#savingRate"),
   insightsList: document.querySelector("#insightsList"),
-  // License
+  // License — podem estar em licenca.html, nao no index
   licenseStatus: document.querySelector("#licenseStatus"),
   licenseKey: document.querySelector("#licenseKey"),
   activateLicenseButton: document.querySelector("#activateLicenseButton"),
@@ -99,34 +106,42 @@ const elements = {
 
 elements.date.value = new Date().toISOString().slice(0, 10);
 
-// Mostra modal de cadastro se nao tiver perfil
-if (!userProfile) {
-  elements.setupModal.classList.remove("hidden");
+// Redireciona para cadastro se nao tiver perfil
+if (!userProfile && window.location.pathname !== "/cadastro.html") {
+  window.location.href = "cadastro.html";
 }
 
-elements.setupSaveButton.addEventListener("click", saveUserProfile);
+if (elements.setupSaveButton) {
+  elements.setupSaveButton.addEventListener("click", saveUserProfile);
+}
 
 // Menu dropdown
-elements.menuButton.addEventListener("click", (e) => {
-  e.stopPropagation();
-  elements.dropdownMenu.classList.toggle("hidden");
-});
+if (elements.menuButton) {
+  elements.menuButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    elements.dropdownMenu.classList.toggle("hidden");
+  });
+}
 
 document.addEventListener("click", () => {
-  elements.dropdownMenu.classList.add("hidden");
+  if (elements.dropdownMenu) elements.dropdownMenu.classList.add("hidden");
 });
 
-elements.menuLicense.addEventListener("click", () => {
-  togglePanel(elements.licensePanel);
-  elements.backupPanel.classList.add("hidden");
-  elements.licensePanel.scrollIntoView({ behavior: "smooth", block: "start" });
-});
+if (elements.menuLicense) {
+  elements.menuLicense.addEventListener("click", () => {
+    togglePanel(elements.licensePanel);
+    if (elements.backupPanel) elements.backupPanel.classList.add("hidden");
+    elements.licensePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
 
-elements.menuBackup.addEventListener("click", () => {
-  togglePanel(elements.backupPanel);
-  elements.licensePanel.classList.add("hidden");
-  elements.backupPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-});
+if (elements.menuBackup) {
+  elements.menuBackup.addEventListener("click", () => {
+    togglePanel(elements.backupPanel);
+    if (elements.licensePanel) elements.licensePanel.classList.add("hidden");
+    elements.backupPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
 
 function togglePanel(panel) {
   panel.classList.toggle("hidden");
@@ -254,8 +269,8 @@ async function activateLicense() {
   const key = elements.licenseKey.value.trim();
   if (!key) { elements.licenseMessage.textContent = "Digite a chave de licenca."; return; }
 
-  elements.activateLicenseButton.disabled = true;
-  elements.licenseMessage.textContent = "Validando licenca...";
+  if (elements.activateLicenseButton) elements.activateLicenseButton.disabled = true;
+  if (elements.licenseMessage) elements.licenseMessage.textContent = "Validando licenca...";
 
   // Valida assinatura localmente primeiro
   const localCheck = await verifySignedLicense(key);
@@ -395,14 +410,15 @@ function resetForm() {
 // --- RENDER ---
 
 function render() {
-  fillAccountSelects();
+  try { fillAccountSelects(); } catch(e) { console.warn("fillAccountSelects:", e); }
   const summary = calculateSummary();
-  renderSummary(summary);
-  renderAccounts(summary.accountBalances);
-  renderTransactionsByType();
-  renderReports(summary);
-  renderLicense();
-  drawCharts(summary);
+  try { renderSummary(summary); } catch(e) { console.warn("renderSummary:", e); }
+  try { renderAccounts(summary.accountBalances); } catch(e) { console.warn("renderAccounts:", e); }
+  try { renderTransactionsByType(); } catch(e) { console.warn("renderTransactionsByType:", e); }
+  try { renderReports(summary); } catch(e) { console.warn("renderReports:", e); }
+  try { renderLicense(); } catch(e) { console.warn("renderLicense:", e); }
+  try { drawCharts(summary); } catch(e) { console.warn("drawCharts:", e); }
+  try { drawEconomyChart(); } catch(e) { console.warn("drawEconomyChart:", e); }
 }
 
 function fillAccountSelects() {
@@ -573,17 +589,15 @@ function renderLicense() {
   const valid = isLicenseValid();
   if (valid) {
     const expiration = license.expiresAt ? formatDate(license.expiresAt.slice(0, 10)) : "sem data";
-    elements.licenseStatus.textContent = "Ativada";
-    elements.licenseStatus.className = "status-ok";
-    elements.licenseMessage.textContent = `Licenca ativa ate ${expiration}.${license.holder ? ` Cliente: ${license.holder}.` : ""}`;
+    if (elements.licenseStatus) { elements.licenseStatus.textContent = "Ativada"; elements.licenseStatus.className = "status-ok"; }
+    if (elements.licenseMessage) elements.licenseMessage.textContent = `Licenca ativa ate ${expiration}.${license.holder ? ` Cliente: ${license.holder}.` : ""}`;
     setFormLocked(false);
     showLicenseWarning(false);
     return;
   }
   const expired = license.active && license.expiresAt && new Date(license.expiresAt) <= new Date();
-  elements.licenseStatus.textContent = expired ? "Expirada" : "Nao ativada";
-  elements.licenseStatus.className = "status-alert";
-  elements.licenseMessage.textContent = expired
+  if (elements.licenseStatus) { elements.licenseStatus.textContent = expired ? "Expirada" : "Nao ativada"; elements.licenseStatus.className = "status-alert"; }
+  if (elements.licenseMessage) elements.licenseMessage.textContent = expired
     ? "Licenca expirada. Solicite uma nova chave pelo WhatsApp abaixo."
     : "Digite a chave de licenca fornecida pelo administrador.";
   setFormLocked(true);
@@ -599,7 +613,7 @@ function setFormLocked(locked) {
 
 function showLicenseWarning(show) {
   const el = document.querySelector("#licenseWarning");
-  if (el) el.classList.toggle("hidden", !show);
+  if (el) el.style.display = show ? "flex" : "none";
 }
 
 function isLicenseValid() {
@@ -626,6 +640,93 @@ async function verifySignedLicense(value) {
     return { valid: true, payload };
   } catch {
     return { valid: false, message: "Nao foi possivel validar esta licenca." };
+  }
+}
+
+// --- ECONOMY CHART ---
+
+// Mes selecionado para o grafico de economia
+let economyMonth = new Date().getMonth();
+let economyYear = new Date().getFullYear();
+
+function drawEconomyChart(targetMonth, targetYear) {
+  const month = targetMonth !== undefined ? targetMonth : economyMonth;
+  const year = targetYear !== undefined ? targetYear : economyYear;
+  economyMonth = month;
+  economyYear = year;
+
+  const refDate = new Date(year, month, 1);
+  const monthName = refDate.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+  if (elements.economyMonth) {
+    elements.economyMonth.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+    elements.economyMonth.style.cursor = "pointer";
+    elements.economyMonth.title = "Clique para navegar entre meses";
+  }
+
+  // Filtra lancamentos do mes selecionado
+  const monthTx = state.transactions.filter(t => {
+    const d = new Date(t.date + "T12:00:00");
+    return d.getMonth() === month && d.getFullYear() === year;
+  });
+
+  const income = monthTx.filter(t => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const expense = monthTx.filter(t => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const saved = income - expense;
+  const percent = income > 0 ? Math.max(0, Math.min(100, Math.round((saved / income) * 100))) : 0;
+
+  if (elements.economyIncome) elements.economyIncome.textContent = money.format(income);
+  if (elements.economyExpense) elements.economyExpense.textContent = money.format(expense);
+  if (elements.economySaved) {
+    elements.economySaved.textContent = money.format(saved);
+    elements.economySaved.style.color = saved >= 0 ? "#0f766e" : "#b42318";
+  }
+  if (elements.economyPercent) {
+    elements.economyPercent.textContent = percent + "%";
+    elements.economyPercent.style.color = percent >= 20 ? "#15803d" : percent >= 10 ? "#0f766e" : "#b42318";
+  }
+
+  const canvas = elements.economyChart;
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const size = 140;
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = size * scale;
+  canvas.height = size * scale;
+  canvas.style.width = size + "px";
+  canvas.style.height = size + "px";
+  ctx.scale(scale, scale);
+
+  const cx = size / 2, cy = size / 2, radius = 54, lineWidth = 14;
+  const startAngle = -Math.PI / 2;
+  const fillAngle = startAngle + (2 * Math.PI * percent / 100);
+
+  ctx.clearRect(0, 0, size, size);
+
+  // Trilha de fundo
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+
+  // Arco de economia
+  if (percent > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, startAngle, fillAngle);
+    ctx.strokeStyle = percent >= 20 ? "#15803d" : percent >= 10 ? "#0f766e" : "#f59e0b";
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
+    ctx.stroke();
+  }
+
+  // Arco de despesa (vermelho)
+  if (percent < 100 && expense > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, fillAngle, startAngle + 2 * Math.PI);
+    ctx.strokeStyle = "#fca5a5";
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = "round";
+    ctx.stroke();
   }
 }
 

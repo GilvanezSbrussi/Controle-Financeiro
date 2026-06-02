@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Extrato — Controle sua Fortuna</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f7f5; min-height: 100vh; }
+    .topbar { background: #0f766e; color: white; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 10; }
+    .topbar a { color: white; text-decoration: none; font-size: 1.3rem; line-height: 1; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 600; flex: 1; }
+    .topbar button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 7px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .topbar button:hover { background: rgba(255,255,255,0.3); }
+    .content { padding: 1rem; max-width: 600px; margin: 0 auto; }
+
+    /* Filtros */
+    .filters { background: white; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 0.75rem; }
+    .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .filter-row label { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #61716d; }
+    .filter-row input, .filter-row select { padding: 8px 10px; border: 1.5px solid #dce5e2; border-radius: 8px; font-size: 0.88rem; outline: none; width: 100%; }
+    .filter-row input:focus, .filter-row select:focus { border-color: #0f766e; }
+    .filter-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #dce5e2; background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: #61716d; transition: all 0.15s; }
+    .chip.active { background: #0f766e; color: white; border-color: #0f766e; }
+    .chip.income.active { background: #15803d; border-color: #15803d; }
+    .chip.expense.active { background: #b42318; border-color: #b42318; }
+
+    /* Resumo */
+    .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+    .summary-card { background: white; border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .summary-card small { font-size: 0.72rem; color: #61716d; display: block; margin-bottom: 4px; }
+    .summary-card strong { font-size: 0.95rem; font-weight: 700; display: block; }
+    .income-text { color: #15803d; }
+    .expense-text { color: #b42318; }
+    .balance-text { color: #0f766e; }
+
+    /* Lista */
+    .section-label { font-size: 0.8rem; font-weight: 700; color: #61716d; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 0 0.3rem; }
+    .transaction-item { background: white; border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border-left: 3px solid transparent; }
+    .transaction-item.income { border-left-color: #15803d; }
+    .transaction-item.expense { border-left-color: #b42318; }
+    .transaction-item.transfer { border-left-color: #2563eb; }
+    .tx-left { flex: 1; }
+    .tx-desc { font-size: 0.92rem; font-weight: 600; color: #17211f; }
+    .tx-meta { font-size: 0.78rem; color: #61716d; margin-top: 2px; }
+    .tx-right { text-align: right; }
+    .tx-amount { font-size: 0.95rem; font-weight: 700; }
+    .tx-cat { font-size: 0.72rem; color: #61716d; margin-top: 2px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; margin-left: 6px; }
+    .badge.income { background: #dcfce7; color: #15803d; }
+    .badge.expense { background: #fee2e2; color: #b42318; }
+    .badge.transfer { background: #dbeafe; color: #1d4ed8; }
+    .empty { text-align: center; padding: 2rem; color: #61716d; font-size: 0.9rem; background: white; border-radius: 12px; }
+
+    /* PDF print */
+    @media print {
+      .topbar, .filters, .filter-chips { display: none !important; }
+      body { background: white; }
+      .content { padding: 0; max-width: 100%; }
+      .summary { break-inside: avoid; }
+      .transaction-item { break-inside: avoid; box-shadow: none; border: 1px solid #eee; margin-bottom: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">&#8592;</a>
+    <h1>Extrato</h1>
+    <button onclick="window.print()">&#128438; PDF</button>
+  </div>
+
+  <div class="content">
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-chips" id="typeChips">
+        <button class="chip active" data-type="all">Todos</button>
+        <button class="chip income" data-type="income">Receitas</button>
+        <button class="chip expense" data-type="expense">Despesas</button>
+        <button class="chip" data-type="transfer">Transferencias</button>
+      </div>
+      <div class="filter-row">
+        <label>De <input type="date" id="dateFrom"/></label>
+        <label>Ate <input type="date" id="dateTo"/></label>
+        <label>Categoria <input type="text" id="catFilter" placeholder="Ex: alimentacao"/></label>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="summary">
+      <div class="summary-card"><small>Creditos</small><strong class="income-text" id="sumIncome">R$ 0,00</strong></div>
+      <div class="summary-card"><small>Debitos</small><strong class="expense-text" id="sumExpense">R$ 0,00</strong></div>
+      <div class="summary-card"><small>Saldo</small><strong id="sumBalance">R$ 0,00</strong></div>
+    </div>
+
+    <!-- Lista -->
+    <div id="txList"></div>
+  </div>
+
+  <script>
+    const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+    const storageKey = "financas-v3";
+
+    let activeType = "all";
+    let transactions = [];
+    let accounts = [];
+
+    function loadData() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        transactions = raw.transactions || [];
+        accounts = raw.accounts || [];
+      } catch { transactions = []; accounts = []; }
+    }
+
+    function getAccountName(id) {
+      return accounts.find(a => a.id === id)?.name || "Conta";
+    }
+
+    // Filtros
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        activeType = chip.dataset.type;
+        render();
+      });
+    });
+
+    ["dateFrom", "dateTo", "catFilter"].forEach(id => {
+      document.querySelector("#" + id).addEventListener("input", render);
+    });
+
+    // Data padrão: mês atual
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+    document.querySelector("#dateFrom").value = firstDay;
+    document.querySelector("#dateTo").value = lastDay;
+
+    function render() {
+      const from = document.querySelector("#dateFrom").value;
+      const to = document.querySelector("#dateTo").value;
+      const cat = document.querySelector("#catFilter").value.toLowerCase().trim();
+
+      let filtered = transactions.filter(t => {
+        if (activeType !== "all" && t.type !== activeType) return false;
+        if (from && t.date < from) return false;
+        if (to && t.date > to) return false;
+        if (cat && !(t.category || "").toLowerCase().includes(cat) && !t.description.toLowerCase().includes(cat)) return false;
+        return true;
+      });
+
+      // Ordena por data desc
+      filtered.sort((a, b) => b.date.localeCompare(a.date));
+
+      // Resumo
+      let totalIncome = 0, totalExpense = 0;
+      filtered.forEach(t => {
+        if (t.type === "income") totalIncome += Number(t.amount);
+        if (t.type === "expense") totalExpense += Number(t.amount);
+      });
+      const balance = totalIncome - totalExpense;
+      document.querySelector("#sumIncome").textContent = money.format(totalIncome);
+      document.querySelector("#sumExpense").textContent = money.format(totalExpense);
+      const balEl = document.querySelector("#sumBalance");
+      balEl.textContent = money.format(balance);
+      balEl.className = balance >= 0 ? "income-text" : "expense-text";
+
+      // Agrupa por data
+      const groups = {};
+      filtered.forEach(t => {
+        if (!groups[t.date]) groups[t.date] = [];
+        groups[t.date].push(t);
+      });
+
+      if (!filtered.length) {
+        document.querySelector("#txList").innerHTML = '<div class="empty">Nenhum lancamento encontrado para os filtros selecionados.</div>';
+        return;
+      }
+
+      const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+
+      document.querySelector("#txList").innerHTML = Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0])).map(([date, items]) => {
+        const dateLabel = fmt.format(new Date(date + "T12:00:00"));
+        const rows = items.map(t => {
+          const prefix = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
+          const amtClass = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "balance-text";
+          const label = { income: "Credito", expense: "Debito", transfer: "Transf." }[t.type];
+          const meta = t.type === "transfer"
+            ? `${getAccountName(t.fromAccount)} → ${getAccountName(t.toAccount)}`
+            : getAccountName(t.fromAccount);
+          return `
+            <div class="transaction-item ${t.type}">
+              <div class="tx-left">
+                <div class="tx-desc">${t.description}<span class="badge ${t.type}">${label}</span></div>
+                <div class="tx-meta">${meta}</div>
+              </div>
+              <div class="tx-right">
+                <div class="tx-amount ${amtClass}">${prefix}${money.format(Number(t.amount))}</div>
+                ${t.category ? `<div class="tx-cat">${t.category}</div>` : ""}
+              </div>
+            </div>`;
+        }).join("");
+        return `<div class="section-label">${dateLabel}</div>${rows}`;
+      }).join("");
+    }
+
+    loadData();
+    render();
+  </script>
+</body>
+</html>

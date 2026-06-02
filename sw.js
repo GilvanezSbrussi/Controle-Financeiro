@@ -1,19 +1,11 @@
-const cacheName = "financas-v1";
-const appShell = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.json"];
-
-self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(appShell)));
-});
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))))
+// Service Worker desativado — sem cache para garantir arquivos sempre atualizados
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+    .then(() => self.clients.claim())
   );
 });
-
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+self.addEventListener('fetch', (e) => {
+  e.respondWith(fetch(e.request));
 });
