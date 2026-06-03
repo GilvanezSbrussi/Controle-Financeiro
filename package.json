@@ -1,0 +1,26 @@
+{
+  "name": "controle-financeiro",
+  "version": "1.0.0",
+  "description": "Foram preparadas duas versoes do aplicativo:",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GilvanezSbrussi/Controle-Financeiro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GilvanezSbrussi/Controle-Financeiro/issues"
+  },
+  "homepage": "https://github.com/GilvanezSbrussi/Controle-Financeiro#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
+  }
+}
