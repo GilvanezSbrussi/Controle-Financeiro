@@ -1,65 +1,93 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Extrato — Controle sua Fortuna</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f7f5; min-height: 100vh; }
-    .topbar { background: #0f766e; color: white; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 10; }
-    .topbar a { color: white; text-decoration: none; font-size: 1.3rem; line-height: 1; }
-    .topbar h1 { font-size: 1.1rem; font-weight: 600; flex: 1; }
-    .topbar button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 7px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-    .topbar button:hover { background: rgba(255,255,255,0.3); }
-    .content { padding: 1rem; max-width: 600px; margin: 0 auto; }
+    :root{
+      --primary:#0f766e;--income:#15803d;--expense:#b42318;--transfer:#1d4ed8;
+      --bg:#f0f7f5;--bg2:#fff;--bg3:#e8f0ee;--text:#17211f;--text2:#61716d;--text3:#9ca3af;
+      --border:#dce5e2;--shadow:0 2px 8px rgba(0,0,0,.06);--radius:14px;--rsm:10px;
+    }
+    [data-theme="dark"]{
+      --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;--text:#f3f4f6;--text2:#9ca3af;
+      --text3:#6b7280;--border:#2d3148;--primary:#14b8a6;--income:#22c55e;
+      --expense:#ef4444;--transfer:#60a5fa;--shadow:0 2px 16px rgba(0,0,0,.3);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-    /* Filtros */
-    .filters { background: white; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 0.75rem; }
-    .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .filter-row label { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #61716d; }
-    .filter-row input, .filter-row select { padding: 8px 10px; border: 1.5px solid #dce5e2; border-radius: 8px; font-size: 0.88rem; outline: none; width: 100%; }
-    .filter-row input:focus, .filter-row select:focus { border-color: #0f766e; }
-    .filter-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #dce5e2; background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: #61716d; transition: all 0.15s; }
-    .chip.active { background: #0f766e; color: white; border-color: #0f766e; }
-    .chip.income.active { background: #15803d; border-color: #15803d; }
-    .chip.expense.active { background: #b42318; border-color: #b42318; }
+    /* TOPBAR */
+    .topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50}
+    .topbar a{color:#fff;text-decoration:none;font-size:1.4rem;line-height:1;flex-shrink:0}
+    .topbar h1{font-size:1.1rem;font-weight:700;flex:1}
+    .topbar-actions{display:flex;gap:6px}
+    .tbtn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px}
+    .tbtn:hover{background:rgba(255,255,255,.3)}
+    .tbtn-theme{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem}
 
-    /* Resumo */
-    .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
-    .summary-card { background: white; border-radius: 12px; padding: 0.85rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .summary-card small { font-size: 0.72rem; color: #61716d; display: block; margin-bottom: 4px; }
-    .summary-card strong { font-size: 0.95rem; font-weight: 700; display: block; }
-    .income-text { color: #15803d; }
-    .expense-text { color: #b42318; }
-    .balance-text { color: #0f766e; }
+    .content{padding:1rem;max-width:600px;margin:0 auto;padding-bottom:60px}
 
-    /* Lista */
-    .section-label { font-size: 0.8rem; font-weight: 700; color: #61716d; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 0 0.3rem; }
-    .transaction-item { background: white; border-radius: 12px; padding: 0.85rem 1rem; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border-left: 3px solid transparent; }
-    .transaction-item.income { border-left-color: #15803d; }
-    .transaction-item.expense { border-left-color: #b42318; }
-    .transaction-item.transfer { border-left-color: #2563eb; }
-    .tx-left { flex: 1; }
-    .tx-desc { font-size: 0.92rem; font-weight: 600; color: #17211f; }
-    .tx-meta { font-size: 0.78rem; color: #61716d; margin-top: 2px; }
-    .tx-right { text-align: right; }
-    .tx-amount { font-size: 0.95rem; font-weight: 700; }
-    .tx-cat { font-size: 0.72rem; color: #61716d; margin-top: 2px; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; margin-left: 6px; }
-    .badge.income { background: #dcfce7; color: #15803d; }
-    .badge.expense { background: #fee2e2; color: #b42318; }
-    .badge.transfer { background: #dbeafe; color: #1d4ed8; }
-    .empty { text-align: center; padding: 2rem; color: #61716d; font-size: 0.9rem; background: white; border-radius: 12px; }
+    /* FILTROS */
+    .filters{background:var(--bg2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+    .filter-row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .filter-row label{flex:1;min-width:110px;display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:600;color:var(--text2)}
+    .filter-row input,.filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--bg3);color:var(--text);outline:none;width:100%}
+    .filter-row input:focus,.filter-row select:focus{border-color:var(--primary)}
+    .filter-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
+    .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .chip.income.active{background:var(--income);border-color:var(--income)}
+    .chip.expense.active{background:var(--expense);border-color:var(--expense)}
 
-    /* PDF print */
-    @media print {
-      .topbar, .filters, .filter-chips { display: none !important; }
-      body { background: white; }
-      .content { padding: 0; max-width: 100%; }
-      .summary { break-inside: avoid; }
-      .transaction-item { break-inside: avoid; box-shadow: none; border: 1px solid #eee; margin-bottom: 2px; }
+    /* RESUMO */
+    .summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1rem}
+    .summary-card{background:var(--bg2);border-radius:var(--rsm);padding:.85rem;text-align:center;box-shadow:var(--shadow)}
+    .summary-card small{font-size:.72rem;color:var(--text2);display:block;margin-bottom:4px}
+    .summary-card strong{font-size:.95rem;font-weight:700;display:block}
+    .income-text{color:var(--income)}
+    .expense-text{color:var(--expense)}
+    .balance-text{color:var(--primary)}
+
+    /* LISTA */
+    .section-label{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.65rem 0 .3rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);margin-bottom:.35rem;position:sticky;top:64px;background:var(--bg);z-index:5}
+    .day-total{font-size:.72rem;font-weight:700}
+    .transaction-item{background:var(--bg2);border-radius:var(--rsm);padding:.85rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.05);border-left:3px solid transparent}
+    .transaction-item.income{border-left-color:var(--income)}
+    .transaction-item.expense{border-left-color:var(--expense)}
+    .transaction-item.transfer{border-left-color:var(--transfer)}
+    .tx-left{flex:1}
+    .tx-desc{font-size:.92rem;font-weight:600;color:var(--text)}
+    .tx-meta{font-size:.76rem;color:var(--text2);margin-top:2px}
+    .tx-right{text-align:right;flex-shrink:0;margin-left:10px}
+    .tx-amount{font-size:.95rem;font-weight:700}
+    .tx-cat{font-size:.72rem;color:var(--text2);margin-top:2px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;margin-left:6px}
+    .badge.income{background:rgba(22,163,74,.12);color:var(--income)}
+    .badge.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+    .badge.transfer{background:rgba(37,99,235,.1);color:var(--transfer)}
+    .empty{text-align:center;padding:2.5rem;color:var(--text3);font-size:.9rem;background:var(--bg2);border-radius:var(--radius)}
+
+    /* PDF MODAL */
+    .pdf-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+    .pdf-overlay.open{opacity:1;pointer-events:all}
+    .pdf-box{background:var(--bg2);border-radius:20px;padding:1.5rem;width:100%;max-width:360px;text-align:center}
+    .pdf-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.5rem}
+    .pdf-box p{font-size:.85rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.5}
+    .pdf-btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem}
+    .pdf-btn:hover{opacity:.9}
+    .pdf-btn.secondary{background:var(--bg3);color:var(--text);border:1.5px solid var(--border)}
+    .pdf-progress{display:none;align-items:center;justify-content:center;gap:8px;color:var(--primary);font-size:.85rem;font-weight:600;padding:.5rem}
+    .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media print{
+      .topbar,.filters{display:none!important}
+      body{background:#fff}
+      .content{padding:0;max-width:100%}
+      .section-label{position:static;border-bottom:1px solid #ccc}
+      .transaction-item{box-shadow:none;border:1px solid #eee;margin-bottom:2px;border-radius:4px}
     }
   </style>
 </head>
@@ -67,156 +95,358 @@
   <div class="topbar">
     <a href="index.html">&#8592;</a>
     <h1>Extrato</h1>
-    <button onclick="abrirPDF()">📄 PDF</button>
+    <div class="topbar-actions">
+      <button class="tbtn" id="pdfBtn">📄 PDF</button>
+      <button class="tbtn-theme" id="themeBtn">🌙</button>
+    </div>
   </div>
 
   <div class="content">
-    <!-- Filtros -->
     <div class="filters">
       <div class="filter-chips" id="typeChips">
         <button class="chip active" data-type="all">Todos</button>
         <button class="chip income" data-type="income">Receitas</button>
         <button class="chip expense" data-type="expense">Despesas</button>
-        <button class="chip" data-type="transfer">Transferencias</button>
+        <button class="chip" data-type="transfer">Transf.</button>
       </div>
       <div class="filter-row">
         <label>De <input type="date" id="dateFrom"/></label>
         <label>Ate <input type="date" id="dateTo"/></label>
+        <label>Conta <select id="accFilter"><option value="">Todas</option></select></label>
         <label>Categoria <input type="text" id="catFilter" placeholder="Ex: alimentacao"/></label>
       </div>
     </div>
 
-    <!-- Resumo -->
     <div class="summary">
       <div class="summary-card"><small>Creditos</small><strong class="income-text" id="sumIncome">R$ 0,00</strong></div>
       <div class="summary-card"><small>Debitos</small><strong class="expense-text" id="sumExpense">R$ 0,00</strong></div>
       <div class="summary-card"><small>Saldo</small><strong id="sumBalance">R$ 0,00</strong></div>
     </div>
 
-    <!-- Lista -->
     <div id="txList"></div>
   </div>
 
+  <!-- MODAL PDF -->
+  <div class="pdf-overlay" id="pdfOverlay">
+    <div class="pdf-box">
+      <h3>📄 Gerar PDF</h3>
+      <p>Exportar o extrato atual com os filtros aplicados.</p>
+      <div class="pdf-progress" id="pdfProgress"><div class="spinner"></div> Gerando PDF...</div>
+      <button class="pdf-btn" id="pdfDownloadBtn">⬇️ Baixar PDF</button>
+      <button class="pdf-btn secondary" id="pdfCancelBtn">Cancelar</button>
+    </div>
+  </div>
+
   <script>
-    const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-    const storageKey = "financas-v3";
+  // ── jsPDF via CDN ─────────────────────────────────────────
+  (function() {
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.crossOrigin = "anonymous";
+    document.head.appendChild(s);
+  })();
 
-    let activeType = "all";
-    let transactions = [];
-    let accounts = [];
+  const money = new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" });
+  const storageKey = "financas-v3";
+  let activeType = "all";
+  let transactions = [];
+  let accounts = [];
 
-    function loadData() {
-      try {
-        const raw = JSON.parse(localStorage.getItem(storageKey) || "{}");
-        transactions = raw.transactions || [];
-        accounts = raw.accounts || [];
-      } catch { transactions = []; accounts = []; }
-    }
-
-    function abrirPDF() {
-  if (window.Capacitor) {
-    // APK Android
-    window.open(window.location.href + "?print=1", "_blank");
-  } else {
-    window.print();
+  function loadData() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      transactions = raw.transactions || [];
+      accounts     = raw.accounts     || [];
+    } catch { transactions = []; accounts = []; }
   }
-}
+  function accName(id) { return accounts.find(a=>a.id===id)?.name || "Conta"; }
 
-    function getAccountName(id) {
-      return accounts.find(a => a.id === id)?.name || "Conta";
+  // Tema
+  var html = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var savedTheme = localStorage.getItem("financas-theme") || "light";
+  html.setAttribute("data-theme", savedTheme);
+  themeBtn.textContent = savedTheme === "dark" ? "☀️" : "🌙";
+  themeBtn.addEventListener("click", function(){
+    var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    localStorage.setItem("financas-theme", next);
+    themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
+  });
+
+  // Filtros chips
+  document.querySelectorAll(".chip").forEach(function(chip) {
+    chip.addEventListener("click", function() {
+      document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+      chip.classList.add("active");
+      activeType = chip.dataset.type;
+      render();
+    });
+  });
+
+  ["dateFrom","dateTo","catFilter","accFilter"].forEach(function(id) {
+    document.getElementById(id).addEventListener("input", render);
+  });
+
+  // Data padrão
+  var now = new Date();
+  var firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  var lastDay  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  document.getElementById("dateFrom").value = firstDay;
+  document.getElementById("dateTo").value   = lastDay;
+
+  function fillAccFilter() {
+    var sel = document.getElementById("accFilter");
+    sel.innerHTML = '<option value="">Todas</option>' +
+      accounts.map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join("");
+  }
+
+  // ── RENDER ───────────────────────────────────────────────
+  function getFiltered() {
+    var from   = document.getElementById("dateFrom").value;
+    var to     = document.getElementById("dateTo").value;
+    var cat    = document.getElementById("catFilter").value.toLowerCase().trim();
+    var accFil = document.getElementById("accFilter").value;
+
+    return transactions.filter(function(t) {
+      if (activeType !== "all" && t.type !== activeType) return false;
+      if (from && t.date < from) return false;
+      if (to   && t.date > to)   return false;
+      if (cat  && !(t.category||"").toLowerCase().includes(cat) && !t.description.toLowerCase().includes(cat)) return false;
+      if (accFil && t.fromAccount !== accFil && t.toAccount !== accFil) return false;
+      return true;
+    }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  }
+
+  function render() {
+    var filtered = getFiltered();
+    // Resumo
+    var totalIncome = 0, totalExpense = 0;
+    filtered.forEach(function(t) {
+      if (t.type === "income")  totalIncome  += Number(t.amount);
+      if (t.type === "expense") totalExpense += Number(t.amount);
+    });
+    var balance = totalIncome - totalExpense;
+    document.getElementById("sumIncome").textContent  = money.format(totalIncome);
+    document.getElementById("sumExpense").textContent = money.format(totalExpense);
+    var balEl = document.getElementById("sumBalance");
+    balEl.textContent = money.format(balance);
+    balEl.className   = balance >= 0 ? "income-text" : "expense-text";
+
+    if (!filtered.length) {
+      document.getElementById("txList").innerHTML = '<div class="empty">Nenhum lancamento encontrado para os filtros selecionados.</div>';
+      return;
     }
 
-    // Filtros
-    document.querySelectorAll(".chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-        chip.classList.add("active");
-        activeType = chip.dataset.type;
-        render();
-      });
+    // Agrupa por data
+    var groups = {};
+    filtered.forEach(function(t) {
+      if (!groups[t.date]) groups[t.date] = [];
+      groups[t.date].push(t);
     });
 
-    ["dateFrom", "dateTo", "catFilter"].forEach(id => {
-      document.querySelector("#" + id).addEventListener("input", render);
-    });
+    var fmt = new Intl.DateTimeFormat("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
+    document.getElementById("txList").innerHTML = Object.entries(groups)
+      .sort(function(a,b){ return b[0].localeCompare(a[0]); })
+      .map(function(entry) {
+        var date = entry[0], items = entry[1];
+        var dateLabel = fmt.format(new Date(date + "T12:00:00"));
+        dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+        // subtotal do dia
+        var daySub = 0;
+        items.forEach(function(t){
+          if (t.type === "income")  daySub += Number(t.amount);
+          if (t.type === "expense") daySub -= Number(t.amount);
+        });
+        var subClass = daySub >= 0 ? "income-text" : "expense-text";
+        var subStr   = (daySub >= 0 ? "+" : "") + money.format(daySub);
 
-    // Data padrão: mês atual
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
-    document.querySelector("#dateFrom").value = firstDay;
-    document.querySelector("#dateTo").value = lastDay;
-
-    function render() {
-      const from = document.querySelector("#dateFrom").value;
-      const to = document.querySelector("#dateTo").value;
-      const cat = document.querySelector("#catFilter").value.toLowerCase().trim();
-
-      let filtered = transactions.filter(t => {
-        if (activeType !== "all" && t.type !== activeType) return false;
-        if (from && t.date < from) return false;
-        if (to && t.date > to) return false;
-        if (cat && !(t.category || "").toLowerCase().includes(cat) && !t.description.toLowerCase().includes(cat)) return false;
-        return true;
-      });
-
-      // Ordena por data desc
-      filtered.sort((a, b) => b.date.localeCompare(a.date));
-
-      // Resumo
-      let totalIncome = 0, totalExpense = 0;
-      filtered.forEach(t => {
-        if (t.type === "income") totalIncome += Number(t.amount);
-        if (t.type === "expense") totalExpense += Number(t.amount);
-      });
-      const balance = totalIncome - totalExpense;
-      document.querySelector("#sumIncome").textContent = money.format(totalIncome);
-      document.querySelector("#sumExpense").textContent = money.format(totalExpense);
-      const balEl = document.querySelector("#sumBalance");
-      balEl.textContent = money.format(balance);
-      balEl.className = balance >= 0 ? "income-text" : "expense-text";
-
-      // Agrupa por data
-      const groups = {};
-      filtered.forEach(t => {
-        if (!groups[t.date]) groups[t.date] = [];
-        groups[t.date].push(t);
-      });
-
-      if (!filtered.length) {
-        document.querySelector("#txList").innerHTML = '<div class="empty">Nenhum lancamento encontrado para os filtros selecionados.</div>';
-        return;
-      }
-
-      const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-
-      document.querySelector("#txList").innerHTML = Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0])).map(([date, items]) => {
-        const dateLabel = fmt.format(new Date(date + "T12:00:00"));
-        const rows = items.map(t => {
-          const prefix = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
-          const amtClass = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "balance-text";
-          const label = { income: "Credito", expense: "Debito", transfer: "Transf." }[t.type];
-          const meta = t.type === "transfer"
-            ? `${getAccountName(t.fromAccount)} → ${getAccountName(t.toAccount)}`
-            : getAccountName(t.fromAccount);
-          return `
-            <div class="transaction-item ${t.type}">
-              <div class="tx-left">
-                <div class="tx-desc">${t.description}<span class="badge ${t.type}">${label}</span></div>
-                <div class="tx-meta">${meta}</div>
-              </div>
-              <div class="tx-right">
-                <div class="tx-amount ${amtClass}">${prefix}${money.format(Number(t.amount))}</div>
-                ${t.category ? `<div class="tx-cat">${t.category}</div>` : ""}
-              </div>
-            </div>`;
+        var rows = items.map(function(t) {
+          var prefix   = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
+          var amtClass = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "balance-text";
+          var label    = {income:"Credito", expense:"Debito", transfer:"Transf."}[t.type];
+          var meta     = t.type === "transfer"
+            ? accName(t.fromAccount) + " → " + accName(t.toAccount)
+            : accName(t.fromAccount);
+          return '<div class="transaction-item '+t.type+'">'
+            + '<div class="tx-left">'
+            + '<div class="tx-desc">'+t.description+'<span class="badge '+t.type+'">'+label+'</span></div>'
+            + '<div class="tx-meta">'+meta+'</div>'
+            + '</div>'
+            + '<div class="tx-right">'
+            + '<div class="tx-amount '+amtClass+'">'+prefix+money.format(Number(t.amount))+'</div>'
+            + (t.category ? '<div class="tx-cat">'+t.category+'</div>' : '')
+            + '</div></div>';
         }).join("");
-        return `<div class="section-label">${dateLabel}</div>${rows}`;
+
+        return '<div class="section-label">'
+          + '<span>'+dateLabel+'</span>'
+          + '<span class="day-total '+subClass+'">'+subStr+'</span>'
+          + '</div>' + rows;
       }).join("");
+  }
+
+  // ── PDF COM jsPDF ────────────────────────────────────────
+  var pdfOverlay   = document.getElementById("pdfOverlay");
+  var pdfBtn       = document.getElementById("pdfBtn");
+  var pdfDownBtn   = document.getElementById("pdfDownloadBtn");
+  var pdfCancelBtn = document.getElementById("pdfCancelBtn");
+  var pdfProgress  = document.getElementById("pdfProgress");
+
+  pdfBtn.addEventListener("click", function(){ pdfOverlay.classList.add("open"); });
+  pdfCancelBtn.addEventListener("click", function(){ pdfOverlay.classList.remove("open"); });
+  pdfOverlay.addEventListener("click", function(e){ if(e.target===pdfOverlay) pdfOverlay.classList.remove("open"); });
+
+  pdfDownBtn.addEventListener("click", function() {
+    pdfDownBtn.style.display = "none";
+    pdfProgress.style.display = "flex";
+
+    setTimeout(function() {
+      try {
+        generatePDF();
+      } catch(e) {
+        alert("Erro ao gerar PDF: " + e.message + "\nTente usar a opcao de impressao do navegador.");
+      }
+      pdfProgress.style.display = "none";
+      pdfDownBtn.style.display  = "block";
+      pdfOverlay.classList.remove("open");
+    }, 200);
+  });
+
+  function generatePDF() {
+    if (!window.jspdf) throw new Error("Biblioteca PDF ainda carregando. Tente novamente.");
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+    var pageW = doc.internal.pageSize.getWidth();
+    var pageH = doc.internal.pageSize.getHeight();
+    var margin = 14;
+    var y = margin;
+
+    // Header
+    doc.setFillColor(15,118,110);
+    doc.rect(0,0,pageW,22,"F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica","bold");
+    doc.text("Controle sua Fortuna", margin, 10);
+    doc.setFontSize(9);
+    doc.setFont("helvetica","normal");
+    doc.text("Extrato gerado em " + new Date().toLocaleDateString("pt-BR"), margin, 17);
+    y = 30;
+
+    // Período filtrado
+    var from = document.getElementById("dateFrom").value;
+    var to   = document.getElementById("dateTo").value;
+    if (from || to) {
+      doc.setTextColor(97,113,109);
+      doc.setFontSize(9);
+      doc.text("Periodo: " + (from ? formatDateStr(from) : "inicio") + " a " + (to ? formatDateStr(to) : "hoje"), margin, y);
+      y += 6;
     }
 
-    loadData();
-    render();
+    var filtered = getFiltered();
+    var totalInc = 0, totalExp = 0;
+    filtered.forEach(function(t){
+      if (t.type==="income")  totalInc += Number(t.amount);
+      if (t.type==="expense") totalExp += Number(t.amount);
+    });
+
+    // Resumo boxes
+    var boxW = (pageW - margin*2 - 8) / 3;
+    var boxes = [
+      { label:"Creditos", value:money.format(totalInc), color:[21,128,61] },
+      { label:"Debitos",  value:money.format(totalExp), color:[180,35,24] },
+      { label:"Saldo",    value:money.format(totalInc-totalExp), color:[15,118,110] }
+    ];
+    boxes.forEach(function(b,i){
+      var bx = margin + i*(boxW+4);
+      doc.setFillColor(245,250,249);
+      doc.roundedRect(bx, y, boxW, 14, 2, 2, "F");
+      doc.setFontSize(7);
+      doc.setTextColor(97,113,109);
+      doc.setFont("helvetica","bold");
+      doc.text(b.label, bx+3, y+5);
+      doc.setFontSize(9);
+      doc.setTextColor(b.color[0],b.color[1],b.color[2]);
+      doc.text(b.value, bx+3, y+11);
+    });
+    y += 20;
+
+    // Transações por data
+    var groups = {};
+    filtered.forEach(function(t){
+      if (!groups[t.date]) groups[t.date] = [];
+      groups[t.date].push(t);
+    });
+    var sortedDates = Object.keys(groups).sort(function(a,b){ return b.localeCompare(a); });
+
+    doc.setFont("helvetica","normal");
+    sortedDates.forEach(function(date) {
+      if (y > pageH - 30) { doc.addPage(); y = margin; }
+      // Data label
+      var fmtD = formatDateStr(date);
+      doc.setFillColor(232,240,238);
+      doc.rect(margin, y, pageW - margin*2, 7, "F");
+      doc.setFontSize(8);
+      doc.setFont("helvetica","bold");
+      doc.setTextColor(15,118,110);
+      doc.text(fmtD, margin+2, y+5);
+      y += 10;
+
+      groups[date].forEach(function(t) {
+        if (y > pageH - 20) { doc.addPage(); y = margin; }
+        var prefix = t.type==="income"?"+":(t.type==="expense"?"-":"±");
+        var color  = t.type==="income"?[21,128,61]:(t.type==="expense"?[180,35,24]:[29,78,216]);
+        var meta   = t.type==="transfer"
+          ? accName(t.fromAccount)+" → "+accName(t.toAccount)
+          : (t.category || accName(t.fromAccount));
+        // Linha descrição
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica","normal");
+        doc.setTextColor(23,33,31);
+        doc.text(t.description.substring(0,50), margin+2, y);
+        // Valor alinhado à direita
+        doc.setFont("helvetica","bold");
+        doc.setTextColor(color[0],color[1],color[2]);
+        var amtStr = prefix+money.format(Number(t.amount));
+        doc.text(amtStr, pageW-margin, y, {align:"right"});
+        y += 4.5;
+        // Linha meta
+        doc.setFontSize(7);
+        doc.setFont("helvetica","normal");
+        doc.setTextColor(97,113,109);
+        doc.text(meta.substring(0,60), margin+2, y);
+        y += 6;
+        // Linha divisória
+        doc.setDrawColor(220,229,226);
+        doc.setLineWidth(0.2);
+        doc.line(margin, y-1, pageW-margin, y-1);
+      });
+      y += 3;
+    });
+
+    // Rodapé
+    var pages = doc.internal.getNumberOfPages();
+    for (var i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(155,163,161);
+      doc.text("Controle sua Fortuna — pagina "+i+" de "+pages, pageW/2, pageH-5, {align:"center"});
+    }
+
+    doc.save("extrato_" + new Date().toISOString().slice(0,10) + ".pdf");
+  }
+
+  function formatDateStr(str) {
+    if (!str) return "";
+    var parts = str.split("-");
+    return parts[2]+"/"+parts[1]+"/"+parts[0];
+  }
+
+  // ── INIT ─────────────────────────────────────────────────
+  loadData();
+  fillAccFilter();
+  render();
   </script>
 </body>
 </html>

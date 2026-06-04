@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Licenca — Controle sua Fortuna</title>
+  <title>Licença — Controle sua Fortuna</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -67,7 +67,7 @@
 <body>
   <div class="topbar">
     <a href="index.html">&#8592;</a>
-    <h1>Licenca de uso</h1>
+    <h1>Licença de uso</h1>
   </div>
 
   <div class="content">
@@ -77,22 +77,22 @@
       <div id="licenseInfo"></div>
     </div>
 
-    <!-- Ativar licenca -->
+    <!-- Ativar licença -->
     <div class="card">
-      <h2>Ativar licenca</h2>
+      <h2>Ativar licença</h2>
       <div class="status-msg" id="activateMsg"></div>
       <label>
-        Chave de licenca
+        Chave de licença
         <textarea id="licenseKey" rows="4" placeholder="Cole aqui a chave fornecida pelo administrador"></textarea>
       </label>
-      <button class="btn" id="activateBtn">Ativar licenca</button>
+      <button class="btn" id="activateBtn">Ativar licença</button>
       <p class="helper">A chave e de uso unico e vinculada a este dispositivo.</p>
     </div>
 
     <!-- Solicitar renovacao -->
     <div class="card">
-      <h2>Solicitar nova licenca</h2>
-      <p class="helper" style="margin-bottom:1rem;">Apos efetuar o pagamento, clique abaixo para solicitar sua licenca via WhatsApp.</p>
+      <h2>Solicitar nova licença</h2>
+      <p class="helper" style="margin-bottom:1rem;">Clique abaixo para efetuar o pagamento e solicitar sua licença via WhatsApp.</p>
       <button class="btn whatsapp" id="whatsappBtn">&#128362; Solicitar via WhatsApp</button>
     </div>
   </div>
@@ -149,7 +149,7 @@
         info.innerHTML = `
           <div class="info-row"><span>Cliente</span><strong>${license.holder || "-"}</strong></div>
           <div class="info-row"><span>Validade</span><strong>${exp}</strong></div>
-          <div class="info-row"><span>Tipo</span><strong>Licenca assinada</strong></div>`;
+          <div class="info-row"><span>Tipo</span><strong>Licença assinada</strong></div>`;
       } else if (license.active && license.expiresAt && new Date(license.expiresAt) <= new Date()) {
         badge.textContent = "Expirada";
         badge.className = "badge alert";
@@ -158,7 +158,7 @@
       } else {
         badge.textContent = "Nao ativada";
         badge.className = "badge warn";
-        info.innerHTML = `<p class="helper">Nenhuma licenca ativa. Ative uma chave abaixo.</p>`;
+        info.innerHTML = `<p class="helper">Nenhuma licença ativa. Ative uma chave abaixo.</p>`;
       }
     }
 
@@ -170,7 +170,7 @@
 
     async function activateLicense() {
       const key = document.querySelector("#licenseKey").value.trim();
-      if (!key) { setMsg("activateMsg", "Cole a chave de licenca.", "error"); return; }
+      if (!key) { setMsg("activateMsg", "Cole a chave de licença.", "error"); return; }
 
       document.querySelector("#activateBtn").disabled = true;
       setMsg("activateMsg", "Validando assinatura...", "loading");
@@ -193,7 +193,7 @@
         const result = await res.json();
 
         if (!result.ok) {
-          setMsg("activateMsg", result.message || "Licenca recusada.", "error");
+          setMsg("activateMsg", result.message || "Licença recusada.", "error");
           document.querySelector("#activateBtn").disabled = false;
           return;
         }
@@ -207,7 +207,7 @@
         saveLicense(data);
         license = data;
         document.querySelector("#licenseKey").value = "";
-        setMsg("activateMsg", "Licenca ativada com sucesso!", "success");
+        setMsg("activateMsg", "Licença ativada com sucesso!", "success");
         renderStatus();
       } catch {
         // Sem servidor — aceita localmente
@@ -220,7 +220,7 @@
         saveLicense(data);
         license = data;
         document.querySelector("#licenseKey").value = "";
-        setMsg("activateMsg", "Licenca ativada (modo offline).", "success");
+        setMsg("activateMsg", "Licença ativada (modo offline).", "success");
         renderStatus();
       }
 
@@ -250,9 +250,9 @@
         const verified = await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, signatureBytes, payloadBytes);
         if (!verified) return { valid: false, message: "Assinatura invalida." };
         const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
-        if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) return { valid: false, message: "Licenca expirada." };
+        if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) return { valid: false, message: "Licença expirada." };
         return { valid: true, payload };
-      } catch { return { valid: false, message: "Erro ao validar licenca." }; }
+      } catch { return { valid: false, message: "Erro ao validar licença." }; }
     }
 
     function base64UrlToBytes(value) {

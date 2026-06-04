@@ -33,7 +33,7 @@
     .tbtn:hover{background:rgba(255,255,255,.3)}
 
     /* DROPDOWN */
-    .ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:200px;z-index:999;overflow:hidden;display:none}
+    .ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:220px;z-index:999;overflow:hidden;display:none}
     .ddmenu.open{display:block}
     .dditem{display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;cursor:pointer;font-size:.93rem;color:var(--text);text-decoration:none;transition:background .15s;border-bottom:1px solid var(--border)}
     .dditem:last-child{border-bottom:none}
@@ -59,13 +59,17 @@
 
     /* CONTAS */
     .acc-list{display:flex;flex-direction:column;gap:8px}
-    .acc-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:var(--rsm);padding:.75rem 1rem}
+    .acc-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:var(--rsm);padding:.75rem 1rem;cursor:pointer;transition:all .2s;border:2px solid transparent}
+    .acc-card:hover{border-color:var(--primary);background:var(--primary-light)}
+    .acc-card:hover .acc-info em{color:var(--primary)}
+    .acc-card-inner{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
     .acc-info small{font-size:.7rem;color:var(--text2);display:block}
     .acc-info strong{font-size:.93rem;font-weight:700;display:block;margin:2px 0;color:var(--text)}
     .acc-info em{font-size:.82rem;color:var(--primary);font-weight:600;font-style:normal}
     .acc-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#fff;flex-shrink:0}
     .acc-icon.checking{background:var(--primary)}
     .acc-icon.investment{background:var(--transfer)}
+    .acc-arrow{font-size:.8rem;color:var(--text3);margin-left:4px}
 
     /* FORM */
     .segmented{display:flex;background:var(--bg3);border-radius:var(--rsm);padding:3px;gap:3px;margin-bottom:1rem}
@@ -85,22 +89,29 @@
     .hidden{display:none!important}
     .locked{opacity:.5;pointer-events:none}
 
+    /* FAV CATEGORY TAGS */
+    .fav-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+    .fav-tag{padding:5px 12px;border-radius:20px;background:var(--primary-light);border:1.5px solid var(--primary);color:var(--primary);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s}
+    .fav-tag:hover{background:var(--primary);color:#fff}
+    .fav-tag.selected{background:var(--primary);color:#fff}
+    .fav-tags-label{font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:3px}
+
     /* TRANSAÇÕES */
     .tx-list{display:flex;flex-direction:column}
-    .tx-item{display:flex;align-items:center;gap:10px;padding:.75rem 0;border-bottom:1px solid var(--border)}
+    .tx-item{display:flex;align-items:flex-start;gap:10px;padding:.75rem 0;border-bottom:1px solid var(--border)}
     .tx-item:last-child{border-bottom:none}
-    .tx-ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .tx-ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;margin-top:2px}
     .tx-ico.income{background:rgba(22,163,74,.12)}
     .tx-ico.expense{background:rgba(220,38,38,.1)}
     .tx-ico.transfer{background:rgba(37,99,235,.1)}
     .tx-body{flex:1;min-width:0}
     .tx-desc{font-size:.9rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tx-meta{font-size:.74rem;color:var(--text2);margin-top:1px}
-    .tx-actions{display:flex;gap:5px;margin-top:4px}
+    .tx-actions{display:flex;gap:5px;margin-top:6px}
     .tx-right{text-align:right;flex-shrink:0}
     .tx-amt{font-size:.93rem;font-weight:700}
     .tx-date{font-size:.7rem;color:var(--text3);margin-top:2px}
-    .abtn{background:var(--bg3);border:none;border-radius:6px;padding:3px 9px;font-size:.72rem;color:var(--text2);cursor:pointer}
+    .abtn{background:var(--bg3);border:none;border-radius:6px;padding:4px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:3px}
     .abtn:hover{background:var(--border)}
     .abtn.del{color:var(--expense)}
     .income-text{color:var(--income)}
@@ -137,12 +148,78 @@
     .rep-card small{font-size:.68rem;color:var(--text3)}
     .insights{display:flex;flex-direction:column;gap:6px;margin-top:.75rem}
     .insight{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:8px 12px;font-size:.8rem;line-height:1.5}
-
     canvas{width:100%!important;display:block}
 
     /* AVISO LICENÇA */
     #licWarn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--expense);color:#fff;padding:12px 16px;justify-content:space-between;align-items:center;z-index:200;font-size:.88rem;font-weight:600}
     #licWarn a{color:#fff;text-decoration:underline}
+
+    /* ===== MODAL EDIÇÃO DE LANÇAMENTO ===== */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto}
+    .modal-overlay.open .modal-sheet{transform:translateY(0)}
+    .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem}
+    .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+    .modal-title h3{font-size:1.05rem;font-weight:800}
+    .modal-close{background:var(--bg3);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+    .modal-close:hover{background:var(--border)}
+
+    /* ===== MODAL DETALHE CONTA ===== */
+    .account-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+    .account-modal-overlay.open{opacity:1;pointer-events:all}
+    .account-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+    .account-modal-overlay.open .account-modal-sheet{transform:translateY(0)}
+    .account-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0}
+    .account-modal-body{flex:1;overflow-y:auto;padding:0 1.25rem 2rem}
+    .acc-modal-top{display:flex;align-items:center;gap:12px;padding:1rem 0 .75rem}
+    .acc-modal-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;font-weight:800;flex-shrink:0}
+    .acc-modal-icon.checking{background:var(--primary)}
+    .acc-modal-icon.investment{background:var(--transfer)}
+    .acc-modal-info small{font-size:.75rem;color:var(--text2)}
+    .acc-modal-info strong{font-size:1.2rem;font-weight:800;display:block}
+    .acc-modal-info em{font-size:1rem;font-weight:700;font-style:normal;color:var(--primary)}
+    .day-group{margin-bottom:1rem}
+    .day-label{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.5rem 0 .4rem;border-bottom:1px solid var(--border);margin-bottom:.4rem;position:sticky;top:0;background:var(--bg2);z-index:1}
+    .day-subtotal{font-size:.72rem;color:var(--text3);float:right;font-weight:600;margin-top:-1px}
+
+    /* ===== MODAL CATEGORIAS ===== */
+    .cat-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+    .cat-modal-overlay.open{opacity:1;pointer-events:all}
+    .cat-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+    .cat-modal-overlay.open .cat-modal-sheet{transform:translateY(0)}
+    .cat-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
+    .cat-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
+    .cat-form{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin-bottom:1rem}
+    .cat-form-title{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+    .cat-form-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem}
+    .cat-form-row.full{grid-template-columns:1fr}
+    .cat-form label{font-size:.76rem;font-weight:600;color:var(--text2);display:flex;flex-direction:column;gap:4px}
+    .cat-form input,.cat-form select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;background:var(--bg2);color:var(--text);outline:none;width:100%}
+    .cat-form input:focus,.cat-form select:focus{border-color:var(--primary)}
+    .cat-fav-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem;background:var(--bg2);border-radius:8px;border:1.5px solid var(--border)}
+    .cat-fav-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+    .cat-fav-row label{font-size:.83rem;font-weight:600;color:var(--text);cursor:pointer;margin:0}
+    .cat-fav-row small{font-size:.72rem;color:var(--text2);display:block;margin-top:1px}
+    .cat-add-btn{width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer}
+    .cat-add-btn:hover{opacity:.9}
+    .cat-list-item{display:flex;align-items:center;gap:10px;padding:.7rem .85rem;background:var(--bg3);border-radius:var(--rsm);margin-bottom:.4rem}
+    .cat-list-item-info{flex:1}
+    .cat-list-item-name{font-size:.9rem;font-weight:700;color:var(--text)}
+    .cat-list-item-meta{font-size:.72rem;color:var(--text2);margin-top:1px}
+    .cat-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;margin-left:4px}
+    .cat-badge.income{background:rgba(22,163,74,.12);color:var(--income)}
+    .cat-badge.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+    .cat-badge.investment{background:rgba(37,99,235,.1);color:var(--transfer)}
+    .cat-badge.all{background:var(--primary-light);color:var(--primary)}
+    .cat-star{font-size:.9rem;flex-shrink:0}
+    .cat-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:.9rem;padding:4px;border-radius:6px}
+    .cat-del-btn:hover{color:var(--expense);background:rgba(220,38,38,.1)}
+    .cat-empty{text-align:center;color:var(--text3);font-size:.85rem;padding:2rem}
+
+    /* TMP TX-EDIT INLINE BUTTON */
+    .tx-edit{background:var(--bg3);border:none;border-radius:6px;padding:4px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;font-weight:600}
+    .tx-edit:hover{background:var(--border)}
   </style>
 </head>
 <body>
@@ -154,9 +231,10 @@
   </div>
   <div class="topbar-right">
     <button class="tbtn" id="themeBtn" title="Alternar tema">🌙</button>
-    <button class="tbtn" id="menuBtn" aria-label="Menu">☰</button>
+    <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
     <div class="ddmenu" id="ddMenu">
       <a class="dditem" href="extrato.html">📊 Extrato</a>
+      <button class="dditem" id="openCatModal">🏷️ Categorias</button>
       <a class="dditem" href="licenca.html">🔑 Licenca</a>
       <a class="dditem" href="backup.html">💾 Backup</a>
     </div>
@@ -210,9 +288,14 @@
     </div>
     <form id="txForm" autocomplete="off">
       <div class="segmented" role="radiogroup">
-        <label><input type="radio" name="type" value="income" checked/><span>Receita</span></label>
-        <label><input type="radio" name="type" value="expense"/><span>Despesa</span></label>
-        <label><input type="radio" name="type" value="transfer"/><span>Transf.</span></label>
+        <label><input type="radio" name="type" value="income" checked/><span>💰 Receita</span></label>
+        <label><input type="radio" name="type" value="expense"/><span>💸 Despesa</span></label>
+        <label><input type="radio" name="type" value="transfer"/><span>🔄 Transf.</span></label>
+      </div>
+      <!-- CATEGORIAS FAVORITAS -->
+      <div id="favTagsSection" style="margin-bottom:.75rem">
+        <div class="fav-tags-label">⭐ Categorias favoritas</div>
+        <div class="fav-tags" id="favTags"></div>
       </div>
       <div class="fgrid">
         <label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
@@ -220,7 +303,7 @@
         <label>Data<input id="dt" name="date" type="date" required/></label>
         <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
         <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
-        <label id="catWrap">Categoria<input id="cat" name="category" type="text" placeholder="Ex: alimentacao"/></label>
+        <label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
       </div>
       <button class="pbtn" id="saveBtn" type="submit">Salvar lancamento</button>
     </form>
@@ -273,6 +356,105 @@
 
 </div>
 
+<!-- ===== MODAL EDIÇÃO LANÇAMENTO ===== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-sheet" id="editModalSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <h3 id="editModalTitle">✏️ Editar lancamento</h3>
+      <button class="modal-close" id="editModalClose">✕</button>
+    </div>
+    <form id="editForm" autocomplete="off">
+      <div class="segmented" role="radiogroup">
+        <label><input type="radio" name="etype" value="income" checked/><span>💰 Receita</span></label>
+        <label><input type="radio" name="etype" value="expense"/><span>💸 Despesa</span></label>
+        <label><input type="radio" name="etype" value="transfer"/><span>🔄 Transf.</span></label>
+      </div>
+      <!-- FAV TAGS NO MODAL -->
+      <div id="editFavTagsSection" style="margin-bottom:.75rem">
+        <div class="fav-tags-label">⭐ Categorias favoritas</div>
+        <div class="fav-tags" id="editFavTags"></div>
+      </div>
+      <div class="fgrid">
+        <label class="full">Descricao<input id="editDesc" name="description" type="text" required/></label>
+        <label>Valor<input id="editAmt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" required/></label>
+        <label>Data<input id="editDt" name="date" type="date" required/></label>
+        <label>Conta<select id="editFromAcc" name="fromAccount" required></select></label>
+        <label id="editToWrap" class="hidden">Destino<select id="editToAcc" name="toAccount"></select></label>
+        <label id="editCatWrap">Categoria<select id="editCat" name="category"><option value="">Sem categoria</option></select></label>
+      </div>
+      <button class="pbtn" type="submit">💾 Salvar alteracoes</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODAL DETALHE CONTA ===== -->
+<div class="account-modal-overlay" id="accModal">
+  <div class="account-modal-sheet">
+    <div class="account-modal-header">
+      <div class="modal-handle"></div>
+      <div class="modal-title">
+        <h3 id="accModalTitle">Lancamentos</h3>
+        <button class="modal-close" id="accModalClose">✕</button>
+      </div>
+      <div class="acc-modal-top">
+        <div class="acc-modal-icon" id="accModalIcon">C</div>
+        <div class="acc-modal-info">
+          <small id="accModalType">Conta corrente</small>
+          <strong id="accModalName">-</strong>
+          <em id="accModalBalance">R$ 0,00</em>
+        </div>
+      </div>
+    </div>
+    <div class="account-modal-body" id="accModalBody">
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL CATEGORIAS ===== -->
+<div class="cat-modal-overlay" id="catModal">
+  <div class="cat-modal-sheet">
+    <div class="cat-modal-header">
+      <div class="modal-handle"></div>
+      <div class="modal-title">
+        <h3>🏷️ Categorias</h3>
+        <button class="modal-close" id="catModalClose">✕</button>
+      </div>
+    </div>
+    <div class="cat-modal-body">
+      <!-- Form nova categoria -->
+      <div class="cat-form">
+        <div class="cat-form-title">➕ Nova categoria</div>
+        <div class="cat-form-row full">
+          <label>Nome da categoria<input type="text" id="catName" placeholder="Ex: Alimentacao, Salario..."/></label>
+        </div>
+        <div class="cat-form-row">
+          <label>Tipo
+            <select id="catType">
+              <option value="expense">Despesas</option>
+              <option value="income">Receitas</option>
+              <option value="investment">Investimento</option>
+              <option value="all">Ambos / Todos</option>
+            </select>
+          </label>
+          <label style="justify-content:flex-end">
+            <div class="cat-fav-row" style="margin:0">
+              <input type="checkbox" id="catFav"/>
+              <div>
+                <label for="catFav" style="font-size:.83rem;font-weight:600;color:var(--text)">⭐ Favorita</label>
+                <small>Aparece em destaque</small>
+              </div>
+            </div>
+          </label>
+        </div>
+        <button class="cat-add-btn" id="catAddBtn">Adicionar categoria</button>
+      </div>
+      <!-- Lista de categorias -->
+      <div id="catModalList"></div>
+    </div>
+  </div>
+</div>
+
 <div id="licWarn">
   <span>⚠ Licenca expirada ou inativa</span>
   <a href="licenca.html">Ativar agora</a>
@@ -299,7 +481,7 @@
     themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
   });
 
-  // Menu
+  // Menu ⋮
   var menuBtn = document.getElementById("menuBtn");
   var ddMenu  = document.getElementById("ddMenu");
   menuBtn.addEventListener("click", function(e) {
@@ -319,6 +501,12 @@
     var m = economyMonth+1, y = economyYear;
     if (m>11){m=0;y++;}
     drawEconomyChart(m,y);
+  });
+
+  // Abrir modal categorias via menu
+  document.getElementById("openCatModal").addEventListener("click", function(){
+    ddMenu.classList.remove("open");
+    openCatModal();
   });
 })();
 </script>

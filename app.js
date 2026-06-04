@@ -7,6 +7,7 @@ const monthFmt = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeri
 const STORAGE_KEY = "financas-v3";
 const LICENSE_KEY = "financas-license-v1";
 const DEVICE_KEY  = "financas-device-id";
+const CATS_KEY    = "financas-categories-v1";
 
 const licPubKey = {
   kty:"EC", crv:"P-256",
@@ -25,6 +26,7 @@ const defaultState = {
 // --- ESTADO ---
 let state   = loadState();
 let license = loadLicense();
+let cats    = loadCats();
 let editId  = null;
 let economyMonth = new Date().getMonth();
 let economyYear  = new Date().getFullYear();
@@ -70,6 +72,7 @@ const el = {
   flowChart:     document.getElementById("flowChart"),
   accChart:      document.getElementById("accChart"),
   licWarn:       document.getElementById("licWarn"),
+  favTags:       document.getElementById("favTags"),
 };
 
 // --- INIT ---
@@ -85,7 +88,9 @@ window.addEventListener("resize", () => { try { drawCharts(calcSummary()); drawE
 
 render();
 
-// --- PERSISTÊNCIA ---
+// ============================================================
+// PERSISTÊNCIA
+// ============================================================
 function loadState() {
   try {
     const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
@@ -97,6 +102,7 @@ function loadState() {
   } catch { return structuredClone(defaultState); }
 }
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
 function loadLicense() {
   try { return JSON.parse(localStorage.getItem(LICENSE_KEY) || "null") || { active:false }; }
   catch { return { active:false }; }
@@ -107,13 +113,85 @@ function getDeviceId() {
   return id;
 }
 
-// --- FORM ---
+function loadCats() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CATS_KEY) || "null");
+    if (Array.isArray(raw)) return raw;
+  } catch {}
+  // Categorias padrão
+  return [
+    { id: "sal",   name: "Salario",       type: "income",     favorite: true },
+    { id: "ali",   name: "Alimentacao",   type: "expense",    favorite: true },
+    { id: "tran",  name: "Transporte",    type: "expense",    favorite: false },
+    { id: "mor",   name: "Moradia",       type: "expense",    favorite: true },
+    { id: "sau",   name: "Saude",         type: "expense",    favorite: false },
+    { id: "edu",   name: "Educacao",      type: "expense",    favorite: false },
+    { id: "laz",   name: "Lazer",         type: "expense",    favorite: false },
+    { id: "inv",   name: "Investimento",  type: "investment", favorite: true },
+    { id: "rent",  name: "Rendimentos",   type: "income",     favorite: false },
+    { id: "div",   name: "Dividendos",    type: "all",        favorite: false },
+  ];
+}
+function saveCats() { localStorage.setItem(CATS_KEY, JSON.stringify(cats)); }
+
+// ============================================================
+// CATEGORIAS - helpers
+// ============================================================
+function getCatsForType(type) {
+  if (type === "transfer") return [];
+  return cats.filter(c => c.type === type || c.type === "all");
+}
+function getFavCatsForType(type) {
+  return getCatsForType(type).filter(c => c.favorite);
+}
+
+// ============================================================
+// FORM PRINCIPAL - CATEGORIAS FAVORITAS
+// ============================================================
+function renderFavTags(container, catSelect, currentType, currentCat) {
+  const favs = getFavCatsForType(currentType);
+  if (!favs.length || currentType === "transfer") {
+    container.innerHTML = "";
+    const section = container.closest ? container.closest("#favTagsSection,#editFavTagsSection") : null;
+    if (section) section.style.display = "none";
+    return;
+  }
+  const section = container.closest ? container.closest("#favTagsSection,#editFavTagsSection") : null;
+  if (section) section.style.display = "";
+  container.innerHTML = favs.map(c =>
+    `<button type="button" class="fav-tag${currentCat === c.name ? " selected" : ""}" data-catname="${c.name}">${c.name}</button>`
+  ).join("");
+  container.querySelectorAll(".fav-tag").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const name = btn.dataset.catname;
+      catSelect.value = name;
+      container.querySelectorAll(".fav-tag").forEach(b => b.classList.toggle("selected", b === btn));
+    });
+  });
+}
+
+function fillCatSelect(selectEl, type) {
+  const list = getCatsForType(type);
+  selectEl.innerHTML = '<option value="">Sem categoria</option>' +
+    list.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+}
+
+// ============================================================
+// FORM PRINCIPAL
+// ============================================================
 function updateFormMode() {
   const type = document.querySelector('input[name="type"]:checked')?.value;
   const isTransfer = type === "transfer";
   el.toWrap.classList.toggle("hidden", !isTransfer);
   el.catWrap.classList.toggle("hidden", isTransfer);
   el.toAcc.required = isTransfer;
+  fillCatSelect(el.cat, type);
+  renderFavTags(el.favTags, el.cat, type, el.cat.value);
+  // Ocultar favs em transferência
+  const sec = document.getElementById("favTagsSection");
+  if (sec) sec.style.display = isTransfer ? "none" : "";
+  // Limpar seleção fav ao trocar tipo
+  if (!isTransfer) el.cat.value = "";
 }
 
 function resetForm() {
@@ -134,6 +212,17 @@ function onSubmit(e) {
   const fromAcc = fd.get("fromAccount");
   const toAcc = fd.get("toAccount");
   if (type === "transfer" && fromAcc === toAcc) { alert("Escolha contas diferentes."); return; }
+
+  // Validar categoria pelo tipo
+  const catVal = String(fd.get("category") || "").trim();
+  if (catVal && type !== "transfer") {
+    const found = cats.find(c => c.name === catVal);
+    if (found && found.type !== "all" && found.type !== type) {
+      alert(`A categoria "${catVal}" e para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}. Use uma categoria compativel com "${type === "income" ? "receita" : type === "expense" ? "despesa" : "investimento"}".`);
+      return;
+    }
+  }
+
   const tx = {
     id: editId || crypto.randomUUID(),
     type,
@@ -142,10 +231,11 @@ function onSubmit(e) {
     date: fd.get("date"),
     fromAccount: fromAcc,
     toAccount: type === "transfer" ? toAcc : "",
-    category: String(fd.get("category") || "").trim()
+    category: catVal
   };
   if (editId) {
     state.transactions = state.transactions.map(t => t.id === editId ? tx : t);
+    editId = null;
   } else {
     state.transactions.unshift(tx);
   }
@@ -159,7 +249,7 @@ function onTxClick(e) {
   if (!btn) return;
   const tx = state.transactions.find(t => t.id === btn.dataset.id);
   if (!tx) return;
-  if (btn.dataset.action === "edit") startEdit(tx);
+  if (btn.dataset.action === "edit") openEditModal(tx);
   if (btn.dataset.action === "del") {
     if (confirm("Remover este lancamento?")) {
       state.transactions = state.transactions.filter(t => t.id !== btn.dataset.id);
@@ -168,27 +258,290 @@ function onTxClick(e) {
   }
 }
 
-function startEdit(tx) {
-  editId = tx.id;
-  document.querySelector(`input[name="type"][value="${tx.type}"]`).checked = true;
-  el.desc.value = tx.description;
-  el.amt.value  = tx.amount;
-  el.dt.value   = tx.date;
-  el.fromAcc.value = tx.fromAccount;
-  el.toAcc.value   = tx.toAccount || state.accounts[0]?.id;
-  el.cat.value     = tx.category || "";
-  el.formTitle.textContent = "✏️ Editar lancamento";
-  el.saveBtn.textContent   = "Salvar alteracoes";
-  el.cancelEditBtn.classList.remove("hidden");
-  updateFormMode();
-  // Vai para aba visão geral e rola para o form
-  document.querySelector('.tab[data-pane="pane-geral"]').click();
-  setTimeout(() => el.txForm.scrollIntoView({ behavior:"smooth", block:"start" }), 100);
+// ============================================================
+// MODAL DE EDIÇÃO DE LANÇAMENTO
+// ============================================================
+const editModal     = document.getElementById("editModal");
+const editModalClose= document.getElementById("editModalClose");
+const editForm      = document.getElementById("editForm");
+const editDesc      = document.getElementById("editDesc");
+const editAmt       = document.getElementById("editAmt");
+const editDt        = document.getElementById("editDt");
+const editFromAcc   = document.getElementById("editFromAcc");
+const editToAcc     = document.getElementById("editToAcc");
+const editToWrap    = document.getElementById("editToWrap");
+const editCatWrap   = document.getElementById("editCatWrap");
+const editCat       = document.getElementById("editCat");
+const editFavTags   = document.getElementById("editFavTags");
+let   editingId     = null;
+
+function fillEditSelects() {
+  const opts = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
+  editFromAcc.innerHTML = opts;
+  editToAcc.innerHTML   = opts;
 }
 
-// --- RENDER PRINCIPAL ---
+function updateEditFormMode() {
+  const type = document.querySelector('input[name="etype"]:checked')?.value;
+  const isTransfer = type === "transfer";
+  editToWrap.classList.toggle("hidden", !isTransfer);
+  editCatWrap.classList.toggle("hidden", isTransfer);
+  editToAcc.required = isTransfer;
+  fillCatSelect(editCat, type);
+  renderFavTags(editFavTags, editCat, type, editCat.value);
+  const sec = document.getElementById("editFavTagsSection");
+  if (sec) sec.style.display = isTransfer ? "none" : "";
+}
+
+document.querySelectorAll('input[name="etype"]').forEach(r => r.addEventListener("change", updateEditFormMode));
+
+function openEditModal(tx) {
+  editingId = tx.id;
+  fillEditSelects();
+  document.querySelector(`input[name="etype"][value="${tx.type}"]`).checked = true;
+  editDesc.value    = tx.description;
+  editAmt.value     = tx.amount;
+  editDt.value      = tx.date;
+  editFromAcc.value = tx.fromAccount;
+  editToAcc.value   = tx.toAccount || state.accounts[0]?.id;
+  updateEditFormMode();
+  editCat.value     = tx.category || "";
+  renderFavTags(editFavTags, editCat, tx.type, tx.category || "");
+  editModal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeEditModal() {
+  editModal.classList.remove("open");
+  document.body.style.overflow = "";
+  editingId = null;
+}
+
+editModalClose.addEventListener("click", closeEditModal);
+editModal.addEventListener("click", function(e) {
+  if (e.target === editModal) closeEditModal();
+});
+
+editForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+  if (!editingId) return;
+  const fd = new FormData(editForm);
+  const type = fd.get("etype");
+  const fromAcc = fd.get("fromAccount");
+  const toAcc   = fd.get("toAccount");
+  if (type === "transfer" && fromAcc === toAcc) { alert("Escolha contas diferentes."); return; }
+
+  const catVal = String(fd.get("category") || "").trim();
+  if (catVal && type !== "transfer") {
+    const found = cats.find(c => c.name === catVal);
+    if (found && found.type !== "all" && found.type !== type) {
+      alert(`A categoria "${catVal}" e para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}.`);
+      return;
+    }
+  }
+
+  const tx = {
+    id: editingId,
+    type,
+    description: String(fd.get("description")).trim(),
+    amount: Number(fd.get("amount")),
+    date: fd.get("date"),
+    fromAccount: fromAcc,
+    toAccount: type === "transfer" ? toAcc : "",
+    category: catVal
+  };
+  state.transactions = state.transactions.map(t => t.id === editingId ? tx : t);
+  saveState();
+  closeEditModal();
+  render();
+});
+
+// ============================================================
+// MODAL DETALHE CONTA
+// ============================================================
+const accModal      = document.getElementById("accModal");
+const accModalClose = document.getElementById("accModalClose");
+const accModalBody  = document.getElementById("accModalBody");
+const accModalName  = document.getElementById("accModalName");
+const accModalType  = document.getElementById("accModalType");
+const accModalBal   = document.getElementById("accModalBalance");
+const accModalIcon  = document.getElementById("accModalIcon");
+
+function openAccModal(accId) {
+  const acc = state.accounts.find(a => a.id === accId);
+  if (!acc) return;
+  const summary = calcSummary();
+  const bal = summary.balances[acc.id] || 0;
+
+  accModalName.textContent = acc.name;
+  accModalType.textContent = acc.kind === "investment" ? "Investimento" : "Conta corrente";
+  accModalBal.textContent  = money.format(bal);
+  accModalIcon.textContent = acc.kind === "investment" ? "I" : "C";
+  accModalIcon.className   = "acc-modal-icon " + (acc.kind === "investment" ? "investment" : "checking");
+
+  // Filtra transações desta conta
+  const txs = state.transactions.filter(t =>
+    t.fromAccount === accId || (t.type === "transfer" && t.toAccount === accId)
+  );
+
+  if (!txs.length) {
+    accModalBody.innerHTML = '<div class="empty">Nenhum lancamento nesta conta.</div>';
+  } else {
+    // Agrupa por dia
+    const groups = {};
+    txs.forEach(t => {
+      const d = t.date;
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(t);
+    });
+
+    const fmt = new Intl.DateTimeFormat("pt-BR", { weekday:"short", day:"2-digit", month:"short" });
+    const sorted = Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
+    const icons  = { income:"💰", expense:"💸", transfer:"🔄" };
+
+    accModalBody.innerHTML = sorted.map(([date, items]) => {
+      const dayLabel = fmt.format(new Date(date + "T12:00:00"));
+      // subtotal do dia para esta conta
+      let sub = 0;
+      items.forEach(t => {
+        const v = Number(t.amount);
+        if (t.type === "income")   sub += v;
+        if (t.type === "expense")  sub -= v;
+        if (t.type === "transfer") {
+          if (t.fromAccount === accId) sub -= v;
+          if (t.toAccount   === accId) sub += v;
+        }
+      });
+      const subClass = sub >= 0 ? "income-text" : "expense-text";
+      const subStr   = (sub >= 0 ? "+" : "") + money.format(sub);
+
+      const rows = items.map(t => {
+        const prefix = t.type === "income" ? "+" : t.type === "expense" ? "-" : "↔";
+        const cls    = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "transfer-text";
+        const meta   = t.type === "transfer"
+          ? (t.fromAccount === accId ? `→ ${accName(t.toAccount)}` : `← ${accName(t.fromAccount)}`)
+          : (t.category || "Sem categoria");
+        return `
+        <div class="tx-item">
+          <div class="tx-ico ${t.type}">${icons[t.type]}</div>
+          <div class="tx-body">
+            <div class="tx-desc">${t.description}</div>
+            <div class="tx-meta">${meta}</div>
+          </div>
+          <div class="tx-right">
+            <div class="tx-amt ${cls}">${prefix}${money.format(Number(t.amount))}</div>
+            <div class="tx-date">${fmtDate(t.date)}</div>
+          </div>
+        </div>`;
+      }).join("");
+
+      return `
+        <div class="day-group">
+          <div class="day-label">
+            ${dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1)}
+            <span class="day-subtotal ${subClass}">${subStr}</span>
+          </div>
+          ${rows}
+        </div>`;
+    }).join("");
+  }
+
+  accModal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+accModalClose.addEventListener("click", function() {
+  accModal.classList.remove("open");
+  document.body.style.overflow = "";
+});
+accModal.addEventListener("click", function(e) {
+  if (e.target === accModal) { accModal.classList.remove("open"); document.body.style.overflow = ""; }
+});
+
+// ============================================================
+// MODAL CATEGORIAS
+// ============================================================
+const catModal      = document.getElementById("catModal");
+const catModalClose = document.getElementById("catModalClose");
+const catModalList  = document.getElementById("catModalList");
+const catName       = document.getElementById("catName");
+const catType       = document.getElementById("catType");
+const catFav        = document.getElementById("catFav");
+const catAddBtn     = document.getElementById("catAddBtn");
+
+function openCatModal() {
+  renderCatModalList();
+  catModal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeCatModal() {
+  catModal.classList.remove("open");
+  document.body.style.overflow = "";
+  render(); // re-render para atualizar selects de categoria
+}
+
+catModalClose.addEventListener("click", closeCatModal);
+catModal.addEventListener("click", function(e) {
+  if (e.target === catModal) closeCatModal();
+});
+
+catAddBtn.addEventListener("click", function() {
+  const name = catName.value.trim();
+  if (!name) { alert("Digite o nome da categoria."); return; }
+  if (cats.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+    alert("Ja existe uma categoria com este nome."); return;
+  }
+  cats.push({
+    id:       "c" + Date.now(),
+    name:     name,
+    type:     catType.value,
+    favorite: catFav.checked
+  });
+  saveCats();
+  catName.value  = "";
+  catFav.checked = false;
+  renderCatModalList();
+});
+
+function renderCatModalList() {
+  if (!cats.length) {
+    catModalList.innerHTML = '<div class="cat-empty">Nenhuma categoria cadastrada.</div>';
+    return;
+  }
+  const typeLabels = { income:"Receitas", expense:"Despesas", investment:"Investimento", all:"Todos" };
+  catModalList.innerHTML = cats.map(c => `
+    <div class="cat-list-item">
+      <div class="cat-star">${c.favorite ? "⭐" : "☆"}</div>
+      <div class="cat-list-item-info">
+        <div class="cat-list-item-name">${c.name}</div>
+        <div class="cat-list-item-meta">
+          <span class="cat-badge ${c.type}">${typeLabels[c.type] || c.type}</span>
+          ${c.favorite ? "<span style='font-size:.68rem;color:var(--primary)'>Favorita</span>" : ""}
+        </div>
+      </div>
+      <button class="cat-del-btn" data-catid="${c.id}" title="Remover">🗑</button>
+    </div>
+  `).join("");
+
+  catModalList.querySelectorAll(".cat-del-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      if (!confirm("Remover esta categoria?")) return;
+      cats = cats.filter(c => c.id !== btn.dataset.catid);
+      saveCats();
+      renderCatModalList();
+    });
+  });
+}
+
+// Expor openCatModal globalmente
+window.openCatModal = openCatModal;
+
+// ============================================================
+// RENDER PRINCIPAL
+// ============================================================
 function render() {
   fillSelects();
+  fillCatSelect(el.cat, document.querySelector('input[name="type"]:checked')?.value || "income");
   const summary = calcSummary();
   renderSummary(summary);
   renderAccounts(summary.balances);
@@ -196,6 +549,7 @@ function render() {
   renderCatPills();
   renderReports(summary);
   renderLicense();
+  renderFavTags(el.favTags, el.cat, document.querySelector('input[name="type"]:checked')?.value || "income", el.cat.value);
   try { drawCharts(summary); } catch(e) {}
   try { drawEconomyChart(); } catch(e) {}
 }
@@ -203,7 +557,7 @@ function render() {
 function fillSelects() {
   const opts = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
   el.fromAcc.innerHTML = opts;
-  el.toAcc.innerHTML = opts;
+  el.toAcc.innerHTML   = opts;
 }
 
 function calcSummary() {
@@ -232,14 +586,23 @@ function renderSummary(s) {
 function renderAccounts(balances) {
   if (!state.accounts.length) { el.accountList.innerHTML = '<div class="empty">Nenhuma conta.</div>'; return; }
   el.accountList.innerHTML = state.accounts.map(a => `
-    <div class="acc-card">
-      <div class="acc-info">
-        <small>${a.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
-        <strong>${a.name}</strong>
-        <em>${money.format(balances[a.id]||0)}</em>
+    <div class="acc-card" data-accid="${a.id}" title="Ver lancamentos de ${a.name}">
+      <div class="acc-card-inner">
+        <div class="acc-info">
+          <small>${a.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
+          <strong>${a.name}</strong>
+          <em>${money.format(balances[a.id]||0)}</em>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="acc-icon ${a.kind}">${a.kind === "investment" ? "I" : "C"}</div>
+          <span class="acc-arrow">›</span>
+        </div>
       </div>
-      <div class="acc-icon ${a.kind}">${a.kind === "investment" ? "I" : "C"}</div>
     </div>`).join("");
+
+  el.accountList.querySelectorAll(".acc-card").forEach(card => {
+    card.addEventListener("click", () => openAccModal(card.dataset.accid));
+  });
 }
 
 function renderTransactions() {
@@ -269,9 +632,9 @@ function txHTML(list, empty) {
       <div class="tx-body">
         <div class="tx-desc">${t.description}</div>
         <div class="tx-meta">${meta}</div>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          <button class="tx-edit" data-action="edit" data-id="${t.id}">✏️ Editar</button>
-          <button class="tx-edit" data-action="del"  data-id="${t.id}" style="color:var(--expense)">🗑 Remover</button>
+        <div class="tx-actions">
+          <button class="abtn" data-action="edit" data-id="${t.id}">✏️ Editar</button>
+          <button class="abtn del" data-action="del" data-id="${t.id}">🗑 Remover</button>
         </div>
       </div>
       <div class="tx-right">
@@ -283,12 +646,12 @@ function txHTML(list, empty) {
 }
 
 function renderCatPills() {
-  const cats = {};
+  const catMap = {};
   state.transactions.filter(t => t.type === "expense").forEach(t => {
     const c = t.category || "Sem categoria";
-    cats[c] = (cats[c]||0) + Number(t.amount);
+    catMap[c] = (catMap[c]||0) + Number(t.amount);
   });
-  const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+  const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
   if (!sorted.length) { el.catPills.innerHTML = '<span style="font-size:.82rem;color:var(--text3)">Nenhuma despesa ainda.</span>'; return; }
   const total = sorted.reduce((s,[,v]) => s+v, 0);
   el.catPills.innerHTML = sorted.map(([c,v]) =>
@@ -330,7 +693,9 @@ function lockForm(lock) {
   el.txForm.querySelectorAll("input,select,button").forEach(c => c.disabled = lock);
 }
 
-// --- GRAFICO ECONOMIA ---
+// ============================================================
+// GRÁFICO ECONOMIA
+// ============================================================
 function drawEconomyChart(m, y) {
   if (m !== undefined) economyMonth = m;
   if (y !== undefined) economyYear  = y;
@@ -378,7 +743,9 @@ function drawEconomyChart(m, y) {
   }
 }
 
-// --- GRÁFICOS BARRA ---
+// ============================================================
+// GRÁFICOS BARRA
+// ============================================================
 function drawCharts(s) {
   drawBar(el.flowChart, [
     { label:"Receitas", value:s.income,  color:"#16a34a" },
@@ -418,11 +785,13 @@ function drawBar(canvas, rows) {
   });
 }
 
-// --- UTILS ---
+// ============================================================
+// UTILS
+// ============================================================
 function accName(id) { return state.accounts.find(a=>a.id===id)?.name||"Conta"; }
 function fmtDate(v)  { return dateFmt.format(new Date(v+"T12:00:00")); }
 
-// Expor para uso externo (abas)
+// Expor para uso externo
 window.drawCharts = drawCharts;
 window.drawEconomyChart = drawEconomyChart;
 window.calculateSummary = calcSummary;
