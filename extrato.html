@@ -138,13 +138,35 @@
   </div>
 
   <script>
-  // ── jsPDF via CDN ─────────────────────────────────────────
-  (function() {
-    var s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    s.crossOrigin = "anonymous";
-    document.head.appendChild(s);
-  })();
+  // ── CORREÇÃO DO PDF: Carregamento melhorado do jsPDF ─────────────────────
+  let pdfLibLoaded = false;
+
+  function loadJsPDF() {
+    return new Promise((resolve, reject) => {
+      if (window.jspdf && window.jspdf.jsPDF) {
+        pdfLibLoaded = true;
+        resolve();
+        return;
+      }
+      
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.crossOrigin = "anonymous";
+      script.onload = () => {
+        if (window.jspdf && window.jspdf.jsPDF) {
+          pdfLibLoaded = true;
+          resolve();
+        } else {
+          reject(new Error("jsPDF não carregou corretamente"));
+        }
+      };
+      script.onerror = () => reject(new Error("Falha ao carregar biblioteca PDF"));
+      document.head.appendChild(script);
+    });
+  }
+
+  // Pré-carrega a biblioteca na inicialização
+  loadJsPDF().catch(console.warn);
 
   const money = new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" });
   const storageKey = "financas-v3";
@@ -286,7 +308,7 @@
       }).join("");
   }
 
-  // ── PDF COM jsPDF ────────────────────────────────────────
+  // ── PDF COM jsPDF CORRIGIDO ────────────────────────────────────────
   var pdfOverlay   = document.getElementById("pdfOverlay");
   var pdfBtn       = document.getElementById("pdfBtn");
   var pdfDownBtn   = document.getElementById("pdfDownloadBtn");
@@ -297,24 +319,39 @@
   pdfCancelBtn.addEventListener("click", function(){ pdfOverlay.classList.remove("open"); });
   pdfOverlay.addEventListener("click", function(e){ if(e.target===pdfOverlay) pdfOverlay.classList.remove("open"); });
 
-  pdfDownBtn.addEventListener("click", function() {
+  // CORREÇÃO PRINCIPAL: Download funcionando
+  pdfDownBtn.addEventListener("click", async function() {
     pdfDownBtn.style.display = "none";
     pdfProgress.style.display = "flex";
 
-    setTimeout(function() {
-      try {
-        generatePDF();
-      } catch(e) {
-        alert("Erro ao gerar PDF: " + e.message + "\nTente usar a opcao de impressao do navegador.");
+    try {
+      // Garante que a biblioteca está carregada
+      if (!pdfLibLoaded) {
+        await loadJsPDF();
       }
+      
+      // Aguarda um pouco para mostrar o loading
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Gera e baixa o PDF
+      generatePDF();
+      console.log("✅ PDF gerado e baixado com sucesso!");
+      
+    } catch(error) {
+      console.error("❌ Erro ao gerar PDF:", error);
+      alert("Erro ao gerar PDF: " + error.message + "\n\nAlternativas:\n• Tente novamente\n• Use Ctrl+P para imprimir\n• Verifique sua conexão");
+    } finally {
       pdfProgress.style.display = "none";
-      pdfDownBtn.style.display  = "block";
+      pdfDownBtn.style.display = "block";
       pdfOverlay.classList.remove("open");
-    }, 200);
+    }
   });
 
   function generatePDF() {
-    if (!window.jspdf) throw new Error("Biblioteca PDF ainda carregando. Tente novamente.");
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      throw new Error("Biblioteca PDF não está disponível");
+    }
+    
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
     var pageW = doc.internal.pageSize.getWidth();
@@ -434,7 +471,12 @@
       doc.text("Controle sua Fortuna — pagina "+i+" de "+pages, pageW/2, pageH-5, {align:"center"});
     }
 
-    doc.save("extrato_" + new Date().toISOString().slice(0,10) + ".pdf");
+    // FORÇAR DOWNLOAD DO ARQUIVO
+    var fileName = "extrato_" + new Date().toISOString().slice(0,10) + ".pdf";
+    doc.save(fileName);
+    
+    // Log de confirmação
+    console.log("📥 Download iniciado:", fileName);
   }
 
   function formatDateStr(str) {
