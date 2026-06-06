@@ -23,6 +23,13 @@ const defaultState = {
   transactions: []
 };
 
+// Função para obter data/hora no fuso de Brasília
+function getBrazilDate() {
+  const now = new Date();
+  const brazilTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) + (-3 * 3600000));
+  return brazilTime.toISOString().slice(0, 10);
+}
+
 // --- ESTADO ---
 let state   = loadState();
 let license = loadLicense();
@@ -76,7 +83,7 @@ const el = {
 };
 
 // --- INIT ---
-el.dt.value = new Date().toISOString().slice(0,10);
+el.dt.value = getBrazilDate();
 
 el.txForm.addEventListener("submit", onSubmit);
 document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", updateFormMode));
@@ -158,9 +165,11 @@ function renderFavTags(container, catSelect, currentType, currentCat) {
   }
   const section = container.closest ? container.closest("#favTagsSection,#editFavTagsSection") : null;
   if (section) section.style.display = "";
+  
   container.innerHTML = favs.map(c =>
     `<button type="button" class="fav-tag${currentCat === c.name ? " selected" : ""}" data-catname="${c.name}">${c.name}</button>`
   ).join("");
+  
   container.querySelectorAll(".fav-tag").forEach(btn => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.catname;
@@ -197,7 +206,7 @@ function updateFormMode() {
 function resetForm() {
   editId = null;
   el.txForm.reset();
-  el.dt.value = new Date().toISOString().slice(0,10);
+  el.dt.value = getBrazilDate();
   document.querySelector('input[name="type"][value="income"]').checked = true;
   el.formTitle.textContent = "➕ Novo lancamento";
   el.saveBtn.textContent = "Salvar lancamento";
@@ -218,7 +227,7 @@ function onSubmit(e) {
   if (catVal && type !== "transfer") {
     const found = cats.find(c => c.name === catVal);
     if (found && found.type !== "all" && found.type !== type) {
-      alert(`A categoria "${catVal}" e para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}. Use uma categoria compativel com "${type === "income" ? "receita" : type === "expense" ? "despesa" : "investimento"}".`);
+      alert(`A categoria "${catVal}" é para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}. Use uma categoria compatível com "${type === "income" ? "receita" : type === "expense" ? "despesa" : "investimento"}".`);
       return;
     }
   }
@@ -335,7 +344,7 @@ editForm.addEventListener("submit", function(e) {
   if (catVal && type !== "transfer") {
     const found = cats.find(c => c.name === catVal);
     if (found && found.type !== "all" && found.type !== type) {
-      alert(`A categoria "${catVal}" e para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}.`);
+      alert(`A categoria "${catVal}" é para ${found.type === "income" ? "receitas" : found.type === "expense" ? "despesas" : "investimentos"}.`);
       return;
     }
   }
@@ -797,3 +806,4 @@ window.drawEconomyChart = drawEconomyChart;
 window.calculateSummary = calcSummary;
 window.economyMonth = economyMonth;
 window.economyYear  = economyYear;
+window.appData = state;
