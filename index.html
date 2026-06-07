@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0f766e"/>
-<title>Controle sua Fortuna</title>
+<title>Controle sua Fortuna Versão 1.0</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="stylesheet" href="styles.css"/>
 <style>
@@ -23,32 +23,22 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-
-/* TOPBAR */
 .topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .topbar .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px}
 .topbar-right{display:flex;gap:8px;align-items:center;position:relative}
 .tbtn{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s}
 .tbtn:hover{background:rgba(255,255,255,.3)}
-
-/* DROPDOWN */
 .ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:220px;z-index:999;overflow:hidden;display:none}
 .ddmenu.open{display:block}
 .dditem{display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;cursor:pointer;font-size:.93rem;color:var(--text);text-decoration:none;transition:background .15s;border-bottom:1px solid var(--border)}
 .dditem:last-child{border-bottom:none}
 .dditem:hover{background:var(--bg3)}
-
-/* CONTEÚDO */
 .content{padding:1rem;padding-bottom:80px;max-width:640px;margin:0 auto}
-
-/* CARD */
 .card{background:var(--bg2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
 .card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem}
 .card-title h2{font-size:.95rem;font-weight:700}
 .card-title span{font-size:.78rem;color:var(--text2)}
-
-/* SUMMARY */
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 @media(min-width:480px){.summary{grid-template-columns:repeat(4,1fr)}}
 .metric{background:var(--bg2);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow)}
@@ -56,8 +46,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .metric strong{font-size:1.15rem;font-weight:800}
 .metric.primary{background:var(--primary)}
 .metric.primary span,.metric.primary strong{color:#fff}
-
-/* CONTAS */
 .acc-list{display:flex;flex-direction:column;gap:8px}
 .acc-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:var(--rsm);padding:.75rem 1rem;cursor:pointer;transition:all .2s;border:2px solid transparent}
 .acc-card:hover{border-color:var(--primary);background:var(--primary-light)}
@@ -70,8 +58,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .acc-icon.checking{background:var(--primary)}
 .acc-icon.investment{background:var(--transfer)}
 .acc-arrow{font-size:.8rem;color:var(--text3);margin-left:4px}
-
-/* FORM */
 .segmented{display:flex;background:var(--bg3);border-radius:var(--rsm);padding:3px;gap:3px;margin-bottom:1rem}
 .segmented label{flex:1;cursor:pointer}
 .segmented input{display:none}
@@ -88,15 +74,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cbtn{background:none;border:none;color:var(--expense);font-size:.8rem;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:6px}
 .hidden{display:none!important}
 .locked{opacity:.5;pointer-events:none}
-
-/* FAV CATEGORY TAGS */
 .fav-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
 .fav-tag{padding:5px 12px;border-radius:20px;background:var(--primary-light);border:1.5px solid var(--primary);color:var(--primary);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s}
 .fav-tag:hover{background:var(--primary);color:#fff}
 .fav-tag.selected{background:var(--primary);color:#fff}
 .fav-tags-label{font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:3px}
-
-/* TRANSAÇÕES */
 .tx-list{display:flex;flex-direction:column}
 .tx-item{display:flex;align-items:flex-start;gap:10px;padding:.75rem 0;border-bottom:1px solid var(--border)}
 .tx-item:last-child{border-bottom:none}
@@ -118,8 +100,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .expense-text{color:var(--expense)}
 .transfer-text{color:var(--transfer)}
 .empty{text-align:center;padding:1.5rem;color:var(--text3);font-size:.85rem}
-
-/* CAT PILLS - MELHORADO COM DETALHES DE LIMITE */
 .cat-pills{display:flex;flex-direction:column;gap:12px;min-height:40px}
 .cat-pill{padding:14px 16px;border-radius:var(--rsm);background:var(--bg3);border:1.5px solid var(--border);transition:all .2s;position:relative;overflow:hidden}
 .cat-pill:hover{background:var(--primary-light)}
@@ -127,44 +107,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cat-pill-name{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
 .cat-pill-amount{font-size:.9rem;color:var(--expense);font-weight:700;text-align:right;line-height:1.2}
 .cat-pill-percent{font-size:.75rem;color:var(--text2);margin-top:1px}
-
-/* NOVA ESTRUTURA DE LIMITE */
 .cat-limit-info{margin-bottom:8px}
 .cat-limit-text{font-size:.8rem;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
 .cat-limit-text .limit-label{font-weight:600}
 .cat-limit-text .limit-values{font-weight:700}
-
 .cat-pill-progress{background:var(--border);height:8px;border-radius:4px;overflow:hidden;position:relative}
 .cat-pill-bar{height:100%;transition:width .3s ease;border-radius:4px;position:relative}
 .cat-pill-bar.normal{background:linear-gradient(90deg, var(--primary), #059669)}
 .cat-pill-bar.warning{background:linear-gradient(90deg, var(--warning), #d97706)}
 .cat-pill-bar.danger{background:linear-gradient(90deg, var(--expense), #b91c1c)}
-
-.cat-pill-bar::after{
-  content:'';
-  position:absolute;
-  top:0;
-  right:0;
-  bottom:0;
-  left:0;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,.2));
-}
-
-/* STATUS VISUAL DOS CARDS */
+.cat-pill-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg, transparent, rgba(255,255,255,.2))}
 .cat-pill.has-limit{border-color:var(--primary);background:var(--primary-light)}
 .cat-pill.near-limit{border-color:var(--warning);background:rgba(245,158,11,.08);box-shadow:0 0 0 1px rgba(245,158,11,.2)}
 .cat-pill.over-limit{border-color:var(--expense);background:rgba(239,68,68,.08);box-shadow:0 0 0 1px rgba(239,68,68,.2)}
-
-/* BADGE DE LIMITE */
 .cat-limit-badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;padding:2px 6px;border-radius:10px;background:var(--primary);color:#fff}
 .cat-limit-badge.warning{background:var(--warning)}
 .cat-limit-badge.danger{background:var(--expense)}
-
-/* SEM CATEGORIA */
 .cat-pill.no-limit .cat-pill-name{opacity:.8}
 .cat-pill.no-limit{border-style:dashed;opacity:.9}
-
-/* ECONOMIA */
 .eco-widget{display:flex;align-items:center;flex-wrap:wrap;gap:1.25rem;padding:.5rem 0}
 .eco-ring{position:relative;width:130px;height:130px;flex-shrink:0}
 .eco-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
@@ -178,8 +138,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .mnbtn{background:var(--bg3);border:none;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.95rem;color:var(--text2)}
 .mnbtn:hover{background:var(--border)}
 .month-nav span{font-size:.8rem;color:var(--text2);min-width:90px;text-align:center;font-weight:600}
-
-/* RELATÓRIOS */
 .rep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
 @media(max-width:360px){.rep-grid{grid-template-columns:1fr 1fr}}
 .rep-card{background:var(--bg3);border-radius:var(--rsm);padding:.75rem}
@@ -189,12 +147,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .insights{display:flex;flex-direction:column;gap:6px;margin-top:.75rem}
 .insight{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:8px 12px;font-size:.8rem;line-height:1.5}
 canvas{width:100%!important;display:block}
-
-/* AVISO LICENÇA */
 #licWarn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--expense);color:#fff;padding:12px 16px;justify-content:space-between;align-items:center;z-index:200;font-size:.88rem;font-weight:600}
 #licWarn a{color:#fff;text-decoration:underline}
-
-/* ===== MODAL EDIÇÃO DE LANÇAMENTO ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto}
@@ -204,8 +158,6 @@ canvas{width:100%!important;display:block}
 .modal-title h3{font-size:1.05rem;font-weight:800}
 .modal-close{background:var(--bg3);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
 .modal-close:hover{background:var(--border)}
-
-/* ===== MODAL DETALHE CONTA ===== */
 .account-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .account-modal-overlay.open{opacity:1;pointer-events:all}
 .account-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
@@ -222,8 +174,6 @@ canvas{width:100%!important;display:block}
 .day-group{margin-bottom:1rem}
 .day-label{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.5rem 0 .4rem;border-bottom:1px solid var(--border);margin-bottom:.4rem;position:sticky;top:0;background:var(--bg2);z-index:1}
 .day-subtotal{font-size:.72rem;color:var(--text3);float:right;font-weight:600;margin-top:-1px}
-
-/* ===== MODAL CATEGORIAS COM LIMITES ===== */
 .cat-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .cat-modal-overlay.open{opacity:1;pointer-events:all}
 .cat-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
@@ -243,16 +193,12 @@ canvas{width:100%!important;display:block}
 .cat-fav-row small{font-size:.72rem;color:var(--text2);display:block;margin-top:1px}
 .cat-add-btn{width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer}
 .cat-add-btn:hover{opacity:.9}
-
-/* ===== LIMITE DE CATEGORIA ===== */
 .cat-limit-section{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:8px;padding:.7rem;margin-bottom:.6rem}
 .cat-limit-header{display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
 .cat-limit-header input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
 .cat-limit-header label{font-size:.82rem;font-weight:700;color:var(--primary);cursor:pointer;margin:0}
 .cat-limit-fields{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
 .cat-limit-fields.disabled{opacity:.5;pointer-events:none}
-
-/* ===== LISTA DE CATEGORIAS COM STATUS ===== */
 .cat-list-item{display:flex;align-items:center;gap:10px;padding:.7rem .85rem;background:var(--bg3);border-radius:var(--rsm);margin-bottom:.4rem;position:relative;cursor:pointer}
 .cat-list-item:hover{background:var(--border)}
 .cat-list-item.over-limit{border-left:4px solid var(--expense)}
@@ -277,8 +223,6 @@ canvas{width:100%!important;display:block}
 .cat-edit-btn:hover{color:var(--primary);background:var(--primary-light)}
 .cat-del-btn:hover{color:var(--expense);background:rgba(220,38,38,.1)}
 .cat-empty{text-align:center;color:var(--text3);font-size:.85rem;padding:2rem}
-
-/* ALERTAS DE LIMITE */
 .limit-alerts{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin-bottom:1rem;display:none}
 .limit-alerts.show{display:block}
 .limit-alerts h3{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
@@ -287,19 +231,14 @@ canvas{width:100%!important;display:block}
 .limit-alert-text{font-size:.8rem;color:var(--text2);flex:1}
 .limit-alert-amount{font-size:.75rem;font-weight:700;color:var(--expense)}
 .limit-alert.warning .limit-alert-amount{color:var(--warning)}
-
-/* ===== MODAL EDIÇÃO DE CATEGORIA ===== */
 .cat-edit-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .cat-edit-modal-overlay.open{opacity:1;pointer-events:all}
 .cat-edit-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:75vh;display:flex;flex-direction:column}
 .cat-edit-modal-overlay.open .cat-edit-modal-sheet{transform:translateY(0)}
 .cat-edit-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
 .cat-edit-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
-
-/* ALERTA SUCCESS */
 .success-alert{position:fixed;top:20px;right:20px;background:var(--income);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:1000;animation:slideInAlert .3s ease-out}
 @keyframes slideInAlert{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
-
 @media(max-width:480px){.summary{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -308,7 +247,7 @@ canvas{width:100%!important;display:block}
 <header class="topbar">
   <div>
     <p class="eyebrow">Controle financeiro</p>
-    <h1>Controle sua Fortuna</h1>
+    <h1>Controle sua Fortuna Versão 1.0</h1>
   </div>
   <div class="topbar-right">
     <button class="tbtn" id="themeBtn" title="Alternar tema">🌙</button>
@@ -323,13 +262,11 @@ canvas{width:100%!important;display:block}
 </header>
 
 <div class="content">
-  <!-- ALERTAS DE LIMITE -->
   <div class="limit-alerts" id="limitAlerts">
     <h3>⚠️ Alertas de Limite</h3>
     <div id="limitAlertsList"></div>
   </div>
 
-  <!-- RESUMO -->
   <div class="summary">
     <div class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></div>
     <div class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></div>
@@ -337,7 +274,6 @@ canvas{width:100%!important;display:block}
     <div class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></div>
   </div>
 
-  <!-- ECONOMIA MENSAL -->
   <div class="card">
     <div class="card-title">
       <h2>🎯 Economia mensal</h2>
@@ -360,13 +296,11 @@ canvas{width:100%!important;display:block}
     </div>
   </div>
 
-  <!-- CONTAS -->
   <div class="card">
     <div class="card-title"><h2>💳 Contas</h2><span id="accountCount">0 contas</span></div>
     <div class="acc-list" id="accountList"></div>
   </div>
 
-  <!-- NOVO LANÇAMENTO -->
   <div class="card">
     <div class="card-title">
       <h2 id="formTitle">➕ Novo lancamento</h2>
@@ -378,7 +312,6 @@ canvas{width:100%!important;display:block}
         <label><input type="radio" name="type" value="expense"/><span>💸 Despesa</span></label>
         <label><input type="radio" name="type" value="transfer"/><span>🔄 Transf.</span></label>
       </div>
-      <!-- CATEGORIAS FAVORITAS -->
       <div id="favTagsSection" style="margin-bottom:.75rem">
         <div class="fav-tags-label">⭐ Categorias favoritas</div>
         <div class="fav-tags" id="favTags"></div>
@@ -395,19 +328,16 @@ canvas{width:100%!important;display:block}
     </form>
   </div>
 
-  <!-- ULTIMAS DESPESAS -->
   <div class="card">
     <div class="card-title"><h2>💸 Ultimas despesas</h2><span id="expCount">0</span></div>
     <div class="tx-list" id="expList"></div>
   </div>
 
-  <!-- ULTIMAS RECEITAS -->
   <div class="card">
     <div class="card-title"><h2>💰 Ultimas receitas</h2><span id="incCount">0</span></div>
     <div class="tx-list" id="incList"></div>
   </div>
 
-  <!-- DESPESAS POR CATEGORIA COM LIMITES -->
   <div class="card">
     <div class="card-title"><h2>🗂 Despesas por categoria</h2><span id="catTotal">R$ 0,00</span></div>
     <div class="cat-pills" id="catPills">
@@ -415,13 +345,11 @@ canvas{width:100%!important;display:block}
     </div>
   </div>
 
-  <!-- TRANSFERENCIAS -->
   <div class="card">
     <div class="card-title"><h2>🔄 Transferencias</h2><span id="trfCount">0</span></div>
     <div class="tx-list" id="trfList"></div>
   </div>
 
-  <!-- RESUMO GERAL -->
   <div class="card">
     <div class="card-title"><h2>📊 Resumo geral</h2></div>
     <div class="rep-grid">
@@ -432,7 +360,6 @@ canvas{width:100%!important;display:block}
     <div class="insights" id="insights"></div>
   </div>
 
-  <!-- GRÁFICOS -->
   <div class="card">
     <div class="card-title"><h2>📉 Receitas x Despesas</h2><span>Mes atual</span></div>
     <canvas id="flowChart" height="180"></canvas>
@@ -443,7 +370,7 @@ canvas{width:100%!important;display:block}
   </div>
 </div>
 
-<!-- ===== MODAL EDIÇÃO LANÇAMENTO ===== -->
+<!-- MODAL EDIÇÃO LANÇAMENTO -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-sheet" id="editModalSheet">
     <div class="modal-handle"></div>
@@ -457,7 +384,6 @@ canvas{width:100%!important;display:block}
         <label><input type="radio" name="etype" value="expense"/><span>💸 Despesa</span></label>
         <label><input type="radio" name="etype" value="transfer"/><span>🔄 Transf.</span></label>
       </div>
-      <!-- FAV TAGS NO MODAL -->
       <div id="editFavTagsSection" style="margin-bottom:.75rem">
         <div class="fav-tags-label">⭐ Categorias favoritas</div>
         <div class="fav-tags" id="editFavTags"></div>
@@ -475,7 +401,7 @@ canvas{width:100%!important;display:block}
   </div>
 </div>
 
-<!-- ===== MODAL DETALHE CONTA ===== -->
+<!-- MODAL DETALHE CONTA -->
 <div class="account-modal-overlay" id="accModal">
   <div class="account-modal-sheet">
     <div class="account-modal-header">
@@ -497,7 +423,7 @@ canvas{width:100%!important;display:block}
   </div>
 </div>
 
-<!-- ===== MODAL CATEGORIAS COM LIMITES ===== -->
+<!-- MODAL CATEGORIAS -->
 <div class="cat-modal-overlay" id="catModal">
   <div class="cat-modal-sheet">
     <div class="cat-modal-header">
@@ -508,11 +434,10 @@ canvas{width:100%!important;display:block}
       </div>
     </div>
     <div class="cat-modal-body">
-      <!-- Form nova categoria -->
       <div class="cat-form">
         <div class="cat-form-title" id="catFormTitle">➕ Nova categoria</div>
         <div class="cat-form-row full">
-          <label>Nome da categoria<input type="text" id="catName" placeholder="Ex: Alimentacao, Salario..."/></label>
+          <label>Nome da categoria<input type="text" id="catName" placeholder="Ex: Alimentacao, Salario..." maxlength="50"/></label>
         </div>
         <div class="cat-form-row">
           <label>Tipo
@@ -533,7 +458,6 @@ canvas{width:100%!important;display:block}
             </div>
           </label>
         </div>
-        <!-- SEÇÃO DE LIMITES -->
         <div class="cat-limit-section">
           <div class="cat-limit-header">
             <input type="checkbox" id="catHasLimit"/>
@@ -553,13 +477,12 @@ canvas{width:100%!important;display:block}
         </div>
         <button class="cat-add-btn" id="catAddBtn">Adicionar categoria</button>
       </div>
-      <!-- Lista de categorias -->
       <div id="catModalList"></div>
     </div>
   </div>
 </div>
 
-<!-- ===== MODAL EDIÇÃO DE CATEGORIA ===== -->
+<!-- MODAL EDIÇÃO DE CATEGORIA -->
 <div class="cat-edit-modal-overlay" id="catEditModal">
   <div class="cat-edit-modal-sheet">
     <div class="cat-edit-modal-header">
@@ -572,7 +495,7 @@ canvas{width:100%!important;display:block}
     <div class="cat-edit-modal-body">
       <div class="cat-form">
         <div class="cat-form-row full">
-          <label>Nome da categoria<input type="text" id="editCatName"/></label>
+          <label>Nome da categoria<input type="text" id="editCatName" maxlength="50"/></label>
         </div>
         <div class="cat-form-row">
           <label>Tipo
@@ -593,7 +516,6 @@ canvas{width:100%!important;display:block}
             </div>
           </label>
         </div>
-        <!-- SEÇÃO DE LIMITES -->
         <div class="cat-limit-section">
           <div class="cat-limit-header">
             <input type="checkbox" id="editCatHasLimit"/>
@@ -623,227 +545,264 @@ canvas{width:100%!important;display:block}
   <a href="licenca.html">Ativar agora</a>
 </div>
 
-<script src="app.js"></script>
 <script>
 (function(){
-  // Verificação de usuário
   if (!localStorage.getItem("financas-user-profile")) {
     window.location.href = "cadastro.html";
     return;
   }
 
-  // Service Worker
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-  // === SISTEMA DE CATEGORIAS MELHORADO ===
-  let categoryData = [];
-  let editingCategoryId = null;
   const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-  const CAT_KEY = "financas-categories-v2";
+  let editingCategoryId = null;
 
-  // Função para mostrar alerta de sucesso
+  // =====================================================================
+  // CORREÇÃO PRINCIPAL: lê transações sempre frescos do localStorage
+  // =====================================================================
+  function getTransactions() {
+    try {
+      const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+      return Array.isArray(data.transactions) ? data.transactions : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // =====================================================================
+  // CORREÇÃO: getCategorySpending agora usa o MESMO conjunto de transações
+  // para total e para mensal — sem cache, sempre relê o storage.
+  // O parâmetro "monthOnly" decide se filtra pelo mês atual ou pega tudo.
+  // =====================================================================
+  function getCategorySpending(categoryName, monthOnly) {
+    const transactions = getTransactions();
+    const catNorm = (categoryName || "").trim().toLowerCase();
+
+    let list = transactions.filter(t => {
+      return t.type === "expense" &&
+             (t.category || "").trim().toLowerCase() === catNorm;
+    });
+
+    if (monthOnly) {
+      const now = new Date();
+      // Usa o mês/ano local para comparar com o campo date (YYYY-MM-DD)
+      const yyyy = now.getFullYear();
+      const mm   = String(now.getMonth() + 1).padStart(2, "0");
+      const prefix = `${yyyy}-${mm}`;   // ex: "2026-06"
+      list = list.filter(t => (t.date || "").startsWith(prefix));
+    }
+
+    return list.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+  }
+
+  // =====================================================================
+  // UTILIDADES
+  // =====================================================================
   function showSuccessAlert(message) {
-    // Remove alertas anteriores
     const existingAlert = document.querySelector('.success-alert');
     if (existingAlert) existingAlert.remove();
-    
-    // Cria novo alerta
     const alert = document.createElement('div');
     alert.className = 'success-alert';
     alert.textContent = message;
     document.body.appendChild(alert);
-    
-    // Remove após 3 segundos
-    setTimeout(() => {
-      if (alert.parentNode) alert.parentNode.removeChild(alert);
-    }, 3000);
+    setTimeout(() => { if (alert.parentNode) alert.parentNode.removeChild(alert); }, 3000);
   }
 
-  // Função para obter data/hora no fuso de Brasília
   function getBrazilDate() {
     const now = new Date();
-    const brazilTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) + (-3 * 3600000));
-    return brazilTime.toISOString().slice(0, 10);
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 10);
   }
 
-  // Configura data padrão no horário de Brasília
-  const dateInput = document.getElementById("dt");
-  if (dateInput) {
-    dateInput.value = getBrazilDate();
+  function generateId() {
+    return Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5);
   }
 
-  function loadCategories() {
-    const allById = {};
-    const absorb = (list) => {
-      if (!Array.isArray(list)) return;
-      list.forEach(c => {
-        if (!c || !c.name) return;
-        const key = c.id || c.name;
-        allById[key] = c;
-      });
-    };
-
-    try { absorb(JSON.parse(localStorage.getItem("financas-categories") || "null")); } catch(e) {}
-    try { absorb(JSON.parse(localStorage.getItem("financas-categories-v1") || "null")); } catch(e) {}
-    try {
-      const db = JSON.parse(localStorage.getItem("financas-v3") || "null");
-      if (db) absorb(db.categories);
-    } catch(e) {}
-    try { absorb(JSON.parse(localStorage.getItem(CAT_KEY) || "null")); } catch(e) {}
-
-    const merged = Object.values(allById);
-    if (merged.length > 0) {
-      categoryData = merged;
-      saveCategories(); // Força salvamento unificado
-    } else {
-      categoryData = [];
-    }
+  // =====================================================================
+  // CATEGORIAS
+  // =====================================================================
+  function getDefaultCategories() {
+    return [
+      { id:"sal",  name:"Salario",      type:"income",     isFavorite:true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"ali",  name:"Alimentacao",  type:"expense",    isFavorite:true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"tran", name:"Transporte",   type:"expense",    isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"mor",  name:"Moradia",      type:"expense",    isFavorite:true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"sau",  name:"Saude",        type:"expense",    isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"edu",  name:"Educacao",     type:"expense",    isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"laz",  name:"Lazer",        type:"expense",    isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"inv",  name:"Investimento", type:"investment", isFavorite:true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"rent", name:"Rendimentos",  type:"income",     isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+      { id:"div",  name:"Dividendos",   type:"all",        isFavorite:false, hasLimit:false, monthlyLimit:0, warningPercent:80 }
+    ];
   }
 
-  function saveCategories() {
-    // CORREÇÃO: Sempre força salvamento na chave principal
-    try {
-      localStorage.setItem(CAT_KEY, JSON.stringify(categoryData));
-      console.log("✅ Categorias salvas com sucesso:", categoryData.length, "itens");
-    } catch(e) {
-      console.error("❌ Erro ao salvar categorias:", e);
-    }
+  function convertAppCategoriesToUnified(cats) {
+    return cats.map(c => ({
+      id: c.id || generateId(),
+      name: c.name,
+      type: c.type || "expense",
+      isFavorite: !!(c.favorite || c.isFavorite),
+      hasLimit: !!c.hasLimit,
+      monthlyLimit: parseFloat(c.monthlyLimit) || 0,
+      warningPercent: parseInt(c.warningPercent) || 80
+    }));
   }
 
-  function getCategorySpending(categoryName) {
-    try {
-      // Pega data atual no fuso de Brasília
-      const now = new Date();
-      const brazilNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) + (-3 * 3600000));
-      
-      // Define início e fim do mês atual
-      const year = brazilNow.getFullYear();
-      const month = brazilNow.getMonth();
-      const startOfMonth = new Date(year, month, 1).toISOString().slice(0, 10);
-      const endOfMonth = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+  function convertUnifiedToAppFormat(cats) {
+    return cats.map(c => ({
+      id: c.id || generateId(),
+      name: c.name,
+      type: c.type || "expense",
+      favorite: !!c.isFavorite,
+      hasLimit: !!c.hasLimit,
+      monthlyLimit: parseFloat(c.monthlyLimit) || 0,
+      warningPercent: parseInt(c.warningPercent) || 80
+    }));
+  }
 
-      // Carrega todas as transações
-      let transactions = [];
+  window.getCategoriesUnified = function() {
+    // Tenta migrar de fontes antigas
+    const oldSources = ["financas-categories-v3-final","financas-categories-v2","unified-category-data"];
+    for (const src of oldSources) {
       try {
-        const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
-        transactions = data.transactions || [];
-      } catch (e) {
-        transactions = [];
+        const raw = localStorage.getItem(src);
+        if (raw && raw !== "null") {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const converted = convertUnifiedToAppFormat(parsed);
+            saveCategoriesToApp(converted);
+            localStorage.removeItem(src);
+            break;
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Lê da fonte principal (financas-v3)
+    try {
+      const main = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+      if (main.categories && Array.isArray(main.categories) && main.categories.length > 0) {
+        return main.categories.filter(c => c && c.name).map(c => ({
+          id: c.id || generateId(),
+          name: c.name.trim(),
+          type: c.type || "expense",
+          isFavorite: !!(c.isFavorite || c.favorite),
+          hasLimit: !!c.hasLimit,
+          monthlyLimit: parseFloat(c.monthlyLimit) || 0,
+          warningPercent: parseInt(c.warningPercent) || 80
+        }));
       }
+    } catch(e) {}
 
-      // Filtra por categoria, tipo e mês atual
-      const currentMonthTransactions = transactions.filter(t => {
-        const txCategory = (t.category || "").trim();
-        const searchCategory = (categoryName || "").trim();
-        
-        return t.type === "expense" && 
-               txCategory === searchCategory &&
-               t.date >= startOfMonth && 
-               t.date <= endOfMonth;
-      });
-      
-      // Soma os valores
-      const total = currentMonthTransactions.reduce((sum, t) => {
-        return sum + (parseFloat(t.amount) || 0);
-      }, 0);
+    // Fonte app.js
+    try {
+      const appCats = JSON.parse(localStorage.getItem("financas-categories-v1") || "null");
+      if (Array.isArray(appCats) && appCats.length > 0) {
+        return convertAppCategoriesToUnified(appCats);
+      }
+    } catch(e) {}
 
-      return total;
-    } catch (e) {
-      console.error("Erro ao calcular gastos:", e);
-      return 0;
+    return getDefaultCategories();
+  };
+
+  function saveCategoriesToApp(categories) {
+    try {
+      const appFmt = convertUnifiedToAppFormat(categories);
+      localStorage.setItem("financas-categories-v1", JSON.stringify(appFmt));
+      return true;
+    } catch(e) {
+      return false;
     }
   }
 
+  // =====================================================================
+  // RENDERIZAÇÃO DO CARD "Despesas por categoria"
+  // CORREÇÃO: usa getTransactions() sempre frescos; cálculo mensal usa
+  // getCategorySpending(name, true) com prefixo YYYY-MM correto.
+  // =====================================================================
   function renderCategoryPillsFromTransactions() {
     const container = document.getElementById("catPills");
-    const totalSpan = document.querySelector("#catTotal");
+    const totalSpan  = document.querySelector("#catTotal");
     if (!container) return;
 
-    let transactions = [];
-    try {
-      const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
-      transactions = data.transactions || [];
-    } catch (e) {
-      transactions = [];
-    }
-
+    const transactions = getTransactions();  // SEMPRE FRESCOS
     const expenses = transactions.filter(t => t.type === "expense");
+
     if (expenses.length === 0) {
       container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
       if (totalSpan) totalSpan.textContent = money.format(0);
       return;
     }
 
-    // Agrupa TODAS as despesas por categoria (para o total geral)
-    const spending = {};
-    let total = 0;
+    const categories = window.getCategoriesUnified();
+
+    // Agrupa gastos totais (todos os períodos) por categoria
+    const spendingAll = {};
+    let totalAll = 0;
     expenses.forEach(tx => {
-      const cat = tx.category || "Sem categoria";
+      const cat = (tx.category || "Sem categoria").trim();
       const amt = parseFloat(tx.amount) || 0;
-      spending[cat] = (spending[cat] || 0) + amt;
-      total += amt;
+      spendingAll[cat] = (spendingAll[cat] || 0) + amt;
+      totalAll += amt;
     });
 
-    // Monta dados com informações de limite
-    const sorted = Object.entries(spending)
-      .map(([name, amount]) => {
-        const catDef = categoryData.find(c => c.name === name);
-        const percentOfTotal = Math.round((amount / total) * 100);
-        
+    // Mês atual para filtro do limite
+    const now = new Date();
+    const currentPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+
+    // Gastos só do mês atual, por categoria
+    const spendingMonth = {};
+    expenses.forEach(tx => {
+      if ((tx.date || "").startsWith(currentPrefix)) {
+        const cat = (tx.category || "Sem categoria").trim();
+        const amt = parseFloat(tx.amount) || 0;
+        spendingMonth[cat] = (spendingMonth[cat] || 0) + amt;
+      }
+    });
+
+    const sorted = Object.entries(spendingAll)
+      .map(([name, totalAmount]) => {
+        const catDef = categories.find(c =>
+          (c.name || "").trim().toLowerCase() === name.toLowerCase()
+        );
+        const percentOfTotal = totalAll > 0 ? Math.round((totalAmount / totalAll) * 100) : 0;
+        const monthSpent = spendingMonth[name] || 0;
+
         let limitInfo = null;
         let statusClass = "no-limit";
-        
+
         if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
-          // VALOR UTILIZADO = gastos da categoria NO MÊS ATUAL
-          const currentMonthSpent = getCategorySpending(name);
-          
-          // LIMITE DISPONÍVEL = limite cadastrado - valor utilizado do mês
-          const limiteDisponivel = catDef.monthlyLimit - currentMonthSpent;
-          
-          // PERCENTUAL USADO = (valor usado / limite) * 100
-          let limitUsagePercent = 0;
-          if (catDef.monthlyLimit > 0) {
-            limitUsagePercent = Math.round((currentMonthSpent / catDef.monthlyLimit) * 100);
-          }
-          
-          statusClass = currentMonthSpent >= catDef.monthlyLimit ? "over-limit" : 
-                       limitUsagePercent >= (catDef.warningPercent || 80) ? "near-limit" : "has-limit";
-          
-          const barStatus = currentMonthSpent >= catDef.monthlyLimit ? "danger" : 
-                           limitUsagePercent >= (catDef.warningPercent || 80) ? "warning" : "normal";
-          
+          const pct = Math.round((monthSpent / catDef.monthlyLimit) * 100);
+          const disponivel = catDef.monthlyLimit - monthSpent;
+
+          statusClass = monthSpent >= catDef.monthlyLimit ? "over-limit" :
+                        pct >= (catDef.warningPercent || 80)  ? "near-limit" : "has-limit";
+
+          const barStatus = monthSpent >= catDef.monthlyLimit ? "danger" :
+                            pct >= (catDef.warningPercent || 80)  ? "warning" : "normal";
+
           limitInfo = {
             limiteCadastrado: catDef.monthlyLimit,
-            valorUtilizado: currentMonthSpent,
-            limiteDisponivel: limiteDisponivel,
-            percent: limitUsagePercent,
-            barStatus: barStatus,
-            warningPercent: catDef.warningPercent || 80
+            valorUtilizado:   monthSpent,
+            limiteDisponivel: disponivel,
+            percent:          pct,
+            barStatus:        barStatus,
+            warningPercent:   catDef.warningPercent || 80
           };
         }
-        
-        return { name, amount, percentOfTotal, catDef, limitInfo, statusClass };
-      })
-      .sort((a, b) => b.amount - a.amount);
 
-    // Renderiza os cards
+        return { name, totalAmount, percentOfTotal, limitInfo, statusClass };
+      })
+      .sort((a, b) => b.totalAmount - a.totalAmount);
+
     container.innerHTML = sorted.map(item => {
-      const hasLimit = item.limitInfo !== null;
-      
-      if (hasLimit) {
-        const limit = item.limitInfo;
-        const badgeClass = limit.barStatus;
-        
-        // Força o percentual a ser mostrado corretamente
-        let badgeText;
-        if (limit.percent >= 100) {
-          badgeText = "LIMITE EXCEDIDO";
-        } else if (limit.percent > 0) {
-          badgeText = `${limit.percent}% USADO`;
-        } else {
-          badgeText = "0% USADO";
-        }
-        
+      if (item.limitInfo) {
+        const lim = item.limitInfo;
+        const badgeClass = lim.barStatus;
+        const badgeText  = lim.percent >= 100
+          ? "LIMITE EXCEDIDO"
+          : `${lim.percent}% USADO`;
+
         return `
           <div class="cat-pill ${item.statusClass}">
             <div class="cat-pill-header">
@@ -852,46 +811,35 @@ canvas{width:100%!important;display:block}
                 <span class="cat-limit-badge ${badgeClass}">${badgeText}</span>
               </div>
               <div class="cat-pill-amount">
-                ${money.format(item.amount)}
+                ${money.format(item.totalAmount)}
                 <div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div>
               </div>
             </div>
-            
             <div class="cat-limit-info">
               <div class="cat-limit-text">
                 <span class="limit-label">🎯 <strong>Limite cadastrado:</strong></span>
-                <span class="limit-values" style="color: var(--primary); font-weight: 700;">
-                  ${money.format(limit.limiteCadastrado)}
-                </span>
+                <span class="limit-values" style="color:var(--primary);font-weight:700">${money.format(lim.limiteCadastrado)}</span>
               </div>
               <div class="cat-limit-text">
-                <span class="limit-label">📊 <strong>Valor utilizado (mês):</strong></span>
-                <span class="limit-values" style="color: var(--expense); font-weight: 700;">
-                  ${money.format(limit.valorUtilizado)} (${limit.percent}%)
-                </span>
+                <span class="limit-label">📊 <strong>Valor utilizado (mês atual):</strong></span>
+                <span class="limit-values" style="color:var(--expense);font-weight:700">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span>
               </div>
               <div class="cat-limit-text">
                 <span class="limit-label">💰 <strong>Limite disponível:</strong></span>
-                <span class="limit-values" style="color: ${limit.limiteDisponivel >= 0 ? 'var(--income)' : 'var(--expense)'}; font-weight: 700;">
-                  ${money.format(Math.max(0, limit.limiteDisponivel))}
-                  ${limit.limiteDisponivel < 0 ? ' (EXCEDIDO)' : ''}
+                <span class="limit-values" style="color:${lim.limiteDisponivel>=0?'var(--income)':'var(--expense)'};font-weight:700">
+                  ${money.format(Math.max(0, lim.limiteDisponivel))}${lim.limiteDisponivel < 0 ? " (EXCEDIDO)" : ""}
                 </span>
               </div>
               <div class="cat-limit-text">
-                <span class="limit-label">📈 <strong>Total da categoria:</strong></span>
-                <span class="limit-values" style="color: var(--text); font-weight: 700;">
-                  ${money.format(item.amount)} (${item.percentOfTotal}% do total)
-                </span>
+                <span class="limit-label">📈 <strong>Total da categoria (todos os meses):</strong></span>
+                <span class="limit-values" style="color:var(--text);font-weight:700">${money.format(item.totalAmount)} (${item.percentOfTotal}% do total)</span>
               </div>
             </div>
-            
             <div class="cat-pill-progress">
-              <div class="cat-pill-bar ${limit.barStatus}" style="width: ${Math.min(limit.percent, 100)}%"></div>
+              <div class="cat-pill-bar ${lim.barStatus}" style="width:${Math.min(lim.percent,100)}%"></div>
             </div>
-          </div>
-        `;
+          </div>`;
       } else {
-        // Card sem limite
         return `
           <div class="cat-pill ${item.statusClass}">
             <div class="cat-pill-header">
@@ -900,220 +848,180 @@ canvas{width:100%!important;display:block}
                 <span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span>
               </div>
               <div class="cat-pill-amount">
-                ${money.format(item.amount)}
+                ${money.format(item.totalAmount)}
                 <div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div>
               </div>
             </div>
-            
             <div class="cat-limit-info">
               <div class="cat-limit-text">
                 <span class="limit-label">📊 <strong>Total da categoria:</strong></span>
-                <span class="limit-values" style="color: var(--text); font-weight: 700;">
-                  ${money.format(item.amount)}
-                </span>
+                <span class="limit-values" style="color:var(--text);font-weight:700">${money.format(item.totalAmount)}</span>
               </div>
               <div class="cat-limit-text">
                 <span class="limit-label">📈 <strong>% do total geral:</strong></span>
-                <span class="limit-values" style="color: var(--text2); font-weight: 700;">
-                  ${item.percentOfTotal}%
-                </span>
+                <span class="limit-values" style="color:var(--text2);font-weight:700">${item.percentOfTotal}%</span>
               </div>
             </div>
-          </div>
-        `;
+          </div>`;
       }
     }).join("");
 
-    if (totalSpan) totalSpan.textContent = money.format(total);
+    if (totalSpan) totalSpan.textContent = money.format(totalAll);
   }
 
+  // =====================================================================
+  // ALERTAS DE LIMITE
+  // =====================================================================
   function checkCategoryLimits() {
+    const categories = window.getCategoriesUnified();
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const transactions = getTransactions();
+
     const alerts = [];
-    const categoriesWithLimits = categoryData.filter(c => c.hasLimit && c.monthlyLimit > 0);
+    categories.filter(c => c.hasLimit && c.monthlyLimit > 0).forEach(cat => {
+      const spent = transactions
+        .filter(t => t.type === "expense" &&
+                     (t.category || "").trim().toLowerCase() === cat.name.trim().toLowerCase() &&
+                     (t.date || "").startsWith(prefix))
+        .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
 
-    categoriesWithLimits.forEach(category => {
-      const spent = getCategorySpending(category.name);
-      const percentage = (spent / category.monthlyLimit) * 100;
-
-      if (percentage >= 100) {
-        alerts.push({
-          type: "danger",
-          category: category.name,
-          spent: spent,
-          limit: category.monthlyLimit,
-          message: `Limite ultrapassado em ${category.name}`
-        });
-      } else if (percentage >= category.warningPercent) {
-        alerts.push({
-          type: "warning",
-          category: category.name,
-          spent: spent,
-          limit: category.monthlyLimit,
-          message: `${Math.round(percentage)}% do limite usado em ${category.name}`
-        });
+      const pct = (spent / cat.monthlyLimit) * 100;
+      if (pct >= 100) {
+        alerts.push({ type:"danger",  category:cat.name, spent, limit:cat.monthlyLimit, message:`Limite ultrapassado em ${cat.name}` });
+      } else if (pct >= cat.warningPercent) {
+        alerts.push({ type:"warning", category:cat.name, spent, limit:cat.monthlyLimit, message:`${Math.round(pct)}% do limite usado em ${cat.name}` });
       }
     });
 
-    renderLimitAlerts(alerts);
+    const container = document.getElementById("limitAlerts");
+    const list      = document.getElementById("limitAlertsList");
+    if (!container || !list) return;
+    if (alerts.length === 0) { container.classList.remove("show"); return; }
+    container.classList.add("show");
+    list.innerHTML = alerts.map(a => `
+      <div class="limit-alert ${a.type}">
+        <div class="limit-alert-text">${a.message}</div>
+        <div class="limit-alert-amount">${money.format(a.spent)} / ${money.format(a.limit)}</div>
+      </div>`).join("");
   }
 
-  function renderLimitAlerts(alerts) {
-    const container = document.getElementById("limitAlerts");
-    const list = document.getElementById("limitAlertsList");
-    if (!container || !list) return;
+  // =====================================================================
+  // DISPARO DE ATUALIZAÇÃO — função central chamada em todos os eventos
+  // =====================================================================
+  function refreshCategoryPills() {
+    renderCategoryPillsFromTransactions();
+    checkCategoryLimits();
+  }
 
-    if (alerts.length === 0) {
-      container.classList.remove("show");
-      return;
+  // =====================================================================
+  // MONITORAMENTO: MutationObserver + polling + storage event
+  // O app.js sobrescreve #catPills com HTML simples após cada render().
+  // O MutationObserver detecta isso e aplica imediatamente nosso HTML.
+  // =====================================================================
+  function setupMonitoring() {
+    // 1. MutationObserver no #catPills — dispara toda vez que o app.js
+    //    substituir o conteúdo do container com HTML simples (sem .cat-limit-info)
+    const container = document.getElementById("catPills");
+    if (container) {
+      let observerBlocked = false;
+      const observer = new MutationObserver(function() {
+        if (observerBlocked) return;
+        const hasDetailedContent = container.querySelector(".cat-limit-info");
+        const hasSimpleContent   = container.querySelector(".cat-pill");
+        if (hasSimpleContent && !hasDetailedContent) {
+          observerBlocked = true;
+          refreshCategoryPills();
+          requestAnimationFrame(function() { observerBlocked = false; });
+        }
+      });
+      observer.observe(container, { childList: true, subtree: false });
     }
 
-    container.classList.add("show");
-    list.innerHTML = alerts.map(alert => `
-      <div class="limit-alert ${alert.type}">
-        <div class="limit-alert-text">${alert.message}</div>
-        <div class="limit-alert-amount">${money.format(alert.spent)} / ${money.format(alert.limit)}</div>
-      </div>
-    `).join("");
-  }
-
-  function updateCategorySelects() {
-    const selects = ["cat", "editCat"];
-    selects.forEach(selectId => {
-      const select = document.getElementById(selectId);
-      if (!select) return;
-      const currentValue = select.value;
-      select.innerHTML = '<option value="">Sem categoria</option>' +
-        categoryData.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join("");
-      select.value = currentValue;
+    // 2. Intercepta localStorage.setItem — captura qualquer salvamento do app.js
+    const _setItem = Object.getOwnPropertyDescriptor(Storage.prototype, "setItem");
+    Object.defineProperty(Storage.prototype, "setItem", {
+      configurable: true,
+      enumerable: true,
+      value: function(key, value) {
+        _setItem.value.call(this, key, value);
+        if (key === "financas-v3") {
+          setTimeout(refreshCategoryPills, 80);
+        }
+      }
     });
-  }
 
-  function renderFavoriteTags() {
-    const containers = ["favTags", "editFavTags"];
-    const favoriteCategories = categoryData.filter(cat => cat.isFavorite);
+    // 3. storage event (outra aba)
+    window.addEventListener("storage", function(e) {
+      if (e.key === "financas-v3" || e.key === "financas-categories-v1") {
+        refreshCategoryPills();
+      }
+    });
 
-    containers.forEach(containerId => {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-
-      if (favoriteCategories.length === 0) {
-        container.innerHTML = '<span style="color: var(--text3); font-size: .75rem;">Nenhuma categoria favorita</span>';
+    // 4. Polling de segurança a cada 1.5 segundos
+    setInterval(function() {
+      const hasDetailedContent = document.querySelector("#catPills .cat-limit-info");
+      const hasSimpleContent   = document.querySelector("#catPills .cat-pill");
+      if (hasSimpleContent && !hasDetailedContent) {
+        refreshCategoryPills();
         return;
       }
+      const snap = localStorage.getItem("financas-v3") || "";
+      if (snap !== _lastSnap) {
+        _lastSnap = snap;
+        refreshCategoryPills();
+      }
+    }, 1500);
 
-      container.innerHTML = favoriteCategories.map(cat => `
-        <span class="fav-tag" data-category="${cat.name}">${cat.name}</span>
-      `).join("");
+    // 5. Foco na janela
+    window.addEventListener("focus", refreshCategoryPills);
 
-      container.querySelectorAll(".fav-tag").forEach(tag => {
-        tag.addEventListener("click", function() {
-          const categoryName = this.dataset.category;
-          const targetSelect = containerId === "favTags" ? "cat" : "editCat";
-          document.getElementById(targetSelect).value = categoryName;
-          container.querySelectorAll(".fav-tag").forEach(t => t.classList.remove("selected"));
-          this.classList.add("selected");
-        });
-      });
-    });
+    // 6. Evento personalizado do app.js
+    window.addEventListener("financasUpdated", refreshCategoryPills);
   }
 
-  // === MODAL PRINCIPAL DE CATEGORIAS ===
-  document.getElementById("catHasLimit").addEventListener("change", function() {
-    const fields = document.getElementById("catLimitFields");
-    fields.classList.toggle("disabled", !this.checked);
-    if (!this.checked) {
-      document.getElementById("catLimitAmount").value = "";
-    }
-  });
+  var _lastSnap = "";
 
-  document.getElementById("catAddBtn").addEventListener("click", function() {
-    const name = document.getElementById("catName").value.trim();
-    const type = document.getElementById("catType").value;
-    const isFavorite = document.getElementById("catFav").checked;
-    const hasLimit = document.getElementById("catHasLimit").checked;
-    const monthlyLimit = hasLimit ? parseFloat(document.getElementById("catLimitAmount").value) || 0 : 0;
-    const warningPercent = parseInt(document.getElementById("catLimitWarning").value);
-
-    if (!name) {
-      alert("⚠️ Digite o nome da categoria");
-      return;
-    }
-
-    if (hasLimit && monthlyLimit <= 0) {
-      alert("⚠️ Digite um valor válido para o limite mensal");
-      return;
-    }
-
-    if (categoryData.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
-      alert("⚠️ Já existe uma categoria com esse nome");
-      return;
-    }
-
-    const newCategory = {
-      id: Date.now().toString(),
-      name: name,
-      type: type,
-      isFavorite: isFavorite,
-      hasLimit: hasLimit,
-      monthlyLimit: monthlyLimit,
-      warningPercent: warningPercent
-    };
-
-    categoryData.push(newCategory);
-    saveCategories();
-    renderCategoryModal();
-    clearCategoryForm();
-    updateCategorySelects();
-    renderFavoriteTags();
-    checkCategoryLimits();
-    renderCategoryPillsFromTransactions();
-    showSuccessAlert("✅ Categoria adicionada com sucesso!");
-  });
-
-  function clearCategoryForm() {
-    document.getElementById("catName").value = "";
-    document.getElementById("catType").value = "expense";
-    document.getElementById("catFav").checked = false;
-    document.getElementById("catHasLimit").checked = false;
-    document.getElementById("catLimitAmount").value = "";
-    document.getElementById("catLimitWarning").value = "80";
-    document.getElementById("catLimitFields").classList.add("disabled");
-  }
-
+  // =====================================================================
+  // MODAL DE CATEGORIAS
+  // =====================================================================
   function renderCategoryModal() {
     const list = document.getElementById("catModalList");
     if (!list) return;
 
-    if (categoryData.length === 0) {
+    const categories = window.getCategoriesUnified();
+    if (categories.length === 0) {
       list.innerHTML = '<div class="cat-empty">🗂️ Nenhuma categoria cadastrada</div>';
       return;
     }
 
-    list.innerHTML = categoryData.map(cat => {
-      const typeLabel = {
-        expense: "Despesas",
-        income: "Receitas",
-        investment: "Investimento",
-        all: "Ambos"
-      }[cat.type];
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const transactions = getTransactions();
 
+    list.innerHTML = categories.map(cat => {
+      const typeLabel = {expense:"Despesas",income:"Receitas",investment:"Investimento",all:"Ambos"}[cat.type] || "Outros";
       const starIcon = cat.isFavorite ? "⭐" : "☆";
       let limitInfo = "";
 
       if (cat.hasLimit && cat.monthlyLimit > 0) {
-        const spent = getCategorySpending(cat.name);
-        const percentage = Math.min((spent / cat.monthlyLimit) * 100, 100);
-        const status = percentage >= 100 ? "danger" : percentage >= cat.warningPercent ? "warning" : "normal";
-        const statusClass = percentage >= 100 ? "over-limit" : percentage >= cat.warningPercent ? "near-limit" : "";
+        const spent = transactions
+          .filter(t => t.type === "expense" &&
+                       (t.category||"").trim().toLowerCase() === cat.name.trim().toLowerCase() &&
+                       (t.date||"").startsWith(prefix))
+          .reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
+
+        const pct = Math.min((spent / cat.monthlyLimit) * 100, 100);
+        const status = pct >= 100 ? "danger" : pct >= cat.warningPercent ? "warning" : "normal";
+        const statusClass = pct >= 100 ? "over-limit" : pct >= cat.warningPercent ? "near-limit" : "";
 
         limitInfo = `
           <div class="cat-limit-progress">
             <div class="cat-limit-bar">
-              <div class="cat-limit-fill ${status}" style="width: ${percentage}%"></div>
+              <div class="cat-limit-fill ${status}" style="width:${pct}%"></div>
             </div>
-            <div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(percentage)}%)</div>
-          </div>
-        `;
+            <div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div>
+          </div>`;
 
         return `
           <div class="cat-list-item ${statusClass}">
@@ -1124,16 +1032,14 @@ canvas{width:100%!important;display:block}
                 <span class="cat-badge expense">🎯 Com limite</span>
               </div>
               <div class="cat-list-item-meta">
-                ${cat.isFavorite ? "⭐ Categoria favorita" : "Categoria comum"}
-                • Limite: ${money.format(cat.monthlyLimit)}/mês
+                ${cat.isFavorite?"⭐ Categoria favorita":"Categoria comum"} • Limite: ${money.format(cat.monthlyLimit)}/mês
               </div>
               ${limitInfo}
             </div>
             <div class="cat-star">${starIcon}</div>
             <button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button>
             <button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button>
-          </div>
-        `;
+          </div>`;
       } else {
         return `
           <div class="cat-list-item">
@@ -1142,178 +1048,185 @@ canvas{width:100%!important;display:block}
                 ${cat.name}
                 <span class="cat-badge ${cat.type}">${typeLabel}</span>
               </div>
-              <div class="cat-list-item-meta">
-                ${cat.isFavorite ? "⭐ Categoria favorita" : "Categoria comum"}
-              </div>
+              <div class="cat-list-item-meta">${cat.isFavorite?"⭐ Categoria favorita":"Categoria comum"}</div>
             </div>
             <div class="cat-star">${starIcon}</div>
             <button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button>
             <button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button>
-          </div>
-        `;
+          </div>`;
       }
     }).join("");
   }
 
-  // === MODAL EDIÇÃO DE CATEGORIA ===
-  function openEditCategoryModal(categoryId) {
-    const category = categoryData.find(cat => cat.id === categoryId);
-    if (!category) return;
+  // =====================================================================
+  // FORMULÁRIO DE CATEGORIA
+  // =====================================================================
+  document.getElementById("catHasLimit")?.addEventListener("change", function() {
+    document.getElementById("catLimitFields")?.classList.toggle("disabled", !this.checked);
+    if (!this.checked) document.getElementById("catLimitAmount").value = "";
+  });
 
-    editingCategoryId = categoryId;
-    
-    document.getElementById("editCatName").value = category.name;
-    document.getElementById("editCatType").value = category.type;
-    document.getElementById("editCatFav").checked = category.isFavorite;
-    document.getElementById("editCatHasLimit").checked = category.hasLimit;
-    document.getElementById("editCatLimitAmount").value = category.monthlyLimit || "";
-    document.getElementById("editCatLimitWarning").value = category.warningPercent || 80;
+  document.getElementById("catAddBtn")?.addEventListener("click", function(e) {
+    e.preventDefault();
+    const name         = document.getElementById("catName")?.value?.trim() || "";
+    const type         = document.getElementById("catType")?.value || "expense";
+    const isFavorite   = document.getElementById("catFav")?.checked || false;
+    const hasLimit     = document.getElementById("catHasLimit")?.checked || false;
+    const monthlyLimit = hasLimit ? parseFloat(document.getElementById("catLimitAmount")?.value) || 0 : 0;
+    const warningPct   = parseInt(document.getElementById("catLimitWarning")?.value) || 80;
 
-    const fields = document.getElementById("editCatLimitFields");
-    fields.classList.toggle("disabled", !category.hasLimit);
+    if (!name) { alert("⚠️ Digite um nome para a categoria"); return; }
+    if (hasLimit && monthlyLimit <= 0) { alert("⚠️ Digite um valor válido para o limite mensal"); return; }
 
-    document.getElementById("catEditModal").classList.add("open");
-    document.body.style.overflow = "hidden";
+    const existing = window.getCategoriesUnified();
+    if (existing.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+      alert("⚠️ Já existe uma categoria com esse nome"); return;
+    }
+
+    const newCat = { id:generateId(), name, type, isFavorite, hasLimit, monthlyLimit, warningPercent:warningPct };
+    if (saveCategoriesToApp([...existing, newCat])) {
+      clearCategoryForm();
+      renderCategoryModal();
+      refreshCategoryPills();
+      showSuccessAlert("✅ Categoria adicionada com sucesso!");
+      setTimeout(() => { if (window.render) window.render(); }, 150);
+    } else {
+      alert("❌ Erro ao salvar categoria");
+    }
+  });
+
+  function clearCategoryForm() {
+    [["catName",""],["catType","expense"],["catLimitAmount",""],["catLimitWarning","80"]].forEach(([id,v]) => {
+      const el = document.getElementById(id); if (el) el.value = v;
+    });
+    const cFav = document.getElementById("catFav"); if (cFav) cFav.checked = false;
+    const cLim = document.getElementById("catHasLimit"); if (cLim) cLim.checked = false;
+    document.getElementById("catLimitFields")?.classList.add("disabled");
   }
 
+  // =====================================================================
+  // MODAL EDIÇÃO DE CATEGORIA
+  // =====================================================================
+  function openEditCategoryModal(categoryId) {
+    const cat = window.getCategoriesUnified().find(c => c.id === categoryId);
+    if (!cat) return;
+    editingCategoryId = categoryId;
+
+    document.getElementById("editCatName").value           = cat.name;
+    document.getElementById("editCatType").value           = cat.type;
+    document.getElementById("editCatFav").checked          = cat.isFavorite;
+    document.getElementById("editCatHasLimit").checked     = cat.hasLimit;
+    document.getElementById("editCatLimitAmount").value    = cat.monthlyLimit || "";
+    document.getElementById("editCatLimitWarning").value   = cat.warningPercent || 80;
+    document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !cat.hasLimit);
+    document.getElementById("catEditModal")?.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
   window.openEditCategoryModal = openEditCategoryModal;
 
-  // Event listeners do modal de edição
-  document.getElementById("editCatHasLimit").addEventListener("change", function() {
-    const fields = document.getElementById("editCatLimitFields");
-    fields.classList.toggle("disabled", !this.checked);
-    if (!this.checked) {
-      document.getElementById("editCatLimitAmount").value = "";
-    }
+  document.getElementById("editCatHasLimit")?.addEventListener("change", function() {
+    document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !this.checked);
+    if (!this.checked) document.getElementById("editCatLimitAmount").value = "";
   });
 
-  // CORREÇÃO PRINCIPAL: Event listener para salvar edição
-  document.getElementById("editCatSaveBtn").addEventListener("click", function() {
+  document.getElementById("editCatSaveBtn")?.addEventListener("click", function(e) {
+    e.preventDefault();
     if (!editingCategoryId) return;
 
-    const name = document.getElementById("editCatName").value.trim();
-    const type = document.getElementById("editCatType").value;
-    const isFavorite = document.getElementById("editCatFav").checked;
-    const hasLimit = document.getElementById("editCatHasLimit").checked;
+    const name         = document.getElementById("editCatName").value.trim();
+    const type         = document.getElementById("editCatType").value;
+    const isFavorite   = document.getElementById("editCatFav").checked;
+    const hasLimit     = document.getElementById("editCatHasLimit").checked;
     const monthlyLimit = hasLimit ? parseFloat(document.getElementById("editCatLimitAmount").value) || 0 : 0;
-    const warningPercent = parseInt(document.getElementById("editCatLimitWarning").value);
+    const warningPct   = parseInt(document.getElementById("editCatLimitWarning").value);
 
-    if (!name) {
-      alert("⚠️ Digite o nome da categoria");
-      return;
+    if (!name) { alert("⚠️ Digite um nome para a categoria"); return; }
+    if (hasLimit && monthlyLimit <= 0) { alert("⚠️ Digite um valor válido para o limite mensal"); return; }
+
+    const cats = window.getCategoriesUnified();
+    if (cats.find(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== editingCategoryId)) {
+      alert("⚠️ Já existe uma categoria com esse nome"); return;
     }
 
-    if (hasLimit && monthlyLimit <= 0) {
-      alert("⚠️ Digite um valor válido para o limite mensal");
-      return;
-    }
-
-    // CORREÇÃO CRÍTICA: Exclui a categoria atual da verificação de duplicatas
-    const existingCategory = categoryData.find(cat => 
-      cat.id !== editingCategoryId && // ← Esta linha é fundamental!
-      cat.name.toLowerCase() === name.toLowerCase()
+    const updated = cats.map(c =>
+      c.id === editingCategoryId
+        ? { ...c, name, type, isFavorite, hasLimit, monthlyLimit, warningPercent:warningPct }
+        : c
     );
 
-    if (existingCategory) {
-      alert("⚠️ Já existe uma categoria com esse nome");
-      return;
-    }
-
-    // APLICAR AS ALTERAÇÕES
-    const categoryIndex = categoryData.findIndex(cat => cat.id === editingCategoryId);
-    if (categoryIndex >= 0) {
-      categoryData[categoryIndex] = {
-        ...categoryData[categoryIndex], // Mantém ID original
-        name: name,
-        type: type,
-        isFavorite: isFavorite,
-        hasLimit: hasLimit,
-        monthlyLimit: monthlyLimit,
-        warningPercent: warningPercent
-      };
-
-      saveCategories(); // Força salvamento
+    if (saveCategoriesToApp(updated)) {
       renderCategoryModal();
-      updateCategorySelects();
-      renderFavoriteTags();
-      checkCategoryLimits();
-      renderCategoryPillsFromTransactions();
+      refreshCategoryPills();
       closeEditCategoryModal();
       showSuccessAlert("✅ Categoria atualizada com sucesso!");
+      setTimeout(() => { if (window.render) window.render(); }, 150);
     } else {
-      alert("❌ Erro: categoria não encontrada");
+      alert("❌ Erro ao salvar categoria");
     }
   });
 
-  // CORREÇÃO PRINCIPAL: Event listener para excluir categoria
-  document.getElementById("editCatDeleteBtn").addEventListener("click", function() {
+  document.getElementById("editCatDeleteBtn")?.addEventListener("click", function(e) {
+    e.preventDefault();
     if (!editingCategoryId) return;
-    
-    const category = categoryData.find(cat => cat.id === editingCategoryId);
-    if (!category) return;
-    
-    if (!confirm(`🗑️ Excluir a categoria "${category.name}"?\n\nEsta ação não pode ser desfeita.`)) return;
+    const cat = window.getCategoriesUnified().find(c => c.id === editingCategoryId);
+    if (!cat) return;
+    if (!confirm(`🗑️ Excluir a categoria "${cat.name}"?\n\nEsta ação não pode ser desfeita.`)) return;
 
-    // REMOVE DA ARRAY E FORÇA SALVAMENTO
-    categoryData = categoryData.filter(cat => cat.id !== editingCategoryId);
-    saveCategories(); // ← CRÍTICO: força salvamento após exclusão
-    
-    // ATUALIZA TODAS AS VISUALIZAÇÕES
-    renderCategoryModal();
-    updateCategorySelects();
-    renderFavoriteTags();
-    checkCategoryLimits();
-    renderCategoryPillsFromTransactions();
-    closeEditCategoryModal();
-    showSuccessAlert("✅ Categoria excluída com sucesso!");
+    const updated = window.getCategoriesUnified().filter(c => c.id !== editingCategoryId);
+    if (saveCategoriesToApp(updated)) {
+      renderCategoryModal();
+      refreshCategoryPills();
+      closeEditCategoryModal();
+      showSuccessAlert("✅ Categoria excluída com sucesso!");
+      setTimeout(() => { if (window.render) window.render(); }, 150);
+    } else {
+      alert("❌ Erro ao excluir categoria");
+    }
   });
 
   function closeEditCategoryModal() {
-    document.getElementById("catEditModal").classList.remove("open");
+    document.getElementById("catEditModal")?.classList.remove("open");
     document.body.style.overflow = "";
     editingCategoryId = null;
   }
 
-  document.getElementById("catEditModalClose").addEventListener("click", closeEditCategoryModal);
-  document.getElementById("catEditModal").addEventListener("click", function(e) {
+  document.getElementById("catEditModalClose")?.addEventListener("click", closeEditCategoryModal);
+  document.getElementById("catEditModal")?.addEventListener("click", function(e) {
     if (e.target === this) closeEditCategoryModal();
   });
 
-  // FUNÇÃO GLOBAL PARA EXCLUSÃO DIRETA (corrigida)
   window.deleteCategory = function(categoryId) {
-    const category = categoryData.find(cat => cat.id === categoryId);
-    if (!category) return;
-    
-    if (!confirm(`🗑️ Excluir a categoria "${category.name}"?\n\nEsta ação não pode ser desfeita.`)) return;
-
-    // REMOVE E FORÇA SALVAMENTO
-    categoryData = categoryData.filter(cat => cat.id !== categoryId);
-    saveCategories(); // ← CRÍTICO: força salvamento
-    
-    // ATUALIZA TODAS AS VISUALIZAÇÕES
-    renderCategoryModal();
-    updateCategorySelects();
-    renderFavoriteTags();
-    checkCategoryLimits();
-    renderCategoryPillsFromTransactions();
-    showSuccessAlert("✅ Categoria excluída com sucesso!");
+    const cat = window.getCategoriesUnified().find(c => c.id === categoryId);
+    if (!cat) return;
+    if (!confirm(`🗑️ Excluir a categoria "${cat.name}"?\n\nEsta ação não pode ser desfeita.`)) return;
+    const updated = window.getCategoriesUnified().filter(c => c.id !== categoryId);
+    if (saveCategoriesToApp(updated)) {
+      renderCategoryModal();
+      refreshCategoryPills();
+      showSuccessAlert("✅ Categoria excluída com sucesso!");
+      setTimeout(() => { if (window.render) window.render(); }, 150);
+    } else {
+      alert("❌ Erro ao excluir categoria");
+    }
   };
 
+  // =====================================================================
+  // ABERTURA/FECHAMENTO DO MODAL DE CATEGORIAS
+  // =====================================================================
   function openCatModal() {
-    loadCategories(); // Recarrega dados antes de abrir
     clearCategoryForm();
     renderCategoryModal();
-    document.getElementById("catModal").classList.add("open");
+    document.getElementById("catModal")?.classList.add("open");
     document.body.style.overflow = "hidden";
   }
 
-  document.getElementById("catModalClose").addEventListener("click", function() {
-    document.getElementById("catModal").classList.remove("open");
+  document.getElementById("catModalClose")?.addEventListener("click", function() {
+    document.getElementById("catModal")?.classList.remove("open");
     document.body.style.overflow = "";
     clearCategoryForm();
   });
 
-  document.getElementById("catModal").addEventListener("click", function(e) {
+  document.getElementById("catModal")?.addEventListener("click", function(e) {
     if (e.target === this) {
       this.classList.remove("open");
       document.body.style.overflow = "";
@@ -1321,32 +1234,15 @@ canvas{width:100%!important;display:block}
     }
   });
 
-  // === INTEGRAÇÃO COM APP.JS ===
-  function setupCategoryIntegration() {
-    renderCategoryPillsFromTransactions();
-    checkCategoryLimits();
-    updateCategorySelects();
-    renderFavoriteTags();
-
-    // Monitora mudanças no localStorage para atualizar visualizações
-    const _nativeSet = Object.getPrototypeOf(localStorage).setItem.bind(localStorage);
-    localStorage.setItem = function(key, value) {
-      _nativeSet(key, value);
-      if (key === "financas-v3") {
-        renderCategoryPillsFromTransactions();
-        checkCategoryLimits();
-      }
-    };
-
-    window.addEventListener("transactionUpdate", renderCategoryPillsFromTransactions);
-    window.addEventListener("dataUpdate", renderCategoryPillsFromTransactions);
-  }
-
+  // =====================================================================
+  // INICIALIZAÇÃO
+  // =====================================================================
   function init() {
-    loadCategories();
-    setupCategoryIntegration();
-    updateCategorySelects();
-    renderFavoriteTags();
+    const dateInput = document.getElementById("dt");
+    if (dateInput) dateInput.value = getBrazilDate();
+
+    setupMonitoring();
+    refreshCategoryPills();
   }
 
   if (document.readyState === "loading") {
@@ -1355,13 +1251,22 @@ canvas{width:100%!important;display:block}
     init();
   }
 
-  // === TEMA ===
+  // Após o app.js carregar e renderizar (load event), reaplica nosso render
+  window.addEventListener("load", function() {
+    // Dispara em cascata para capturar qualquer timing do render() do app.js
+    setTimeout(refreshCategoryPills, 150);
+    setTimeout(refreshCategoryPills, 500);
+    setTimeout(refreshCategoryPills, 1000);
+  });
+
+  // =====================================================================
+  // TEMA
+  // =====================================================================
   var html = document.documentElement;
   var themeBtn = document.getElementById("themeBtn");
   var saved = localStorage.getItem("financas-theme") || "light";
   html.setAttribute("data-theme", saved);
   themeBtn.textContent = saved === "dark" ? "☀️" : "🌙";
-
   themeBtn.addEventListener("click", function() {
     var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
     html.setAttribute("data-theme", next);
@@ -1369,42 +1274,38 @@ canvas{width:100%!important;display:block}
     themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
   });
 
-  // === MENU ===
+  // =====================================================================
+  // MENU
+  // =====================================================================
   var menuBtn = document.getElementById("menuBtn");
-  var ddMenu = document.getElementById("ddMenu");
+  var ddMenu  = document.getElementById("ddMenu");
+  menuBtn.addEventListener("click", function(e) { e.stopPropagation(); ddMenu.classList.toggle("open"); });
+  document.addEventListener("click", function() { ddMenu.classList.remove("open"); });
+  ddMenu.addEventListener("click", function(e) { e.stopPropagation(); });
 
-  menuBtn.addEventListener("click", function(e) {
-    e.stopPropagation();
-    ddMenu.classList.toggle("open");
-  });
-
-  document.addEventListener("click", function() {
-    ddMenu.classList.remove("open");
-  });
-
-  ddMenu.addEventListener("click", function(e) {
-    e.stopPropagation();
-  });
-
-  // === NAVEGAÇÃO ECONOMIA ===
-  document.getElementById("prevMon").addEventListener("click", function() {
+  // =====================================================================
+  // NAVEGAÇÃO ECONOMIA
+  // =====================================================================
+  document.getElementById("prevMon")?.addEventListener("click", function() {
     var m = window.economyMonth-1, y = window.economyYear;
     if (m<0){m=11;y--;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
   });
-
-  document.getElementById("nextMon").addEventListener("click", function() {
+  document.getElementById("nextMon")?.addEventListener("click", function() {
     var m = window.economyMonth+1, y = window.economyYear;
     if (m>11){m=0;y++;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
   });
 
-  document.getElementById("openCatModal").addEventListener("click", function(){
+  document.getElementById("openCatModal")?.addEventListener("click", function(){
     ddMenu.classList.remove("open");
     openCatModal();
   });
+
 })();
 </script>
+
+<script src="app.js"></script>
 
 </body>
 </html>
