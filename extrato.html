@@ -23,9 +23,11 @@
     .topbar a{color:#fff;text-decoration:none;font-size:1.4rem;line-height:1;flex-shrink:0}
     .topbar h1{font-size:1.1rem;font-weight:700;flex:1}
     .topbar-actions{display:flex;gap:6px}
-    .tbtn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px}
+    .tbtn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s}
     .tbtn:hover{background:rgba(255,255,255,.3)}
-    .tbtn-theme{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem}
+    .tbtn:active{transform:scale(.95)}
+    .tbtn-theme{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s}
+    .tbtn-theme:hover{background:rgba(255,255,255,.3)}
 
     .content{padding:1rem;max-width:600px;margin:0 auto;padding-bottom:60px}
 
@@ -36,7 +38,8 @@
     .filter-row input,.filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--bg3);color:var(--text);outline:none;width:100%}
     .filter-row input:focus,.filter-row select:focus{border-color:var(--primary)}
     .filter-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
-    .chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
+    .chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s;user-select:none}
+    .chip:active{transform:scale(.95)}
     .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .chip.income.active{background:var(--income);border-color:var(--income)}
     .chip.expense.active{background:var(--expense);border-color:var(--expense)}
@@ -53,442 +56,447 @@
     /* LISTA */
     .section-label{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.65rem 0 .3rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);margin-bottom:.35rem;position:sticky;top:64px;background:var(--bg);z-index:5}
     .day-total{font-size:.72rem;font-weight:700}
-    .transaction-item{background:var(--bg2);border-radius:var(--rsm);padding:.85rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.05);border-left:3px solid transparent}
-    .transaction-item.income{border-left-color:var(--income)}
-    .transaction-item.expense{border-left-color:var(--expense)}
-    .transaction-item.transfer{border-left-color:var(--transfer)}
-    .tx-left{flex:1}
-    .tx-desc{font-size:.92rem;font-weight:600;color:var(--text)}
-    .tx-meta{font-size:.76rem;color:var(--text2);margin-top:2px}
-    .tx-right{text-align:right;flex-shrink:0;margin-left:10px}
-    .tx-amount{font-size:.95rem;font-weight:700}
-    .tx-cat{font-size:.72rem;color:var(--text2);margin-top:2px}
-    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:700;margin-left:6px}
-    .badge.income{background:rgba(22,163,74,.12);color:var(--income)}
-    .badge.expense{background:rgba(220,38,38,.1);color:var(--expense)}
-    .badge.transfer{background:rgba(37,99,235,.1);color:var(--transfer)}
-    .empty{text-align:center;padding:2.5rem;color:var(--text3);font-size:.9rem;background:var(--bg2);border-radius:var(--radius)}
+    .transaction-item{background:var(--bg2);border-radius:var(--rsm);padding:.85rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
+    .transaction-info{flex:1;display:flex;flex-direction:column;gap:4px}
+    .transaction-category{font-size:.85rem;font-weight:600;color:var(--text)}
+    .transaction-date{font-size:.72rem;color:var(--text2)}
+    .transaction-amount{font-size:.9rem;font-weight:700;text-align:right}
+    .amount-income{color:var(--income)}
+    .amount-expense{color:var(--expense)}
+    .amount-transfer{color:var(--transfer)}
 
-    /* PDF MODAL */
-    .pdf-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
-    .pdf-overlay.open{opacity:1;pointer-events:all}
-    .pdf-box{background:var(--bg2);border-radius:20px;padding:1.5rem;width:100%;max-width:360px;text-align:center}
-    .pdf-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.5rem}
-    .pdf-box p{font-size:.85rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.5}
-    .pdf-btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem}
-    .pdf-btn:hover{opacity:.9}
-    .pdf-btn.secondary{background:var(--bg3);color:var(--text);border:1.5px solid var(--border)}
-    .pdf-progress{display:none;align-items:center;justify-content:center;gap:8px;color:var(--primary);font-size:.85rem;font-weight:600;padding:.5rem}
-    .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
+    /* MODAL */
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .modal-content{background:var(--bg2);border-radius:var(--radius);padding:1.5rem;max-width:90%;width:300px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:slideUp .3s ease-out}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-title{font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+    .modal-actions{display:flex;gap:.5rem;justify-content:flex-end}
+    .modal-btn{padding:8px 16px;border:none;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s}
+    .modal-btn-cancel{background:var(--bg3);color:var(--text)}
+    .modal-btn-confirm{background:var(--primary);color:#fff}
+    .modal-btn:active{transform:scale(.95)}
+
+    /* LOADER */
+    .loader{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2000;display:none;align-items:center;justify-content:center}
+    .loader.show{display:flex}
+    .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+    .loader-text{color:#fff;margin-top:1rem;font-size:.9rem}
 
-    @media print{
-      .topbar,.filters{display:none!important}
-      body{background:#fff}
-      .content{padding:0;max-width:100%}
-      .section-label{position:static;border-bottom:1px solid #ccc}
-      .transaction-item{box-shadow:none;border:1px solid #eee;margin-bottom:2px;border-radius:4px}
+    /* TOAST */
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:1rem 1.5rem;border-radius:8px;box-shadow:var(--shadow);z-index:3000;display:none;max-width:90%;word-break:break-word;animation:toastSlide .3s ease-out}
+    .toast.show{display:block}
+    .toast.error{background:var(--expense)}
+    .toast.success{background:var(--income)}
+    @keyframes toastSlide{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+
+    /* RESPONSIVO */
+    @media (max-width:480px){
+      .topbar{padding:.8rem 1rem}
+      .topbar h1{font-size:1rem}
+      .summary{grid-template-columns:1fr}
+      .content{padding:.75rem}
     }
   </style>
 </head>
 <body>
+
+  <!-- TOPBAR -->
   <div class="topbar">
-    <a href="index.html">&#8592;</a>
+    <a href="index.html">←</a>
     <h1>Extrato</h1>
     <div class="topbar-actions">
-      <button class="tbtn" id="pdfBtn">📄 PDF</button>
-      <button class="tbtn-theme" id="themeBtn">🌙</button>
+      <button class="tbtn" id="exportPdfBtn" title="Exportar em PDF">📄 PDF</button>
+      <button class="tbtn-theme" id="themeBtn" title="Alternar tema">🌙</button>
     </div>
   </div>
 
+  <!-- CONTENT -->
   <div class="content">
+    <!-- FILTROS -->
     <div class="filters">
-      <div class="filter-chips" id="typeChips">
-        <button class="chip active" data-type="all">Todos</button>
-        <button class="chip income" data-type="income">Receitas</button>
-        <button class="chip expense" data-type="expense">Despesas</button>
-        <button class="chip" data-type="transfer">Transf.</button>
+      <div class="filter-chips">
+        <div class="chip active" data-filter="all">Todos</div>
+        <div class="chip income" data-filter="income">Entrada</div>
+        <div class="chip expense" data-filter="expense">Saída</div>
+        <div class="chip transfer" data-filter="transfer">Transferência</div>
       </div>
       <div class="filter-row">
-        <label>De <input type="date" id="dateFrom"/></label>
-        <label>Ate <input type="date" id="dateTo"/></label>
-        <label>Conta <select id="accFilter"><option value="">Todas</option></select></label>
-        <label>Categoria <input type="text" id="catFilter" placeholder="Ex: alimentacao"/></label>
+        <label>
+          De
+          <input type="date" id="dateFrom">
+        </label>
+        <label>
+          Até
+          <input type="date" id="dateTo">
+        </label>
       </div>
     </div>
 
+    <!-- RESUMO -->
     <div class="summary">
-      <div class="summary-card"><small>Creditos</small><strong class="income-text" id="sumIncome">R$ 0,00</strong></div>
-      <div class="summary-card"><small>Debitos</small><strong class="expense-text" id="sumExpense">R$ 0,00</strong></div>
-      <div class="summary-card"><small>Saldo</small><strong id="sumBalance">R$ 0,00</strong></div>
+      <div class="summary-card">
+        <small>Entradas</small>
+        <strong class="income-text" id="totalIncome">R$ 0,00</strong>
+      </div>
+      <div class="summary-card">
+        <small>Saídas</small>
+        <strong class="expense-text" id="totalExpense">R$ 0,00</strong>
+      </div>
+      <div class="summary-card">
+        <small>Saldo</small>
+        <strong class="balance-text" id="totalBalance">R$ 0,00</strong>
+      </div>
     </div>
 
-    <div id="txList"></div>
+    <!-- LISTA DE TRANSAÇÕES -->
+    <div id="transactionsList"></div>
   </div>
 
-  <!-- MODAL PDF -->
-  <div class="pdf-overlay" id="pdfOverlay">
-    <div class="pdf-box">
-      <h3>📄 Gerar PDF</h3>
-      <p>Exportar o extrato atual com os filtros aplicados.</p>
-      <div class="pdf-progress" id="pdfProgress"><div class="spinner"></div> Gerando PDF...</div>
-      <button class="pdf-btn" id="pdfDownloadBtn">⬇️ Baixar PDF</button>
-      <button class="pdf-btn secondary" id="pdfCancelBtn">Cancelar</button>
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Exportar Extrato?</h3>
+      <p style="font-size:.9rem;color:var(--text2);margin-bottom:1.5rem">Seu extrato será baixado como PDF.</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="cancelBtn">Cancelar</button>
+        <button class="modal-btn modal-btn-confirm" id="confirmBtn">Confirmar</button>
+      </div>
     </div>
   </div>
 
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div>
+      <div class="spinner"></div>
+      <div class="loader-text">Gerando PDF...</div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
   <script>
-  // ── CORREÇÃO DO PDF: Carregamento melhorado do jsPDF ─────────────────────
-  let pdfLibLoaded = false;
+    // ========== DADOS SIMULADOS ==========
+    const mockTransactions = [
+      { id: 1, date: '2024-01-15', category: 'Salário', amount: 3000, type: 'income' },
+      { id: 2, date: '2024-01-14', category: 'Supermercado', amount: -250.50, type: 'expense' },
+      { id: 3, date: '2024-01-14', category: 'Cinema', amount: -80, type: 'expense' },
+      { id: 4, date: '2024-01-13', category: 'Transferência Enviada', amount: -500, type: 'transfer' },
+      { id: 5, date: '2024-01-12', category: 'Freelance', amount: 600, type: 'income' },
+      { id: 6, date: '2024-01-11', category: 'Conta de Luz', amount: -320, type: 'expense' },
+      { id: 7, date: '2024-01-10', category: 'Restaurante', amount: -150.75, type: 'expense' },
+      { id: 8, date: '2024-01-09', category: 'Transferência Recebida', amount: 200, type: 'transfer' },
+      { id: 9, date: '2024-01-08', category: 'Bônus', amount: 1000, type: 'income' },
+      { id: 10, date: '2024-01-07', category: 'Uber', amount: -45.20, type: 'expense' },
+    ];
 
-  function loadJsPDF() {
-    return new Promise((resolve, reject) => {
-      if (window.jspdf && window.jspdf.jsPDF) {
-        pdfLibLoaded = true;
-        resolve();
+    let transactions = [...mockTransactions];
+    let currentFilter = 'all';
+
+    // ========== TEMA ==========
+    const themeBtn = document.getElementById('themeBtn');
+    const htmlEl = document.documentElement;
+
+    function initTheme() {
+      const saved = localStorage.getItem('theme') || 'light';
+      htmlEl.setAttribute('data-theme', saved);
+      updateThemeBtn(saved);
+    }
+
+    function updateThemeBtn(theme) {
+      themeBtn.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      const newTheme = current === 'light' ? 'dark' : 'light';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeBtn(newTheme);
+    });
+
+    // ========== FORMATAÇÃO ==========
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value);
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return new Intl.DateTimeFormat('pt-BR', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit'
+      }).format(date).replace(/,/, '');
+    }
+
+    // ========== FILTROS ==========
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        renderTransactions();
+      });
+    });
+
+    document.getElementById('dateFrom').addEventListener('change', renderTransactions);
+    document.getElementById('dateTo').addEventListener('change', renderTransactions);
+
+    // ========== RENDERIZAÇÃO ==========
+    function getFilteredTransactions() {
+      let filtered = transactions;
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(t => t.type === currentFilter);
+      }
+
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+
+      if (dateFrom) {
+        filtered = filtered.filter(t => t.date >= dateFrom);
+      }
+      if (dateTo) {
+        filtered = filtered.filter(t => t.date <= dateTo);
+      }
+
+      return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderTransactions() {
+      const filtered = getFilteredTransactions();
+      const container = document.getElementById('transactionsList');
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text2)">Nenhuma transação encontrada</div>';
+        updateSummary([]);
         return;
       }
-      
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.crossOrigin = "anonymous";
-      script.onload = () => {
-        if (window.jspdf && window.jspdf.jsPDF) {
-          pdfLibLoaded = true;
-          resolve();
-        } else {
-          reject(new Error("jsPDF não carregou corretamente"));
-        }
-      };
-      script.onerror = () => reject(new Error("Falha ao carregar biblioteca PDF"));
-      document.head.appendChild(script);
-    });
-  }
 
-  // Pré-carrega a biblioteca na inicialização
-  loadJsPDF().catch(console.warn);
-
-  const money = new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" });
-  const storageKey = "financas-v3";
-  let activeType = "all";
-  let transactions = [];
-  let accounts = [];
-
-  function loadData() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(storageKey) || "{}");
-      transactions = raw.transactions || [];
-      accounts     = raw.accounts     || [];
-    } catch { transactions = []; accounts = []; }
-  }
-  function accName(id) { return accounts.find(a=>a.id===id)?.name || "Conta"; }
-
-  // Tema
-  var html = document.documentElement;
-  var themeBtn = document.getElementById("themeBtn");
-  var savedTheme = localStorage.getItem("financas-theme") || "light";
-  html.setAttribute("data-theme", savedTheme);
-  themeBtn.textContent = savedTheme === "dark" ? "☀️" : "🌙";
-  themeBtn.addEventListener("click", function(){
-    var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    html.setAttribute("data-theme", next);
-    localStorage.setItem("financas-theme", next);
-    themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
-  });
-
-  // Filtros chips
-  document.querySelectorAll(".chip").forEach(function(chip) {
-    chip.addEventListener("click", function() {
-      document.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
-      chip.classList.add("active");
-      activeType = chip.dataset.type;
-      render();
-    });
-  });
-
-  ["dateFrom","dateTo","catFilter","accFilter"].forEach(function(id) {
-    document.getElementById(id).addEventListener("input", render);
-  });
-
-  // Data padrão
-  var now = new Date();
-  var firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  var lastDay  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
-  document.getElementById("dateFrom").value = firstDay;
-  document.getElementById("dateTo").value   = lastDay;
-
-  function fillAccFilter() {
-    var sel = document.getElementById("accFilter");
-    sel.innerHTML = '<option value="">Todas</option>' +
-      accounts.map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join("");
-  }
-
-  // ── RENDER ───────────────────────────────────────────────
-  function getFiltered() {
-    var from   = document.getElementById("dateFrom").value;
-    var to     = document.getElementById("dateTo").value;
-    var cat    = document.getElementById("catFilter").value.toLowerCase().trim();
-    var accFil = document.getElementById("accFilter").value;
-
-    return transactions.filter(function(t) {
-      if (activeType !== "all" && t.type !== activeType) return false;
-      if (from && t.date < from) return false;
-      if (to   && t.date > to)   return false;
-      if (cat  && !(t.category||"").toLowerCase().includes(cat) && !t.description.toLowerCase().includes(cat)) return false;
-      if (accFil && t.fromAccount !== accFil && t.toAccount !== accFil) return false;
-      return true;
-    }).sort(function(a,b){ return b.date.localeCompare(a.date); });
-  }
-
-  function render() {
-    var filtered = getFiltered();
-    // Resumo
-    var totalIncome = 0, totalExpense = 0;
-    filtered.forEach(function(t) {
-      if (t.type === "income")  totalIncome  += Number(t.amount);
-      if (t.type === "expense") totalExpense += Number(t.amount);
-    });
-    var balance = totalIncome - totalExpense;
-    document.getElementById("sumIncome").textContent  = money.format(totalIncome);
-    document.getElementById("sumExpense").textContent = money.format(totalExpense);
-    var balEl = document.getElementById("sumBalance");
-    balEl.textContent = money.format(balance);
-    balEl.className   = balance >= 0 ? "income-text" : "expense-text";
-
-    if (!filtered.length) {
-      document.getElementById("txList").innerHTML = '<div class="empty">Nenhum lancamento encontrado para os filtros selecionados.</div>';
-      return;
-    }
-
-    // Agrupa por data
-    var groups = {};
-    filtered.forEach(function(t) {
-      if (!groups[t.date]) groups[t.date] = [];
-      groups[t.date].push(t);
-    });
-
-    var fmt = new Intl.DateTimeFormat("pt-BR", { weekday:"long", day:"2-digit", month:"long", year:"numeric" });
-    document.getElementById("txList").innerHTML = Object.entries(groups)
-      .sort(function(a,b){ return b[0].localeCompare(a[0]); })
-      .map(function(entry) {
-        var date = entry[0], items = entry[1];
-        var dateLabel = fmt.format(new Date(date + "T12:00:00"));
-        dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
-        // subtotal do dia
-        var daySub = 0;
-        items.forEach(function(t){
-          if (t.type === "income")  daySub += Number(t.amount);
-          if (t.type === "expense") daySub -= Number(t.amount);
-        });
-        var subClass = daySub >= 0 ? "income-text" : "expense-text";
-        var subStr   = (daySub >= 0 ? "+" : "") + money.format(daySub);
-
-        var rows = items.map(function(t) {
-          var prefix   = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
-          var amtClass = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "balance-text";
-          var label    = {income:"Credito", expense:"Debito", transfer:"Transf."}[t.type];
-          var meta     = t.type === "transfer"
-            ? accName(t.fromAccount) + " → " + accName(t.toAccount)
-            : accName(t.fromAccount);
-          return '<div class="transaction-item '+t.type+'">'
-            + '<div class="tx-left">'
-            + '<div class="tx-desc">'+t.description+'<span class="badge '+t.type+'">'+label+'</span></div>'
-            + '<div class="tx-meta">'+meta+'</div>'
-            + '</div>'
-            + '<div class="tx-right">'
-            + '<div class="tx-amount '+amtClass+'">'+prefix+money.format(Number(t.amount))+'</div>'
-            + (t.category ? '<div class="tx-cat">'+t.category+'</div>' : '')
-            + '</div></div>';
-        }).join("");
-
-        return '<div class="section-label">'
-          + '<span>'+dateLabel+'</span>'
-          + '<span class="day-total '+subClass+'">'+subStr+'</span>'
-          + '</div>' + rows;
-      }).join("");
-  }
-
-  // ── PDF COM jsPDF CORRIGIDO ────────────────────────────────────────
-  var pdfOverlay   = document.getElementById("pdfOverlay");
-  var pdfBtn       = document.getElementById("pdfBtn");
-  var pdfDownBtn   = document.getElementById("pdfDownloadBtn");
-  var pdfCancelBtn = document.getElementById("pdfCancelBtn");
-  var pdfProgress  = document.getElementById("pdfProgress");
-
-  pdfBtn.addEventListener("click", function(){ pdfOverlay.classList.add("open"); });
-  pdfCancelBtn.addEventListener("click", function(){ pdfOverlay.classList.remove("open"); });
-  pdfOverlay.addEventListener("click", function(e){ if(e.target===pdfOverlay) pdfOverlay.classList.remove("open"); });
-
-  // CORREÇÃO PRINCIPAL: Download funcionando
-  pdfDownBtn.addEventListener("click", async function() {
-    pdfDownBtn.style.display = "none";
-    pdfProgress.style.display = "flex";
-
-    try {
-      // Garante que a biblioteca está carregada
-      if (!pdfLibLoaded) {
-        await loadJsPDF();
-      }
-      
-      // Aguarda um pouco para mostrar o loading
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Gera e baixa o PDF
-      generatePDF();
-      console.log("✅ PDF gerado e baixado com sucesso!");
-      
-    } catch(error) {
-      console.error("❌ Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF: " + error.message + "\n\nAlternativas:\n• Tente novamente\n• Use Ctrl+P para imprimir\n• Verifique sua conexão");
-    } finally {
-      pdfProgress.style.display = "none";
-      pdfDownBtn.style.display = "block";
-      pdfOverlay.classList.remove("open");
-    }
-  });
-
-  function generatePDF() {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      throw new Error("Biblioteca PDF não está disponível");
-    }
-    
-    var jsPDF = window.jspdf.jsPDF;
-    var doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-    var pageW = doc.internal.pageSize.getWidth();
-    var pageH = doc.internal.pageSize.getHeight();
-    var margin = 14;
-    var y = margin;
-
-    // Header
-    doc.setFillColor(15,118,110);
-    doc.rect(0,0,pageW,22,"F");
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica","bold");
-    doc.text("Controle sua Fortuna", margin, 10);
-    doc.setFontSize(9);
-    doc.setFont("helvetica","normal");
-    doc.text("Extrato gerado em " + new Date().toLocaleDateString("pt-BR"), margin, 17);
-    y = 30;
-
-    // Período filtrado
-    var from = document.getElementById("dateFrom").value;
-    var to   = document.getElementById("dateTo").value;
-    if (from || to) {
-      doc.setTextColor(97,113,109);
-      doc.setFontSize(9);
-      doc.text("Periodo: " + (from ? formatDateStr(from) : "inicio") + " a " + (to ? formatDateStr(to) : "hoje"), margin, y);
-      y += 6;
-    }
-
-    var filtered = getFiltered();
-    var totalInc = 0, totalExp = 0;
-    filtered.forEach(function(t){
-      if (t.type==="income")  totalInc += Number(t.amount);
-      if (t.type==="expense") totalExp += Number(t.amount);
-    });
-
-    // Resumo boxes
-    var boxW = (pageW - margin*2 - 8) / 3;
-    var boxes = [
-      { label:"Creditos", value:money.format(totalInc), color:[21,128,61] },
-      { label:"Debitos",  value:money.format(totalExp), color:[180,35,24] },
-      { label:"Saldo",    value:money.format(totalInc-totalExp), color:[15,118,110] }
-    ];
-    boxes.forEach(function(b,i){
-      var bx = margin + i*(boxW+4);
-      doc.setFillColor(245,250,249);
-      doc.roundedRect(bx, y, boxW, 14, 2, 2, "F");
-      doc.setFontSize(7);
-      doc.setTextColor(97,113,109);
-      doc.setFont("helvetica","bold");
-      doc.text(b.label, bx+3, y+5);
-      doc.setFontSize(9);
-      doc.setTextColor(b.color[0],b.color[1],b.color[2]);
-      doc.text(b.value, bx+3, y+11);
-    });
-    y += 20;
-
-    // Transações por data
-    var groups = {};
-    filtered.forEach(function(t){
-      if (!groups[t.date]) groups[t.date] = [];
-      groups[t.date].push(t);
-    });
-    var sortedDates = Object.keys(groups).sort(function(a,b){ return b.localeCompare(a); });
-
-    doc.setFont("helvetica","normal");
-    sortedDates.forEach(function(date) {
-      if (y > pageH - 30) { doc.addPage(); y = margin; }
-      // Data label
-      var fmtD = formatDateStr(date);
-      doc.setFillColor(232,240,238);
-      doc.rect(margin, y, pageW - margin*2, 7, "F");
-      doc.setFontSize(8);
-      doc.setFont("helvetica","bold");
-      doc.setTextColor(15,118,110);
-      doc.text(fmtD, margin+2, y+5);
-      y += 10;
-
-      groups[date].forEach(function(t) {
-        if (y > pageH - 20) { doc.addPage(); y = margin; }
-        var prefix = t.type==="income"?"+":(t.type==="expense"?"-":"±");
-        var color  = t.type==="income"?[21,128,61]:(t.type==="expense"?[180,35,24]:[29,78,216]);
-        var meta   = t.type==="transfer"
-          ? accName(t.fromAccount)+" → "+accName(t.toAccount)
-          : (t.category || accName(t.fromAccount));
-        // Linha descrição
-        doc.setFontSize(8.5);
-        doc.setFont("helvetica","normal");
-        doc.setTextColor(23,33,31);
-        doc.text(t.description.substring(0,50), margin+2, y);
-        // Valor alinhado à direita
-        doc.setFont("helvetica","bold");
-        doc.setTextColor(color[0],color[1],color[2]);
-        var amtStr = prefix+money.format(Number(t.amount));
-        doc.text(amtStr, pageW-margin, y, {align:"right"});
-        y += 4.5;
-        // Linha meta
-        doc.setFontSize(7);
-        doc.setFont("helvetica","normal");
-        doc.setTextColor(97,113,109);
-        doc.text(meta.substring(0,60), margin+2, y);
-        y += 6;
-        // Linha divisória
-        doc.setDrawColor(220,229,226);
-        doc.setLineWidth(0.2);
-        doc.line(margin, y-1, pageW-margin, y-1);
+      const grouped = {};
+      filtered.forEach(t => {
+        if (!grouped[t.date]) grouped[t.date] = [];
+        grouped[t.date].push(t);
       });
-      y += 3;
-    });
 
-    // Rodapé
-    var pages = doc.internal.getNumberOfPages();
-    for (var i=1;i<=pages;i++){
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.setTextColor(155,163,161);
-      doc.text("Controle sua Fortuna — pagina "+i+" de "+pages, pageW/2, pageH-5, {align:"center"});
+      Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const items = grouped[date];
+        const dayTotal = items.reduce((sum, t) => sum + t.amount, 0);
+
+        const section = document.createElement('div');
+        section.innerHTML = `
+          <div class="section-label">
+            <span>${formatDateDisplay(date)}</span>
+            <span class="day-total">${formatCurrency(dayTotal)}</span>
+          </div>
+        `;
+
+        items.forEach(t => {
+          const item = document.createElement('div');
+          item.className = 'transaction-item';
+          const sign = t.amount >= 0 ? '+' : '';
+          const amountClass = t.amount > 0 ? 'amount-income' : (t.type === 'transfer' ? 'amount-transfer' : 'amount-expense');
+
+          item.innerHTML = `
+            <div class="transaction-info">
+              <span class="transaction-category">${t.category}</span>
+              <span class="transaction-date">${formatDate(t.date)}</span>
+            </div>
+            <span class="transaction-amount ${amountClass}">${sign}${formatCurrency(t.amount)}</span>
+          `;
+          section.appendChild(item);
+        });
+
+        container.appendChild(section);
+      });
+
+      updateSummary(filtered);
     }
 
-    // FORÇAR DOWNLOAD DO ARQUIVO
-    var fileName = "extrato_" + new Date().toISOString().slice(0,10) + ".pdf";
-    doc.save(fileName);
-    
-    // Log de confirmação
-    console.log("📥 Download iniciado:", fileName);
-  }
+    function updateSummary(filtered) {
+      const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const transfer = filtered.filter(t => t.type === 'transfer').reduce((sum, t) => sum + t.amount, 0);
 
-  function formatDateStr(str) {
-    if (!str) return "";
-    var parts = str.split("-");
-    return parts[2]+"/"+parts[1]+"/"+parts[0];
-  }
+      document.getElementById('totalIncome').textContent = formatCurrency(income);
+      document.getElementById('totalExpense').textContent = formatCurrency(expense);
+      document.getElementById('totalBalance').textContent = formatCurrency(income - expense + transfer);
+    }
 
-  // ── INIT ─────────────────────────────────────────────────
-  loadData();
-  fillAccFilter();
-  render();
+    // ========== EXPORTAR PDF (CORRIGIDO PARA ANDROID) ==========
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const confirmModal = document.getElementById('confirmModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const loader = document.getElementById('loader');
+    const toast = document.getElementById('toast');
+
+    exportPdfBtn.addEventListener('click', () => {
+      confirmModal.classList.add('show');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      confirmModal.classList.remove('show');
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+      confirmModal.classList.remove('show');
+      loader.classList.add('show');
+
+      try {
+        await generateAndDownloadPDF();
+        showToast('PDF exportado com sucesso!', 'success');
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+      } finally {
+        loader.classList.remove('show');
+      }
+    });
+
+    async function generateAndDownloadPDF() {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          try {
+            const filtered = getFilteredTransactions();
+            const docEl = document.createElement('div');
+            docEl.style.cssText = 'background:#fff;color:#000;padding:20px;font-family:Arial,sans-serif;width:210mm;margin:0 auto';
+
+            // Cabeçalho
+            const header = document.createElement('div');
+            header.style.cssText = 'text-align:center;margin-bottom:30px;border-bottom:2px solid #0f766e;padding-bottom:15px';
+            header.innerHTML = `
+              <h1 style="margin:0;color:#0f766e;font-size:24px">Extrato de Transações</h1>
+              <p style="margin:5px 0 0 0;color:#666;font-size:12px">Controle sua Fortuna</p>
+            `;
+            docEl.appendChild(header);
+
+            // Data de geração
+            const dateInfo = document.createElement('p');
+            dateInfo.style.cssText = 'text-align:right;color:#999;font-size:11px;margin-bottom:20px';
+            dateInfo.innerHTML = `Gerado em: ${new Date().toLocaleString('pt-BR')}`;
+            docEl.appendChild(dateInfo);
+
+            // Resumo
+            const summary = document.createElement('div');
+            summary.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:30px';
+            
+            const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const balance = income - expense;
+
+            summary.innerHTML = `
+              <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+                <p style="margin:0;color:#666;font-size:12px">Entradas</p>
+                <p style="margin:5px 0 0 0;color:#15803d;font-size:16px;font-weight:bold">${formatCurrency(income)}</p>
+              </div>
+              <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+                <p style="margin:0;color:#666;font-size:12px">Saídas</p>
+                <p style="margin:5px 0 0 0;color:#b42318;font-size:16px;font-weight:bold">${formatCurrency(expense)}</p>
+              </div>
+              <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+                <p style="margin:0;color:#666;font-size:12px">Saldo</p>
+                <p style="margin:5px 0 0 0;color:#0f766e;font-size:16px;font-weight:bold">${formatCurrency(balance)}</p>
+              </div>
+            `;
+            docEl.appendChild(summary);
+
+            // Tabela de transações
+            const table = document.createElement('table');
+            table.style.cssText = 'width:100%;border-collapse:collapse;margin-top:20px;font-size:11px';
+            
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+              <tr style="background:#f0f7f5;border-bottom:2px solid #0f766e">
+                <th style="padding:10px;text-align:left;font-weight:bold">Data</th>
+                <th style="padding:10px;text-align:left;font-weight:bold">Categoria</th>
+                <th style="padding:10px;text-align:right;font-weight:bold">Valor</th>
+              </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            filtered.forEach((t, idx) => {
+              const tr = document.createElement('tr');
+              tr.style.cssText = `border-bottom:1px solid #eee;background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}`;
+              
+              let color = '#000';
+              if (t.type === 'income') color = '#15803d';
+              else if (t.type === 'expense') color = '#b42318';
+              else color = '#1d4ed8';
+
+              tr.innerHTML = `
+                <td style="padding:10px">${formatDate(t.date)}</td>
+                <td style="padding:10px">${t.category}</td>
+                <td style="padding:10px;text-align:right;color:${color};font-weight:bold">${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount)}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            docEl.appendChild(table);
+
+            // Rodapé
+            const footer = document.createElement('div');
+            footer.style.cssText = 'margin-top:40px;padding-top:20px;border-top:1px solid #ddd;text-align:center;color:#999;font-size:10px';
+            footer.innerHTML = '© 2024 Controle sua Fortuna. Documento confidencial.';
+            docEl.appendChild(footer);
+
+            // Configurações do PDF
+            const options = {
+              margin: [10, 10, 10, 10],
+              filename: `Extrato_${new Date().toISOString().split('T')[0]}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+              pagebreak: { mode: 'avoid-all', before: '.page-break' }
+            };
+
+            html2pdf()
+              .set(options)
+              .from(docEl)
+              .save()
+              .then(() => {
+                resolve();
+              })
+              .catch(reject);
+
+          } catch (error) {
+            reject(error);
+          }
+        }, 500);
+      });
+    }
+
+    function showToast(message, type = 'info') {
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // ========== INICIALIZAÇÃO ==========
+    initTheme();
+    renderTransactions();
   </script>
 </body>
 </html>
