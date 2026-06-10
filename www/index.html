@@ -240,6 +240,47 @@ canvas{width:100%!important;display:block}
 .success-alert{position:fixed;top:20px;right:20px;background:var(--income);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:1000;animation:slideInAlert .3s ease-out}
 @keyframes slideInAlert{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:480px){.summary{grid-template-columns:1fr 1fr}}
+
+.new-tx-dropdown{position:relative;margin-bottom:0}
+.new-tx-btn{width:100%;padding:16px;background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all .2s}
+.new-tx-btn:hover{opacity:.9}
+.new-tx-btn svg{width:26px;height:26px}
+.new-tx-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);overflow:hidden;display:none;z-index:100}
+.new-tx-menu.open{display:block;animation:slideDown .2s ease-out}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.new-tx-item{display:flex;align-items:center;gap:12px;width:100%;padding:16px;background:none;border:none;cursor:pointer;font-size:.95rem;color:var(--text);transition:background .15s;border-bottom:1px solid var(--border)}
+.new-tx-item:last-child{border-bottom:none}
+.new-tx-item:hover{background:var(--bg3)}
+.new-tx-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.new-tx-icon.transfer{background:rgba(37,99,235,.12);color:var(--transfer)}
+.new-tx-icon.income{background:rgba(22,163,74,.12);color:var(--income)}
+.new-tx-icon.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+.new-tx-icon.card{background:rgba(59,130,246,.1);color:#3b82f6}
+.new-tx-icon.voice{background:rgba(139,92,246,.12);color:#8b5cf6}
+.new-tx-text{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.new-tx-label{font-weight:700}
+.new-tx-desc{font-size:.75rem;color:var(--text2);font-weight:500}
+
+#txFormWrapper{display:none;margin-top:1rem}
+#txFormWrapper.show{display:block}
+
+.tx-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.tx-modal-overlay.open{opacity:1;pointer-events:all}
+.tx-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:95vh;overflow-y:auto}
+.tx-modal-overlay.open .tx-modal-sheet{transform:translateY(0)}
+.tx-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0}
+.tx-modal-body{padding:0 1.25rem 2rem}
+
+.voice-recording{background:linear-gradient(135deg, var(--primary-light), var(--bg3));border:2px solid var(--primary);border-radius:var(--rsm);padding:1.25rem;text-align:center;margin-bottom:1rem}
+.voice-recording.active{background:linear-gradient(135deg, rgba(239,68,68,.15), rgba(220,38,38,.08));border-color:var(--expense);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.voice-btn{width:64px;height:64px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:1.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;transition:all .2s;box-shadow:0 4px 12px rgba(15,118,110,.3)}
+.voice-btn:hover{transform:scale(1.05)}
+.voice-btn.recording{background:var(--expense);animation:pulse 1.5s infinite;box-shadow:0 4px 12px rgba(220,38,38,.4)}
+.voice-text{font-size:.85rem;color:var(--text2);font-weight:600}
+.voice-hint{font-size:.75rem;color:var(--text3);margin-top:6px}
+.voice-transcript{background:var(--bg2);border-radius:8px;padding:.75rem;margin-top:.75rem;font-size:.85rem;color:var(--text);min-height:40px;border:1.5px dashed var(--border)}
+.voice-transcript.has-text{border-style:solid;border-color:var(--primary)}
 </style>
 </head>
 <body>
@@ -306,26 +347,73 @@ canvas{width:100%!important;display:block}
       <h2 id="formTitle">➕ Novo lancamento</h2>
       <button class="cbtn hidden" id="cancelEditBtn">✕ Cancelar</button>
     </div>
-    <form id="txForm" autocomplete="off">
-      <div class="segmented" role="radiogroup">
-        <label><input type="radio" name="type" value="income" checked/><span>💰 Receita</span></label>
-        <label><input type="radio" name="type" value="expense"/><span>💸 Despesa</span></label>
-        <label><input type="radio" name="type" value="transfer"/><span>🔄 Transf.</span></label>
+    
+    <div class="new-tx-dropdown">
+      <button class="new-tx-btn" id="newTxBtn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Escolher tipo de lançamento
+      </button>
+      <div class="new-tx-menu" id="newTxMenu">
+        <button class="new-tx-item" data-type="transfer">
+          <div class="new-tx-icon transfer">⇅</div>
+          <div class="new-tx-text">
+            <span class="new-tx-label">Transferência</span>
+            <span class="new-tx-desc">Mover entre contas</span>
+          </div>
+        </button>
+        <button class="new-tx-item" data-type="income">
+          <div class="new-tx-icon income">+</div>
+          <div class="new-tx-text">
+            <span class="new-tx-label">Receita</span>
+            <span class="new-tx-desc">Entrada de dinheiro</span>
+          </div>
+        </button>
+        <button class="new-tx-item" data-type="expense">
+          <div class="new-tx-icon expense">−</div>
+          <div class="new-tx-text">
+            <span class="new-tx-label">Despesa</span>
+            <span class="new-tx-desc">Saída de dinheiro</span>
+          </div>
+        </button>
+        <button class="new-tx-item" data-type="expense-card">
+          <div class="new-tx-icon card">💳</div>
+          <div class="new-tx-text">
+            <span class="new-tx-label">Despesa cartão</span>
+            <span class="new-tx-desc">Gasto no cartão</span>
+          </div>
+        </button>
+        <button class="new-tx-item" id="voiceMenuItem">
+          <div class="new-tx-icon voice">🎤</div>
+          <div class="new-tx-text">
+            <span class="new-tx-label">Reconhecimento por voz</span>
+            <span class="new-tx-desc">Fale seu lançamento</span>
+          </div>
+        </button>
       </div>
-      <div id="favTagsSection" style="margin-bottom:.75rem">
-        <div class="fav-tags-label">⭐ Categorias favoritas</div>
-        <div class="fav-tags" id="favTags"></div>
-      </div>
-      <div class="fgrid">
-        <label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
-        <label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
-        <label>Data<input id="dt" name="date" type="date" required/></label>
-        <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
-        <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
-        <label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
-      </div>
-      <button class="pbtn" id="saveBtn" type="submit">Salvar lancamento</button>
-    </form>
+    </div>
+
+    <div id="txFormWrapper">
+      <form id="txForm" autocomplete="off">
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="type" value="income" checked/><span>💰 Receita</span></label>
+          <label><input type="radio" name="type" value="expense"/><span>💸 Despesa</span></label>
+          <label><input type="radio" name="type" value="transfer"/><span>🔄 Transf.</span></label>
+        </div>
+        <div id="favTagsSection" style="margin-bottom:.75rem">
+          <div class="fav-tags-label">⭐ Categorias favoritas</div>
+          <div class="fav-tags" id="favTags"></div>
+        </div>
+        <div class="fgrid">
+          <label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
+          <label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+          <label>Data<input id="dt" name="date" type="date" required/></label>
+          <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
+          <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
+          <label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
+        </div>
+        <button class="pbtn" id="saveBtn" type="submit">Salvar lancamento</button>
+      </form>
+    </div>
   </div>
 
   <div class="card">
@@ -367,6 +455,48 @@ canvas{width:100%!important;display:block}
   <div class="card">
     <div class="card-title"><h2>🏦 Saldo por conta</h2></div>
     <canvas id="accChart" height="180"></canvas>
+  </div>
+</div>
+
+<!-- MODAL SOBREPOSTO -->
+<div class="tx-modal-overlay" id="txModal">
+  <div class="tx-modal-sheet">
+    <div class="tx-modal-header">
+      <div class="modal-handle"></div>
+      <div class="modal-title">
+        <h3 id="txModalTitle">Novo Lançamento</h3>
+        <button class="modal-close" id="txModalClose">✕</button>
+      </div>
+    </div>
+    <div class="tx-modal-body">
+      <div class="voice-recording" id="voiceRecording" style="display:none">
+        <button class="voice-btn" id="voiceStartBtn">🎤</button>
+        <div class="voice-text" id="voiceText">Toque no microfone e fale</div>
+        <div class="voice-hint">Ex: "Gastei 150 reais no supermercado" ou "Recebi 3000 de salario"</div>
+        <div class="voice-transcript" id="voiceTranscript"></div>
+      </div>
+
+      <form id="modalTxForm" autocomplete="off">
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="mtype" value="income" checked/><span>💰 Receita</span></label>
+          <label><input type="radio" name="mtype" value="expense"/><span>💸 Despesa</span></label>
+          <label><input type="radio" name="mtype" value="transfer"/><span>🔄 Transf.</span></label>
+        </div>
+        <div id="modalFavTagsSection" style="margin-bottom:.75rem">
+          <div class="fav-tags-label">⭐ Categorias favoritas</div>
+          <div class="fav-tags" id="modalFavTags"></div>
+        </div>
+        <div class="fgrid">
+          <label class="full">Descricao<input id="modalDesc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
+          <label>Valor<input id="modalAmt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+          <label>Data<input id="modalDt" name="date" type="date" required/></label>
+          <label id="modalFromWrap">Conta<select id="modalFromAcc" name="fromAccount" required></select></label>
+          <label id="modalToWrap" class="hidden">Destino<select id="modalToAcc" name="toAccount"></select></label>
+          <label id="modalCatWrap">Categoria<select id="modalCat" name="category"><option value="">Sem categoria</option></select></label>
+        </div>
+        <button class="pbtn" id="modalSaveBtn" type="submit">💾 Salvar lançamento</button>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -557,47 +687,25 @@ canvas{width:100%!important;display:block}
   const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
   let editingCategoryId = null;
 
-  // =====================================================================
-  // CORREÇÃO PRINCIPAL: lê transações sempre frescos do localStorage
-  // =====================================================================
   function getTransactions() {
     try {
       const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
       return Array.isArray(data.transactions) ? data.transactions : [];
-    } catch (e) {
-      return [];
-    }
+    } catch (e) { return []; }
   }
 
-  // =====================================================================
-  // CORREÇÃO: getCategorySpending agora usa o MESMO conjunto de transações
-  // para total e para mensal — sem cache, sempre relê o storage.
-  // O parâmetro "monthOnly" decide se filtra pelo mês atual ou pega tudo.
-  // =====================================================================
   function getCategorySpending(categoryName, monthOnly) {
     const transactions = getTransactions();
     const catNorm = (categoryName || "").trim().toLowerCase();
-
-    let list = transactions.filter(t => {
-      return t.type === "expense" &&
-             (t.category || "").trim().toLowerCase() === catNorm;
-    });
-
+    let list = transactions.filter(t => t.type === "expense" && (t.category || "").trim().toLowerCase() === catNorm);
     if (monthOnly) {
       const now = new Date();
-      // Usa o mês/ano local para comparar com o campo date (YYYY-MM-DD)
-      const yyyy = now.getFullYear();
-      const mm   = String(now.getMonth() + 1).padStart(2, "0");
-      const prefix = `${yyyy}-${mm}`;   // ex: "2026-06"
+      const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       list = list.filter(t => (t.date || "").startsWith(prefix));
     }
-
     return list.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
   }
 
-  // =====================================================================
-  // UTILIDADES
-  // =====================================================================
   function showSuccessAlert(message) {
     const existingAlert = document.querySelector('.success-alert');
     if (existingAlert) existingAlert.remove();
@@ -618,9 +726,6 @@ canvas{width:100%!important;display:block}
     return Date.now().toString() + "_" + Math.random().toString(36).substr(2, 5);
   }
 
-  // =====================================================================
-  // CATEGORIAS
-  // =====================================================================
   function getDefaultCategories() {
     return [
       { id:"sal",  name:"Salario",      type:"income",     isFavorite:true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
@@ -661,7 +766,6 @@ canvas{width:100%!important;display:block}
   }
 
   window.getCategoriesUnified = function() {
-    // Tenta migrar de fontes antigas
     const oldSources = ["financas-categories-v3-final","financas-categories-v2","unified-category-data"];
     for (const src of oldSources) {
       try {
@@ -677,8 +781,6 @@ canvas{width:100%!important;display:block}
         }
       } catch(e) {}
     }
-
-    // Lê da fonte principal (financas-v3)
     try {
       const main = JSON.parse(localStorage.getItem("financas-v3") || "{}");
       if (main.categories && Array.isArray(main.categories) && main.categories.length > 0) {
@@ -693,15 +795,12 @@ canvas{width:100%!important;display:block}
         }));
       }
     } catch(e) {}
-
-    // Fonte app.js
     try {
       const appCats = JSON.parse(localStorage.getItem("financas-categories-v1") || "null");
       if (Array.isArray(appCats) && appCats.length > 0) {
         return convertAppCategoriesToUnified(appCats);
       }
     } catch(e) {}
-
     return getDefaultCategories();
   };
 
@@ -710,33 +809,84 @@ canvas{width:100%!important;display:block}
       const appFmt = convertUnifiedToAppFormat(categories);
       localStorage.setItem("financas-categories-v1", JSON.stringify(appFmt));
       return true;
-    } catch(e) {
-      return false;
-    }
+    } catch(e) { return false; }
   }
 
-  // =====================================================================
-  // RENDERIZAÇÃO DO CARD "Despesas por categoria"
-  // CORREÇÃO: usa getTransactions() sempre frescos; cálculo mensal usa
-  // getCategorySpending(name, true) com prefixo YYYY-MM correto.
-  // =====================================================================
+  function getAccounts() {
+    if (window.appData && window.appData.accounts) {
+      return window.appData.accounts;
+    }
+    try {
+      const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+      if (data.accounts && Array.isArray(data.accounts)) {
+        return data.accounts;
+      }
+    } catch(e) {}
+    return [
+      { id:"corrente", name:"Conta corrente", kind:"checking", openingBalance:0 },
+      { id:"investimentos", name:"Investimentos", kind:"investment", openingBalance:0 }
+    ];
+  }
+
+  function populateModalCategories(type) {
+    const modalCat = document.getElementById('modalCat');
+    if (!modalCat) return;
+    
+    const allCats = window.getCategoriesUnified();
+    let filteredCats;
+    if (type === 'transfer') {
+      filteredCats = [];
+    } else {
+      filteredCats = allCats.filter(c => c.type === type || c.type === 'all');
+    }
+    
+    let html = '<option value="">Sem categoria</option>';
+    filteredCats.forEach(c => {
+      const star = c.isFavorite ? '⭐ ' : '';
+      html += `<option value="${c.name}">${star}${c.name}</option>`;
+    });
+    
+    modalCat.innerHTML = html;
+  }
+
+  function updateModalFormMode(type) {
+    const isTransfer = type === 'transfer';
+    const modalToWrap = document.getElementById('modalToWrap');
+    const modalCatWrap = document.getElementById('modalCatWrap');
+    const modalFavTagsSection = document.getElementById('modalFavTagsSection');
+    const modalToAcc = document.getElementById('modalToAcc');
+    
+    if (modalToWrap) modalToWrap.classList.toggle('hidden', !isTransfer);
+    if (modalCatWrap) modalCatWrap.classList.toggle('hidden', isTransfer);
+    if (modalFavTagsSection) modalFavTagsSection.style.display = isTransfer ? 'none' : '';
+    if (modalToAcc) modalToAcc.required = isTransfer;
+    
+    populateModalCategories(type);
+  }
+
+  function populateModalAccounts() {
+    const accounts = getAccounts();
+    const modalFromAcc = document.getElementById('modalFromAcc');
+    const modalToAcc = document.getElementById('modalToAcc');
+    
+    const opts = accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    
+    if (modalFromAcc) modalFromAcc.innerHTML = opts;
+    if (modalToAcc) modalToAcc.innerHTML = opts;
+  }
+
   function renderCategoryPillsFromTransactions() {
     const container = document.getElementById("catPills");
-    const totalSpan  = document.querySelector("#catTotal");
+    const totalSpan = document.querySelector("#catTotal");
     if (!container) return;
-
-    const transactions = getTransactions();  // SEMPRE FRESCOS
+    const transactions = getTransactions();
     const expenses = transactions.filter(t => t.type === "expense");
-
     if (expenses.length === 0) {
       container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
       if (totalSpan) totalSpan.textContent = money.format(0);
       return;
     }
-
     const categories = window.getCategoriesUnified();
-
-    // Agrupa gastos totais (todos os períodos) por categoria
     const spendingAll = {};
     let totalAll = 0;
     expenses.forEach(tx => {
@@ -745,12 +895,8 @@ canvas{width:100%!important;display:block}
       spendingAll[cat] = (spendingAll[cat] || 0) + amt;
       totalAll += amt;
     });
-
-    // Mês atual para filtro do limite
     const now = new Date();
     const currentPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-
-    // Gastos só do mês atual, por categoria
     const spendingMonth = {};
     expenses.forEach(tx => {
       if ((tx.date || "").startsWith(currentPrefix)) {
@@ -759,38 +905,27 @@ canvas{width:100%!important;display:block}
         spendingMonth[cat] = (spendingMonth[cat] || 0) + amt;
       }
     });
-
     const sorted = Object.entries(spendingAll)
       .map(([name, totalAmount]) => {
-        const catDef = categories.find(c =>
-          (c.name || "").trim().toLowerCase() === name.toLowerCase()
-        );
+        const catDef = categories.find(c => (c.name || "").trim().toLowerCase() === name.toLowerCase());
         const percentOfTotal = totalAll > 0 ? Math.round((totalAmount / totalAll) * 100) : 0;
         const monthSpent = spendingMonth[name] || 0;
-
         let limitInfo = null;
         let statusClass = "no-limit";
-
         if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
           const pct = Math.round((monthSpent / catDef.monthlyLimit) * 100);
           const disponivel = catDef.monthlyLimit - monthSpent;
-
-          statusClass = monthSpent >= catDef.monthlyLimit ? "over-limit" :
-                        pct >= (catDef.warningPercent || 80)  ? "near-limit" : "has-limit";
-
-          const barStatus = monthSpent >= catDef.monthlyLimit ? "danger" :
-                            pct >= (catDef.warningPercent || 80)  ? "warning" : "normal";
-
+          statusClass = monthSpent >= catDef.monthlyLimit ? "over-limit" : pct >= (catDef.warningPercent || 80) ? "near-limit" : "has-limit";
+          const barStatus = monthSpent >= catDef.monthlyLimit ? "danger" : pct >= (catDef.warningPercent || 80) ? "warning" : "normal";
           limitInfo = {
             limiteCadastrado: catDef.monthlyLimit,
-            valorUtilizado:   monthSpent,
+            valorUtilizado: monthSpent,
             limiteDisponivel: disponivel,
-            percent:          pct,
-            barStatus:        barStatus,
-            warningPercent:   catDef.warningPercent || 80
+            percent: pct,
+            barStatus: barStatus,
+            warningPercent: catDef.warningPercent || 80
           };
         }
-
         return { name, totalAmount, percentOfTotal, limitInfo, statusClass };
       })
       .sort((a, b) => b.totalAmount - a.totalAmount);
@@ -799,10 +934,7 @@ canvas{width:100%!important;display:block}
       if (item.limitInfo) {
         const lim = item.limitInfo;
         const badgeClass = lim.barStatus;
-        const badgeText  = lim.percent >= 100
-          ? "LIMITE EXCEDIDO"
-          : `${lim.percent}% USADO`;
-
+        const badgeText = lim.percent >= 100 ? "LIMITE EXCEDIDO" : `${lim.percent}% USADO`;
         return `
           <div class="cat-pill ${item.statusClass}">
             <div class="cat-pill-header">
@@ -865,37 +997,28 @@ canvas{width:100%!important;display:block}
           </div>`;
       }
     }).join("");
-
     if (totalSpan) totalSpan.textContent = money.format(totalAll);
   }
 
-  // =====================================================================
-  // ALERTAS DE LIMITE
-  // =====================================================================
   function checkCategoryLimits() {
     const categories = window.getCategoriesUnified();
     const now = new Date();
     const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
     const transactions = getTransactions();
-
     const alerts = [];
     categories.filter(c => c.hasLimit && c.monthlyLimit > 0).forEach(cat => {
       const spent = transactions
-        .filter(t => t.type === "expense" &&
-                     (t.category || "").trim().toLowerCase() === cat.name.trim().toLowerCase() &&
-                     (t.date || "").startsWith(prefix))
+        .filter(t => t.type === "expense" && (t.category || "").trim().toLowerCase() === cat.name.trim().toLowerCase() && (t.date || "").startsWith(prefix))
         .reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
-
       const pct = (spent / cat.monthlyLimit) * 100;
       if (pct >= 100) {
-        alerts.push({ type:"danger",  category:cat.name, spent, limit:cat.monthlyLimit, message:`Limite ultrapassado em ${cat.name}` });
+        alerts.push({ type:"danger", category:cat.name, spent, limit:cat.monthlyLimit, message:`Limite ultrapassado em ${cat.name}` });
       } else if (pct >= cat.warningPercent) {
         alerts.push({ type:"warning", category:cat.name, spent, limit:cat.monthlyLimit, message:`${Math.round(pct)}% do limite usado em ${cat.name}` });
       }
     });
-
     const container = document.getElementById("limitAlerts");
-    const list      = document.getElementById("limitAlertsList");
+    const list = document.getElementById("limitAlertsList");
     if (!container || !list) return;
     if (alerts.length === 0) { container.classList.remove("show"); return; }
     container.classList.add("show");
@@ -906,29 +1029,19 @@ canvas{width:100%!important;display:block}
       </div>`).join("");
   }
 
-  // =====================================================================
-  // DISPARO DE ATUALIZAÇÃO — função central chamada em todos os eventos
-  // =====================================================================
   function refreshCategoryPills() {
     renderCategoryPillsFromTransactions();
     checkCategoryLimits();
   }
 
-  // =====================================================================
-  // MONITORAMENTO: MutationObserver + polling + storage event
-  // O app.js sobrescreve #catPills com HTML simples após cada render().
-  // O MutationObserver detecta isso e aplica imediatamente nosso HTML.
-  // =====================================================================
   function setupMonitoring() {
-    // 1. MutationObserver no #catPills — dispara toda vez que o app.js
-    //    substituir o conteúdo do container com HTML simples (sem .cat-limit-info)
     const container = document.getElementById("catPills");
     if (container) {
       let observerBlocked = false;
       const observer = new MutationObserver(function() {
         if (observerBlocked) return;
         const hasDetailedContent = container.querySelector(".cat-limit-info");
-        const hasSimpleContent   = container.querySelector(".cat-pill");
+        const hasSimpleContent = container.querySelector(".cat-pill");
         if (hasSimpleContent && !hasDetailedContent) {
           observerBlocked = true;
           refreshCategoryPills();
@@ -937,8 +1050,6 @@ canvas{width:100%!important;display:block}
       });
       observer.observe(container, { childList: true, subtree: false });
     }
-
-    // 2. Intercepta localStorage.setItem — captura qualquer salvamento do app.js
     const _setItem = Object.getOwnPropertyDescriptor(Storage.prototype, "setItem");
     Object.defineProperty(Storage.prototype, "setItem", {
       configurable: true,
@@ -950,18 +1061,14 @@ canvas{width:100%!important;display:block}
         }
       }
     });
-
-    // 3. storage event (outra aba)
     window.addEventListener("storage", function(e) {
       if (e.key === "financas-v3" || e.key === "financas-categories-v1") {
         refreshCategoryPills();
       }
     });
-
-    // 4. Polling de segurança a cada 1.5 segundos
     setInterval(function() {
       const hasDetailedContent = document.querySelector("#catPills .cat-limit-info");
-      const hasSimpleContent   = document.querySelector("#catPills .cat-pill");
+      const hasSimpleContent = document.querySelector("#catPills .cat-pill");
       if (hasSimpleContent && !hasDetailedContent) {
         refreshCategoryPills();
         return;
@@ -972,49 +1079,34 @@ canvas{width:100%!important;display:block}
         refreshCategoryPills();
       }
     }, 1500);
-
-    // 5. Foco na janela
     window.addEventListener("focus", refreshCategoryPills);
-
-    // 6. Evento personalizado do app.js
     window.addEventListener("financasUpdated", refreshCategoryPills);
   }
 
   var _lastSnap = "";
 
-  // =====================================================================
-  // MODAL DE CATEGORIAS
-  // =====================================================================
   function renderCategoryModal() {
     const list = document.getElementById("catModalList");
     if (!list) return;
-
     const categories = window.getCategoriesUnified();
     if (categories.length === 0) {
       list.innerHTML = '<div class="cat-empty">🗂️ Nenhuma categoria cadastrada</div>';
       return;
     }
-
     const now = new Date();
     const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
     const transactions = getTransactions();
-
     list.innerHTML = categories.map(cat => {
       const typeLabel = {expense:"Despesas",income:"Receitas",investment:"Investimento",all:"Ambos"}[cat.type] || "Outros";
       const starIcon = cat.isFavorite ? "⭐" : "☆";
       let limitInfo = "";
-
       if (cat.hasLimit && cat.monthlyLimit > 0) {
         const spent = transactions
-          .filter(t => t.type === "expense" &&
-                       (t.category||"").trim().toLowerCase() === cat.name.trim().toLowerCase() &&
-                       (t.date||"").startsWith(prefix))
+          .filter(t => t.type === "expense" && (t.category||"").trim().toLowerCase() === cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix))
           .reduce((s,t) => s + (parseFloat(t.amount)||0), 0);
-
         const pct = Math.min((spent / cat.monthlyLimit) * 100, 100);
         const status = pct >= 100 ? "danger" : pct >= cat.warningPercent ? "warning" : "normal";
         const statusClass = pct >= 100 ? "over-limit" : pct >= cat.warningPercent ? "near-limit" : "";
-
         limitInfo = `
           <div class="cat-limit-progress">
             <div class="cat-limit-bar">
@@ -1022,7 +1114,6 @@ canvas{width:100%!important;display:block}
             </div>
             <div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div>
           </div>`;
-
         return `
           <div class="cat-list-item ${statusClass}">
             <div class="cat-list-item-info">
@@ -1058,9 +1149,6 @@ canvas{width:100%!important;display:block}
     }).join("");
   }
 
-  // =====================================================================
-  // FORMULÁRIO DE CATEGORIA
-  // =====================================================================
   document.getElementById("catHasLimit")?.addEventListener("change", function() {
     document.getElementById("catLimitFields")?.classList.toggle("disabled", !this.checked);
     if (!this.checked) document.getElementById("catLimitAmount").value = "";
@@ -1068,21 +1156,18 @@ canvas{width:100%!important;display:block}
 
   document.getElementById("catAddBtn")?.addEventListener("click", function(e) {
     e.preventDefault();
-    const name         = document.getElementById("catName")?.value?.trim() || "";
-    const type         = document.getElementById("catType")?.value || "expense";
-    const isFavorite   = document.getElementById("catFav")?.checked || false;
-    const hasLimit     = document.getElementById("catHasLimit")?.checked || false;
+    const name = document.getElementById("catName")?.value?.trim() || "";
+    const type = document.getElementById("catType")?.value || "expense";
+    const isFavorite = document.getElementById("catFav")?.checked || false;
+    const hasLimit = document.getElementById("catHasLimit")?.checked || false;
     const monthlyLimit = hasLimit ? parseFloat(document.getElementById("catLimitAmount")?.value) || 0 : 0;
-    const warningPct   = parseInt(document.getElementById("catLimitWarning")?.value) || 80;
-
+    const warningPct = parseInt(document.getElementById("catLimitWarning")?.value) || 80;
     if (!name) { alert("⚠️ Digite um nome para a categoria"); return; }
     if (hasLimit && monthlyLimit <= 0) { alert("⚠️ Digite um valor válido para o limite mensal"); return; }
-
     const existing = window.getCategoriesUnified();
     if (existing.find(c => c.name.toLowerCase() === name.toLowerCase())) {
       alert("⚠️ Já existe uma categoria com esse nome"); return;
     }
-
     const newCat = { id:generateId(), name, type, isFavorite, hasLimit, monthlyLimit, warningPercent:warningPct };
     if (saveCategoriesToApp([...existing, newCat])) {
       clearCategoryForm();
@@ -1104,20 +1189,16 @@ canvas{width:100%!important;display:block}
     document.getElementById("catLimitFields")?.classList.add("disabled");
   }
 
-  // =====================================================================
-  // MODAL EDIÇÃO DE CATEGORIA
-  // =====================================================================
   function openEditCategoryModal(categoryId) {
     const cat = window.getCategoriesUnified().find(c => c.id === categoryId);
     if (!cat) return;
     editingCategoryId = categoryId;
-
-    document.getElementById("editCatName").value           = cat.name;
-    document.getElementById("editCatType").value           = cat.type;
-    document.getElementById("editCatFav").checked          = cat.isFavorite;
-    document.getElementById("editCatHasLimit").checked     = cat.hasLimit;
-    document.getElementById("editCatLimitAmount").value    = cat.monthlyLimit || "";
-    document.getElementById("editCatLimitWarning").value   = cat.warningPercent || 80;
+    document.getElementById("editCatName").value = cat.name;
+    document.getElementById("editCatType").value = cat.type;
+    document.getElementById("editCatFav").checked = cat.isFavorite;
+    document.getElementById("editCatHasLimit").checked = cat.hasLimit;
+    document.getElementById("editCatLimitAmount").value = cat.monthlyLimit || "";
+    document.getElementById("editCatLimitWarning").value = cat.warningPercent || 80;
     document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !cat.hasLimit);
     document.getElementById("catEditModal")?.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -1132,28 +1213,19 @@ canvas{width:100%!important;display:block}
   document.getElementById("editCatSaveBtn")?.addEventListener("click", function(e) {
     e.preventDefault();
     if (!editingCategoryId) return;
-
-    const name         = document.getElementById("editCatName").value.trim();
-    const type         = document.getElementById("editCatType").value;
-    const isFavorite   = document.getElementById("editCatFav").checked;
-    const hasLimit     = document.getElementById("editCatHasLimit").checked;
+    const name = document.getElementById("editCatName").value.trim();
+    const type = document.getElementById("editCatType").value;
+    const isFavorite = document.getElementById("editCatFav").checked;
+    const hasLimit = document.getElementById("editCatHasLimit").checked;
     const monthlyLimit = hasLimit ? parseFloat(document.getElementById("editCatLimitAmount").value) || 0 : 0;
-    const warningPct   = parseInt(document.getElementById("editCatLimitWarning").value);
-
+    const warningPct = parseInt(document.getElementById("editCatLimitWarning").value);
     if (!name) { alert("⚠️ Digite um nome para a categoria"); return; }
     if (hasLimit && monthlyLimit <= 0) { alert("⚠️ Digite um valor válido para o limite mensal"); return; }
-
     const cats = window.getCategoriesUnified();
     if (cats.find(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== editingCategoryId)) {
       alert("⚠️ Já existe uma categoria com esse nome"); return;
     }
-
-    const updated = cats.map(c =>
-      c.id === editingCategoryId
-        ? { ...c, name, type, isFavorite, hasLimit, monthlyLimit, warningPercent:warningPct }
-        : c
-    );
-
+    const updated = cats.map(c => c.id === editingCategoryId ? { ...c, name, type, isFavorite, hasLimit, monthlyLimit, warningPercent:warningPct } : c);
     if (saveCategoriesToApp(updated)) {
       renderCategoryModal();
       refreshCategoryPills();
@@ -1171,7 +1243,6 @@ canvas{width:100%!important;display:block}
     const cat = window.getCategoriesUnified().find(c => c.id === editingCategoryId);
     if (!cat) return;
     if (!confirm(`🗑️ Excluir a categoria "${cat.name}"?\n\nEsta ação não pode ser desfeita.`)) return;
-
     const updated = window.getCategoriesUnified().filter(c => c.id !== editingCategoryId);
     if (saveCategoriesToApp(updated)) {
       renderCategoryModal();
@@ -1210,9 +1281,6 @@ canvas{width:100%!important;display:block}
     }
   };
 
-  // =====================================================================
-  // ABERTURA/FECHAMENTO DO MODAL DE CATEGORIAS
-  // =====================================================================
   function openCatModal() {
     clearCategoryForm();
     renderCategoryModal();
@@ -1235,14 +1303,453 @@ canvas{width:100%!important;display:block}
   });
 
   // =====================================================================
-  // INICIALIZAÇÃO
+  // RECONHECIMENTO DE VOZ
   // =====================================================================
+  let recognition = null;
+  let isRecording = false;
+
+  function initSpeechRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      return null;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SpeechRecognition();
+    rec.lang = 'pt-BR';
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    return rec;
+  }
+
+  function parseVoiceCommand(transcript) {
+    const text = transcript.toLowerCase().trim();
+    let type = 'expense';
+    let amount = 0;
+    let description = '';
+    let category = '';
+
+    const incomeKeywords = ['recebi', 'ganhei', 'entrada', 'salario', 'salário', 'pagamento', 'rendimento', 'dividendo', 'lucro', 'comissao', 'comissão', 'bonus', 'bônus', 'provento', 'deposito', 'depósito', 'cashback', 'reembolso', 'estorno'];
+    const expenseKeywords = ['gastei', 'paguei', 'comprei', 'saída', 'saida', 'conta', 'fatura', 'boleto', 'imposto', 'taxa', 'tarifa', 'juros', 'mensalidade', 'assinatura', 'aluguel', 'despesa', 'gasto', 'pagamento de'];
+    const transferKeywords = ['transferi', 'enviei', 'recebi de', 'mover', 'movimentação', 'movimentacao', 'transferencia', 'transferência', 'pix', 'ted', 'doc', 'saque', 'deposito em', 'depósito em'];
+
+    if (incomeKeywords.some(kw => text.includes(kw))) {
+      type = 'income';
+    } else if (expenseKeywords.some(kw => text.includes(kw))) {
+      type = 'expense';
+    } else if (transferKeywords.some(kw => text.includes(kw))) {
+      type = 'transfer';
+    }
+
+    const amountPatterns = [
+      /(\d+[.,]?\d*)\s*(reais|real|r\$|rs| reais| real)/i,
+      /(r\$\s*)(\d+[.,]?\d*)/i,
+      /(\d+[.,]\d{2})\b/,
+      /(\d+)\b/
+    ];
+
+    for (let pattern of amountPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        let numStr = match[1] || match[2];
+        if (numStr) {
+          numStr = numStr.replace(/\./g, '').replace(',', '.');
+          amount = parseFloat(numStr);
+          if (!isNaN(amount) && amount > 0) {
+            break;
+          }
+        }
+      }
+    }
+
+    const excludeWords = ['despesa', 'receita', 'transferencia', 'transferência', 'de', 'da', 'do', 'com', 'em', 'por', 'reais', 'real', 'r\$', 'rs', 'um', 'uma', 'ganhei', 'gastei', 'paguei', 'comprei', 'recebi', 'transferi'];
+    const words = text.split(/\s+/).filter(w => !excludeWords.includes(w) && !/^\d+[.,]?\d*$/.test(w));
+    
+    const allCategories = window.getCategoriesUnified();
+    let bestMatch = null;
+    let bestMatchScore = 0;
+
+    const categoryKeywords = {
+      'alimentacao': ['comida', 'supermercado', 'restaurante', 'lanchonete', 'mercado', 'alimentacao', 'alimentação', 'pizza', 'hamburguer', 'lanche', 'ifood', 'delivery', 'mc', 'burger'],
+      'transporte': ['uber', 'taxi', 'táxi', 'combustivel', 'combustível', 'gasolina', 'onibus', 'ônibus', 'metro', 'metrô', 'transporte', 'estacionamento', 'pedagio', 'pedágio', '99taxi', '99', 'indriver'],
+      'moradia': ['aluguel', 'condominio', 'condomínio', 'luz', 'agua', 'água', 'internet', 'telefone', 'moradia', 'casa', 'iptu', 'energia', 'conta de luz', 'conta de agua', 'enel', 'sabesp', 'copel'],
+      'saude': ['medico', 'médico', 'farmacia', 'farmácia', 'remedio', 'remédio', 'consulta', 'saude', 'saúde', 'hospital', 'plano de saude', 'exame', 'dentista', 'drogaria', 'droga raia', 'raia drogasil'],
+      'lazer': ['cinema', 'parque', 'viagem', 'passeio', 'lazer', 'diversao', 'diversão', 'streaming', 'netflix', 'spotify', 'jogo', 'games', 'youtube', 'hbo', 'disney', 'amazon prime', 'ingresso'],
+      'educacao': ['curso', 'livro', 'faculdade', 'escola', 'educacao', 'educação', 'aula', 'material escolar', 'udemy', 'coursera', 'alura', 'khan academy'],
+      'vestuario': ['roupa', 'sapato', 'camisa', 'vestido', 'vestuario', 'vestuário', 'loja', 'acessorios', 'acessórios', 'calça', 'tenis', 'tênis', 'shorts', 'bermuda'],
+      'salario': ['salario', 'salário', 'provento', 'ordenado', 'pagamento', 'holerite', 'contracheque'],
+      'investimento': ['investimento', 'acoes', 'ações', 'fundos', 'tesouro', 'cdb', 'lci', 'lca', 'bolsa', 'renda fixa', 'poupança', 'poupanca']
+    };
+
+    allCategories.forEach(cat => {
+      const catLower = cat.name.toLowerCase();
+      const keywords = categoryKeywords[catLower] || [];
+      
+      if (text.includes(catLower)) {
+        bestMatch = cat.name;
+        bestMatchScore = 100;
+        return;
+      }
+      
+      for (let kw of keywords) {
+        if (text.includes(kw)) {
+          if (cat.type === type || cat.type === 'all') {
+            if (bestMatchScore < 50) {
+              bestMatch = cat.name;
+              bestMatchScore = 50;
+            }
+            break;
+          }
+        }
+      }
+    });
+
+    category = bestMatch || '';
+
+    if (category) {
+      const catLower = category.toLowerCase();
+      const keywords = categoryKeywords[catLower] || [];
+      const wordsToRemove = [catLower, ...keywords];
+      description = words.filter(w => !wordsToRemove.includes(w.toLowerCase())).join(' ');
+    } else {
+      description = words.join(' ');
+    }
+    
+    if (!description.trim()) {
+      description = category || (type === 'income' ? 'Receita' : type === 'transfer' ? 'Transferência' : 'Despesa');
+    }
+
+    return { type, amount, description, category };
+  }
+
+  function startVoiceRecognition() {
+    if (!recognition) {
+      recognition = initSpeechRecognition();
+      if (!recognition) {
+        alert('⚠️ Seu navegador não suporta reconhecimento de voz. Use Google Chrome ou Edge.');
+        return;
+      }
+    }
+
+    const voiceRecording = document.getElementById('voiceRecording');
+    const voiceBtn = document.getElementById('voiceStartBtn');
+    const voiceText = document.getElementById('voiceText');
+    const voiceTranscript = document.getElementById('voiceTranscript');
+
+    recognition.onstart = function() {
+      isRecording = true;
+      voiceRecording.classList.add('active');
+      voiceBtn.classList.add('recording');
+      voiceText.textContent = 'Ouvindo... Fale agora';
+      voiceTranscript.textContent = '';
+    };
+
+    recognition.onresult = function(event) {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      const displayTranscript = finalTranscript || interimTranscript;
+      voiceTranscript.textContent = displayTranscript;
+      voiceTranscript.classList.add('has-text');
+
+      if (finalTranscript) {
+        const parsed = parseVoiceCommand(finalTranscript);
+
+        const descEl = document.getElementById('modalDesc');
+        const amtEl = document.getElementById('modalAmt');
+        const catEl = document.getElementById('modalCat');
+        const dtEl = document.getElementById('modalDt');
+        
+        if (descEl) descEl.value = parsed.description;
+        if (amtEl && parsed.amount > 0) {
+          amtEl.value = parsed.amount.toFixed(2);
+        }
+        if (dtEl) dtEl.value = getBrazilDate();
+
+        const radio = document.querySelector(`input[name="mtype"][value="${parsed.type}"]`);
+        if (radio) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (parsed.category && catEl) {
+          let found = false;
+          for (let option of catEl.options) {
+            if (option.value.toLowerCase() === parsed.category.toLowerCase()) {
+              option.selected = true;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            for (let option of catEl.options) {
+              if (option.value.toLowerCase().includes(parsed.category.toLowerCase()) ||
+                  parsed.category.toLowerCase().includes(option.value.toLowerCase())) {
+                option.selected = true;
+                break;
+              }
+            }
+          }
+        }
+
+        showSuccessAlert('✅ Lançamento interpretado! Revise e salve.');
+      }
+    };
+
+    recognition.onerror = function(event) {
+      console.error('Erro no reconhecimento:', event.error);
+      voiceText.textContent = 'Erro ao ouvir. Tente novamente.';
+      setTimeout(() => stopVoiceRecognition(), 1500);
+    };
+
+    recognition.onend = function() {
+      if (isRecording) stopVoiceRecognition();
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      alert('⚠️ Erro ao iniciar microfone. Verifique as permissões.');
+    }
+  }
+
+  function stopVoiceRecognition() {
+    isRecording = false;
+    const voiceRecording = document.getElementById('voiceRecording');
+    const voiceBtn = document.getElementById('voiceStartBtn');
+    const voiceText = document.getElementById('voiceText');
+
+    voiceRecording.classList.remove('active');
+    voiceBtn.classList.remove('recording');
+    voiceText.textContent = 'Toque no microfone e fale';
+
+    if (recognition) {
+      try { recognition.stop(); } catch (e) {}
+    }
+  }
+
+  const newTxBtn = document.getElementById('newTxBtn');
+  const newTxMenu = document.getElementById('newTxMenu');
+  const txModal = document.getElementById('txModal');
+  const txModalClose = document.getElementById('txModalClose');
+  const voiceMenuItem = document.getElementById('voiceMenuItem');
+  const voiceStartBtn = document.getElementById('voiceStartBtn');
+  const voiceRecording = document.getElementById('voiceRecording');
+  const modalTxForm = document.getElementById('modalTxForm');
+
+  function openModalWithType(type) {
+    const titles = {
+      'transfer': '📤 Nova Transferência',
+      'income': '💰 Nova Receita',
+      'expense': '💸 Nova Despesa',
+      'expense-card': '💳 Despesa com Cartão'
+    };
+    const titleEl = document.getElementById('txModalTitle');
+    if (titleEl) titleEl.textContent = titles[type] || 'Novo Lançamento';
+
+    if (voiceRecording) voiceRecording.style.display = 'none';
+
+    populateModalAccounts();
+
+    const actualType = type === 'expense-card' ? 'expense' : type;
+    const radio = document.querySelector(`input[name="mtype"][value="${actualType}"]`);
+    if (radio) {
+      radio.checked = true;
+    }
+
+    updateModalFormMode(actualType);
+
+    const modalDt = document.getElementById('modalDt');
+    if (modalDt) modalDt.value = getBrazilDate();
+
+    if (txModal) {
+      txModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  if (newTxBtn && newTxMenu) {
+    newTxBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      newTxMenu.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function() {
+      newTxMenu.classList.remove('open');
+    });
+
+    newTxMenu.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+
+    document.querySelectorAll('.new-tx-item[data-type]').forEach(item => {
+      if (item.id === 'voiceMenuItem') return;
+      
+      item.addEventListener('click', function() {
+        const type = this.dataset.type;
+        newTxMenu.classList.remove('open');
+        openModalWithType(type);
+      });
+    });
+
+    if (voiceMenuItem) {
+      voiceMenuItem.addEventListener('click', function(e) {
+        e.stopPropagation();
+        newTxMenu.classList.remove('open');
+
+        const titleEl = document.getElementById('txModalTitle');
+        if (titleEl) titleEl.textContent = '🎤 Lançamento por Voz';
+        if (voiceRecording) voiceRecording.style.display = 'block';
+
+        populateModalAccounts();
+        updateModalFormMode('expense');
+        const modalDt = document.getElementById('modalDt');
+        if (modalDt) modalDt.value = getBrazilDate();
+
+        if (txModal) {
+          txModal.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+    }
+  }
+
+  document.querySelectorAll('input[name="mtype"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      updateModalFormMode(this.value);
+    });
+  });
+
+  if (txModalClose) {
+    txModalClose.addEventListener('click', function() {
+      if (txModal) txModal.classList.remove('open');
+      document.body.style.overflow = '';
+      stopVoiceRecognition();
+    });
+  }
+
+  if (txModal) {
+    txModal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('open');
+        document.body.style.overflow = '';
+        stopVoiceRecognition();
+      }
+    });
+  }
+
+  if (voiceStartBtn) {
+    voiceStartBtn.addEventListener('click', function() {
+      if (isRecording) stopVoiceRecognition();
+      else startVoiceRecognition();
+    });
+  }
+
+  // =====================================================================
+  // CORREÇÃO CRÍTICA: Submit do modal
+  // Problemas corrigidos:
+  // 1. originalForm.submit() NÃO dispara o evento submit (app.js não escuta)
+  // 2. Ordem errada: mudar tipo repopula categorias, perdendo o valor definido antes
+  // Solução:
+  // 1. Primeiro mudar o tipo (dispara change, repopula categorias)
+  // 2. Depois copiar TODOS os valores (agora com categorias corretas)
+  // 3. Usar dispatchEvent em vez de submit()
+  // =====================================================================
+  if (modalTxForm) {
+    modalTxForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Capturar valores do modal ANTES de qualquer mudança
+      const modalDesc = document.getElementById('modalDesc').value;
+      const modalAmt = document.getElementById('modalAmt').value;
+      const modalDt = document.getElementById('modalDt').value;
+      const modalFromAcc = document.getElementById('modalFromAcc').value;
+      const modalToAcc = document.getElementById('modalToAcc').value;
+      const modalCat = document.getElementById('modalCat').value;
+      const modalType = document.querySelector('input[name="mtype"]:checked')?.value;
+
+      // PASSO 1: Mudar o tipo PRIMEIRO (dispara change, repopula categorias)
+      const typeRadio = document.querySelector(`input[name="type"][value="${modalType}"]`);
+      if (typeRadio && !typeRadio.checked) {
+        typeRadio.checked = true;
+        typeRadio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      // Esperar um frame para o app.js repopular as categorias
+      requestAnimationFrame(() => {
+        // PASSO 2: Agora copiar TODOS os valores (categorias já foram repopuladas)
+        const descEl = document.getElementById('desc');
+        const amtEl = document.getElementById('amt');
+        const dtEl = document.getElementById('dt');
+        const fromAccEl = document.getElementById('fromAcc');
+        const toAccEl = document.getElementById('toAcc');
+        const catEl = document.getElementById('cat');
+        
+        if (descEl) descEl.value = modalDesc;
+        if (amtEl) amtEl.value = modalAmt;
+        if (dtEl) dtEl.value = modalDt;
+        if (fromAccEl) fromAccEl.value = modalFromAcc;
+        if (toAccEl) toAccEl.value = modalToAcc;
+        
+        // Copiar categoria com fallback robusto
+        if (catEl && modalCat) {
+          // Tenta setar diretamente
+          catEl.value = modalCat;
+          
+          // Se não funcionou, busca manualmente
+          if (catEl.value !== modalCat) {
+            let found = false;
+            for (let option of catEl.options) {
+              if (option.value === modalCat) {
+                option.selected = true;
+                found = true;
+                break;
+              }
+            }
+            // Tenta busca por similaridade
+            if (!found) {
+              for (let option of catEl.options) {
+                if (option.value.toLowerCase().includes(modalCat.toLowerCase()) ||
+                    modalCat.toLowerCase().includes(option.value.toLowerCase())) {
+                  option.selected = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // PASSO 3: Fechar modal
+        if (txModal) txModal.classList.remove('open');
+        document.body.style.overflow = '';
+
+        // PASSO 4: Disparar submit via evento (app.js escuta este evento)
+        const originalForm = document.getElementById('txForm');
+        if (originalForm) {
+          // Usa dispatchEvent para disparar o evento submit que o app.js escuta
+          const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+          originalForm.dispatchEvent(submitEvent);
+        }
+      });
+    });
+  }
+
   function init() {
     const dateInput = document.getElementById("dt");
     if (dateInput) dateInput.value = getBrazilDate();
 
     setupMonitoring();
     refreshCategoryPills();
+
+    recognition = initSpeechRecognition();
   }
 
   if (document.readyState === "loading") {
@@ -1251,17 +1758,12 @@ canvas{width:100%!important;display:block}
     init();
   }
 
-  // Após o app.js carregar e renderizar (load event), reaplica nosso render
   window.addEventListener("load", function() {
-    // Dispara em cascata para capturar qualquer timing do render() do app.js
     setTimeout(refreshCategoryPills, 150);
     setTimeout(refreshCategoryPills, 500);
     setTimeout(refreshCategoryPills, 1000);
   });
 
-  // =====================================================================
-  // TEMA
-  // =====================================================================
   var html = document.documentElement;
   var themeBtn = document.getElementById("themeBtn");
   var saved = localStorage.getItem("financas-theme") || "light";
@@ -1274,18 +1776,12 @@ canvas{width:100%!important;display:block}
     themeBtn.textContent = next === "dark" ? "☀️" : "🌙";
   });
 
-  // =====================================================================
-  // MENU
-  // =====================================================================
   var menuBtn = document.getElementById("menuBtn");
-  var ddMenu  = document.getElementById("ddMenu");
+  var ddMenu = document.getElementById("ddMenu");
   menuBtn.addEventListener("click", function(e) { e.stopPropagation(); ddMenu.classList.toggle("open"); });
   document.addEventListener("click", function() { ddMenu.classList.remove("open"); });
   ddMenu.addEventListener("click", function(e) { e.stopPropagation(); });
 
-  // =====================================================================
-  // NAVEGAÇÃO ECONOMIA
-  // =====================================================================
   document.getElementById("prevMon")?.addEventListener("click", function() {
     var m = window.economyMonth-1, y = window.economyYear;
     if (m<0){m=11;y--;}
