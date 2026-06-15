@@ -33,10 +33,16 @@
 
     /* FILTROS */
     .filters{background:var(--bg2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
-    .filter-row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .filter-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
     .filter-row label{flex:1;min-width:110px;display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:600;color:var(--text2)}
     .filter-row input,.filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--bg3);color:var(--text);outline:none;width:100%}
     .filter-row input:focus,.filter-row select:focus{border-color:var(--primary)}
+    
+    /* Botão para limpar filtros de data */
+    .date-actions{display:flex;gap:.5rem;align-items:center;margin-top:.5rem}
+    .clear-dates-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .clear-dates-btn:hover{background:var(--border);color:var(--text)}
+    
     .filter-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
     .chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s;user-select:none}
     .chip:active{transform:scale(.95)}
@@ -124,13 +130,17 @@
       </div>
       <div class="filter-row">
         <label>
-          De
+          Data inicial
           <input type="date" id="dateFrom">
         </label>
         <label>
-          Até
+          Data final
           <input type="date" id="dateTo">
         </label>
+      </div>
+      <div class="date-actions">
+        <button class="clear-dates-btn" id="clearDatesBtn">🗓️ Mês atual</button>
+        <button class="clear-dates-btn" id="clearAllDatesBtn">📅 Todas as datas</button>
       </div>
     </div>
 
@@ -181,21 +191,66 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <script>
-    // ========== DADOS SIMULADOS ==========
-    const mockTransactions = [
-      { id: 1, date: '2024-01-15', category: 'Salário', amount: 3000, type: 'income' },
-      { id: 2, date: '2024-01-14', category: 'Supermercado', amount: -250.50, type: 'expense' },
-      { id: 3, date: '2024-01-14', category: 'Cinema', amount: -80, type: 'expense' },
-      { id: 4, date: '2024-01-13', category: 'Transferência Enviada', amount: -500, type: 'transfer' },
-      { id: 5, date: '2024-01-12', category: 'Freelance', amount: 600, type: 'income' },
-      { id: 6, date: '2024-01-11', category: 'Conta de Luz', amount: -320, type: 'expense' },
-      { id: 7, date: '2024-01-10', category: 'Restaurante', amount: -150.75, type: 'expense' },
-      { id: 8, date: '2024-01-09', category: 'Transferência Recebida', amount: 200, type: 'transfer' },
-      { id: 9, date: '2024-01-08', category: 'Bônus', amount: 1000, type: 'income' },
-      { id: 10, date: '2024-01-07', category: 'Uber', amount: -45.20, type: 'expense' },
-    ];
+    // ========== CONEXÃO COM BASE DE DADOS REAL ==========
+    function getTransactionsFromDatabase() {
+      try {
+        const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+        return Array.isArray(data.transactions) ? data.transactions : [];
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+        return [];
+      }
+    }
 
-    let transactions = [...mockTransactions];
+    function getAccountsFromDatabase() {
+      try {
+        const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+        return Array.isArray(data.accounts) ? data.accounts : [
+          {id:"corrente", name:"Conta corrente", kind:"checking", openingBalance:0},
+          {id:"investimentos",name:"Investimentos", kind:"investment", openingBalance:0}
+        ];
+      } catch (error) {
+        console.error('Erro ao carregar contas:', error);
+        return [];
+      }
+    }
+
+    function getAccountNameById(accountId) {
+      const accounts = getAccountsFromDatabase();
+      const account = accounts.find(acc => acc.id === accountId);
+      return account ? account.name : accountId;
+    }
+
+    // ========== FUNÇÕES DE DATA ==========
+    function getCurrentMonthDates() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      
+      // Primeiro dia do mês
+      const firstDay = new Date(year, month, 1);
+      const firstDayStr = firstDay.toISOString().split('T')[0];
+      
+      // Último dia do mês
+      const lastDay = new Date(year, month + 1, 0);
+      const lastDayStr = lastDay.toISOString().split('T')[0];
+      
+      return { firstDay: firstDayStr, lastDay: lastDayStr };
+    }
+
+    function setCurrentMonthDates() {
+      const { firstDay, lastDay } = getCurrentMonthDates();
+      document.getElementById('dateFrom').value = firstDay;
+      document.getElementById('dateTo').value = lastDay;
+    }
+
+    function clearAllDates() {
+      document.getElementById('dateFrom').value = '';
+      document.getElementById('dateTo').value = '';
+    }
+
+    // Carrega as transações reais da base de dados
+    let transactions = getTransactionsFromDatabase();
     let currentFilter = 'all';
 
     // ========== TEMA ==========
@@ -203,7 +258,7 @@
     const htmlEl = document.documentElement;
 
     function initTheme() {
-      const saved = localStorage.getItem('theme') || 'light';
+      const saved = localStorage.getItem('financas-theme') || 'light';
       htmlEl.setAttribute('data-theme', saved);
       updateThemeBtn(saved);
     }
@@ -216,7 +271,7 @@
       const current = htmlEl.getAttribute('data-theme');
       const newTheme = current === 'light' ? 'dark' : 'light';
       htmlEl.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('financas-theme', newTheme);
       updateThemeBtn(newTheme);
     });
 
@@ -225,7 +280,7 @@
       return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
-      }).format(value);
+      }).format(Math.abs(value));
     }
 
     function formatDate(dateStr) {
@@ -247,6 +302,12 @@
       }).format(date).replace(/,/, '');
     }
 
+    function getMonthName(monthIndex) {
+      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return months[monthIndex];
+    }
+
     // ========== FILTROS ==========
     document.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', function() {
@@ -260,9 +321,24 @@
     document.getElementById('dateFrom').addEventListener('change', renderTransactions);
     document.getElementById('dateTo').addEventListener('change', renderTransactions);
 
+    // Botões de controle de datas
+    document.getElementById('clearDatesBtn').addEventListener('click', () => {
+      setCurrentMonthDates();
+      renderTransactions();
+      const now = new Date();
+      const monthName = getMonthName(now.getMonth());
+      showToast(`Filtro aplicado para ${monthName}/${now.getFullYear()}`, 'success');
+    });
+
+    document.getElementById('clearAllDatesBtn').addEventListener('click', () => {
+      clearAllDates();
+      renderTransactions();
+      showToast('Exibindo todas as transações', 'success');
+    });
+
     // ========== RENDERIZAÇÃO ==========
     function getFilteredTransactions() {
-      let filtered = transactions;
+      let filtered = [...transactions];
 
       if (currentFilter !== 'all') {
         filtered = filtered.filter(t => t.type === currentFilter);
@@ -287,7 +363,19 @@
       container.innerHTML = '';
 
       if (filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text2)">Nenhuma transação encontrada</div>';
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        let message = 'Nenhuma transação encontrada';
+        
+        if (dateFrom && dateTo) {
+          message += ` no período de ${formatDate(dateFrom)} a ${formatDate(dateTo)}`;
+        } else if (dateFrom) {
+          message += ` a partir de ${formatDate(dateFrom)}`;
+        } else if (dateTo) {
+          message += ` até ${formatDate(dateTo)}`;
+        }
+        
+        container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text2)">${message}</div>`;
         updateSummary([]);
         return;
       }
@@ -300,7 +388,12 @@
 
       Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
         const items = grouped[date];
-        const dayTotal = items.reduce((sum, t) => sum + t.amount, 0);
+        const dayTotal = items.reduce((sum, t) => {
+          const amount = parseFloat(t.amount) || 0;
+          if (t.type === 'income') return sum + amount;
+          if (t.type === 'expense') return sum - amount;
+          return sum + amount; // transfer
+        }, 0);
 
         const section = document.createElement('div');
         section.innerHTML = `
@@ -313,15 +406,46 @@
         items.forEach(t => {
           const item = document.createElement('div');
           item.className = 'transaction-item';
-          const sign = t.amount >= 0 ? '+' : '';
-          const amountClass = t.amount > 0 ? 'amount-income' : (t.type === 'transfer' ? 'amount-transfer' : 'amount-expense');
+          
+          const amount = parseFloat(t.amount) || 0;
+          let displayAmount = amount;
+          let sign = '';
+          let amountClass = '';
+
+          if (t.type === 'income') {
+            sign = '+';
+            amountClass = 'amount-income';
+          } else if (t.type === 'expense') {
+            sign = '-';
+            amountClass = 'amount-expense';
+            displayAmount = Math.abs(amount);
+          } else {
+            // transfer
+            amountClass = 'amount-transfer';
+            sign = amount >= 0 ? '+' : '-';
+            displayAmount = Math.abs(amount);
+          }
+
+          // Monta descrição da transação
+          let description = t.description || 'Sem descrição';
+          if (t.type === 'transfer') {
+            const fromAccount = getAccountNameById(t.fromAccount);
+            const toAccount = getAccountNameById(t.toAccount);
+            description = `${description} (${fromAccount} → ${toAccount})`;
+          }
+
+          // Adiciona categoria se existir
+          let categoryDisplay = '';
+          if (t.category && t.type !== 'transfer') {
+            categoryDisplay = ` • ${t.category}`;
+          }
 
           item.innerHTML = `
             <div class="transaction-info">
-              <span class="transaction-category">${t.category}</span>
+              <span class="transaction-category">${description}${categoryDisplay}</span>
               <span class="transaction-date">${formatDate(t.date)}</span>
             </div>
-            <span class="transaction-amount ${amountClass}">${sign}${formatCurrency(t.amount)}</span>
+            <span class="transaction-amount ${amountClass}">${sign}${formatCurrency(displayAmount)}</span>
           `;
           section.appendChild(item);
         });
@@ -333,16 +457,48 @@
     }
 
     function updateSummary(filtered) {
-      const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-      const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
-      const transfer = filtered.filter(t => t.type === 'transfer').reduce((sum, t) => sum + t.amount, 0);
+      const income = filtered
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+        
+      const expense = filtered
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
+        
+      const transferIn = filtered
+        .filter(t => t.type === 'transfer' && (parseFloat(t.amount) || 0) > 0)
+        .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+        
+      const transferOut = filtered
+        .filter(t => t.type === 'transfer' && (parseFloat(t.amount) || 0) < 0)
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
 
-      document.getElementById('totalIncome').textContent = formatCurrency(income);
-      document.getElementById('totalExpense').textContent = formatCurrency(expense);
-      document.getElementById('totalBalance').textContent = formatCurrency(income - expense + transfer);
+      const totalIncome = income + transferIn;
+      const totalExpense = expense + transferOut;
+      const balance = totalIncome - totalExpense;
+
+      document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+      document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+      document.getElementById('totalBalance').textContent = formatCurrency(balance);
     }
 
-    // ========== EXPORTAR PDF (CORRIGIDO PARA ANDROID) ==========
+    // ========== ATUALIZAÇÃO EM TEMPO REAL ==========
+    function refreshData() {
+      transactions = getTransactionsFromDatabase();
+      renderTransactions();
+    }
+
+    // Escuta mudanças no localStorage
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'financas-v3') {
+        refreshData();
+      }
+    });
+
+    // Atualiza quando a janela ganha foco (útil quando voltando do index.html)
+    window.addEventListener('focus', refreshData);
+
+    // ========== EXPORTAR PDF ==========
     const exportPdfBtn = document.getElementById('exportPdfBtn');
     const confirmModal = document.getElementById('confirmModal');
     const cancelBtn = document.getElementById('cancelBtn');
@@ -381,12 +537,27 @@
             const docEl = document.createElement('div');
             docEl.style.cssText = 'background:#fff;color:#000;padding:20px;font-family:Arial,sans-serif;width:210mm;margin:0 auto';
 
+            // Período do relatório
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            let periodText = '';
+            if (dateFrom && dateTo) {
+              periodText = `Período: ${formatDate(dateFrom)} a ${formatDate(dateTo)}`;
+            } else if (dateFrom) {
+              periodText = `A partir de: ${formatDate(dateFrom)}`;
+            } else if (dateTo) {
+              periodText = `Até: ${formatDate(dateTo)}`;
+            } else {
+              periodText = 'Todas as transações';
+            }
+
             // Cabeçalho
             const header = document.createElement('div');
             header.style.cssText = 'text-align:center;margin-bottom:30px;border-bottom:2px solid #0f766e;padding-bottom:15px';
             header.innerHTML = `
               <h1 style="margin:0;color:#0f766e;font-size:24px">Extrato de Transações</h1>
               <p style="margin:5px 0 0 0;color:#666;font-size:12px">Controle sua Fortuna</p>
+              <p style="margin:10px 0 0 0;color:#888;font-size:11px">${periodText}</p>
             `;
             docEl.appendChild(header);
 
@@ -400,8 +571,8 @@
             const summary = document.createElement('div');
             summary.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:30px';
             
-            const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+            const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
             const balance = income - expense;
 
             summary.innerHTML = `
@@ -428,6 +599,7 @@
             thead.innerHTML = `
               <tr style="background:#f0f7f5;border-bottom:2px solid #0f766e">
                 <th style="padding:10px;text-align:left;font-weight:bold">Data</th>
+                <th style="padding:10px;text-align:left;font-weight:bold">Descrição</th>
                 <th style="padding:10px;text-align:left;font-weight:bold">Categoria</th>
                 <th style="padding:10px;text-align:right;font-weight:bold">Valor</th>
               </tr>
@@ -439,15 +611,31 @@
               const tr = document.createElement('tr');
               tr.style.cssText = `border-bottom:1px solid #eee;background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}`;
               
+              const amount = parseFloat(t.amount) || 0;
               let color = '#000';
-              if (t.type === 'income') color = '#15803d';
-              else if (t.type === 'expense') color = '#b42318';
-              else color = '#1d4ed8';
+              let displayAmount = amount;
+              let sign = '';
+
+              if (t.type === 'income') {
+                color = '#15803d';
+                sign = '+';
+              } else if (t.type === 'expense') {
+                color = '#b42318';
+                sign = '-';
+                displayAmount = Math.abs(amount);
+              } else {
+                color = '#1d4ed8';
+                sign = amount >= 0 ? '+' : '-';
+                displayAmount = Math.abs(amount);
+              }
+
+              const category = t.category || (t.type === 'transfer' ? 'Transferência' : '-');
 
               tr.innerHTML = `
                 <td style="padding:10px">${formatDate(t.date)}</td>
-                <td style="padding:10px">${t.category}</td>
-                <td style="padding:10px;text-align:right;color:${color};font-weight:bold">${t.amount > 0 ? '+' : ''}${formatCurrency(t.amount)}</td>
+                <td style="padding:10px">${t.description || 'Sem descrição'}</td>
+                <td style="padding:10px">${category}</td>
+                <td style="padding:10px;text-align:right;color:${color};font-weight:bold">${sign}${formatCurrency(displayAmount)}</td>
               `;
               tbody.appendChild(tr);
             });
@@ -495,8 +683,38 @@
     }
 
     // ========== INICIALIZAÇÃO ==========
-    initTheme();
-    renderTransactions();
+    function init() {
+      initTheme();
+      
+      // Define automaticamente as datas do mês atual
+      setCurrentMonthDates();
+      
+      // Renderiza as transações
+      renderTransactions();
+
+      // Mostra toast informativo
+      const { firstDay, lastDay } = getCurrentMonthDates();
+      const now = new Date();
+      const monthName = getMonthName(now.getMonth());
+      
+      setTimeout(() => {
+        showToast(`Exibindo ${monthName}/${now.getFullYear()} • Use os filtros para alterar o período`, 'info');
+      }, 1000);
+
+      // Verificação se existe base de dados
+      if (transactions.length === 0) {
+        setTimeout(() => {
+          showToast('Nenhuma transação encontrada. Adicione lançamentos no painel principal.', 'info');
+        }, 2000);
+      }
+    }
+
+    // Executa a inicialização quando a página carregar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
