@@ -155,7 +155,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 canvas{width:100%!important;display:block}
 #licWarn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--expense);color:#fff;padding:12px 16px;justify-content:space-between;align-items:center;z-index:200;font-size:.88rem;font-weight:600}
 #licWarn a{color:#fff;text-decoration:underline}
-/* Overlay de bloqueio por licença */
 #licBlockOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}
 #licBlockOverlay.show{display:flex}
 .lic-block-card{background:var(--bg2);border-radius:20px;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--expense)}
@@ -276,15 +275,12 @@ canvas{width:100%!important;display:block}
 .new-tx-option-text{flex:1}
 .new-tx-option-label{font-size:.85rem;font-weight:700;color:var(--text);display:block}
 .new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
-
-/* MODAL DE FORMULÁRIO - AJUSTADO */
 .tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .tx-form-modal-overlay.open{opacity:1;pointer-events:all}
 .tx-form-modal-sheet{background:var(--bg2);border-radius:20px;width:95%;max-width:500px;transform:scale(0.95) translateY(20px);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .tx-form-modal-overlay.open .tx-form-modal-sheet{transform:scale(1) translateY(0)}
 .tx-form-header{padding:1rem;border-bottom:1px solid var(--border)}
 .tx-form-body{padding:1rem}
-
 .voice-box{border-radius:var(--rsm);padding:.75rem 1rem;text-align:center;margin-bottom:.75rem;background:linear-gradient(135deg,var(--primary-light),var(--bg3));border:2px solid var(--primary)}
 .voice-box.active{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.06));border-color:var(--expense)}
 .voice-box.error-state{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border-color:var(--warning)}
@@ -318,31 +314,184 @@ canvas{width:100%!important;display:block}
 .android-permission-screen .pbtn{max-width:280px;margin:.5rem}
 .android-permission-screen .pbtn.secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
 #txFormWrapper{display:none!important}
-
-/* Responsivo para o modal */
 @media(max-width:480px){
-  .tx-form-modal-sheet{
-    width:98%;
-    max-height:88vh;
-    border-radius:16px;
-  }
-  .voice-mic-wrap{
-    width:45px;
-    height:45px;
-  }
-  .voice-btn{
-    width:45px;
-    height:45px;
-    font-size:1.3rem;
-  }
+  .tx-form-modal-sheet{width:98%;max-height:88vh;border-radius:16px}
+  .voice-mic-wrap{width:45px;height:45px}
+  .voice-btn{width:45px;height:45px;font-size:1.3rem}
 }
+
+/* ============================================
+   MÓDULO ADMINISTRATIVO - LOGIN
+   ============================================ */
+.admin-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  z-index:99999;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  backdrop-filter:blur(6px);
+  animation:fadeInAdmin .3s ease;
+}
+.admin-overlay.active{display:flex}
+@keyframes fadeInAdmin{from{opacity:0}to{opacity:1}}
+
+.admin-login-box{
+  background:var(--bg2);
+  border:2px solid var(--primary);
+  border-radius:20px;
+  padding:2rem 1.5rem;
+  width:100%;
+  max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.admin-login-box .admin-icon{
+  text-align:center;
+  font-size:3rem;
+  margin-bottom:1rem;
+}
+.admin-login-box h2{
+  color:var(--text);
+  text-align:center;
+  font-size:1.3rem;
+  font-weight:800;
+  margin-bottom:.5rem;
+}
+.admin-login-box p{
+  color:var(--text2);
+  text-align:center;
+  font-size:.88rem;
+  margin-bottom:1.5rem;
+}
+.admin-login-box input{
+  width:100%;
+  padding:14px;
+  background:var(--bg3);
+  border:1.5px solid var(--border);
+  border-radius:var(--rsm);
+  color:var(--text);
+  font-size:1rem;
+  margin-bottom:1rem;
+  outline:none;
+  transition:border-color .2s;
+}
+.admin-login-box input:focus{border-color:var(--primary)}
+.admin-login-box .admin-btn{
+  width:100%;
+  padding:14px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:var(--rsm);
+  font-size:1rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:opacity .2s;
+}
+.admin-login-box .admin-btn:hover{opacity:.9}
+.admin-login-box .admin-btn:disabled{opacity:.5;cursor:not-allowed}
+.admin-login-box .admin-btn-cancel{
+  width:100%;
+  padding:12px;
+  background:transparent;
+  color:var(--text2);
+  border:1.5px solid var(--border);
+  border-radius:var(--rsm);
+  font-size:.9rem;
+  font-weight:600;
+  cursor:pointer;
+  margin-top:.75rem;
+  transition:all .2s;
+}
+.admin-login-box .admin-btn-cancel:hover{
+  background:var(--bg3);
+  color:var(--text);
+}
+.admin-login-box .admin-error{
+  color:var(--expense);
+  text-align:center;
+  margin-top:1rem;
+  font-size:.88rem;
+  font-weight:600;
+  display:none;
+}
+.admin-login-box .admin-error.show{display:block}
+
+.admin-panel-container{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  z-index:99999;
+  flex-direction:column;
+}
+.admin-panel-container.active{display:flex}
+
+.admin-panel-header{
+  background:var(--primary);
+  color:#fff;
+  padding:1rem 1.25rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:var(--shadow);
+}
+.admin-panel-header h3{
+  font-size:1.1rem;
+  font-weight:800;
+  margin:0;
+}
+.admin-panel-header .admin-info{
+  font-size:.78rem;
+  opacity:.85;
+  margin-top:2px;
+}
+.admin-panel-header button{
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  border:none;
+  padding:8px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:.88rem;
+  transition:background .2s;
+}
+.admin-panel-header button:hover{background:rgba(255,255,255,.3)}
+
+.admin-panel-iframe{
+  flex:1;
+  width:100%;
+  border:none;
+  background:var(--bg2);
+}
+
+.secret-hint{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--primary);
+  color:#fff;
+  padding:8px 16px;
+  border-radius:20px;
+  font-size:.78rem;
+  font-weight:700;
+  opacity:0;
+  transition:opacity .3s;
+  pointer-events:none;
+  z-index:99998;
+  box-shadow:var(--shadow);
+}
+.secret-hint.show{opacity:1}
 </style>
 </head>
 <body>
 <header class="topbar">
 <div>
 <p class="eyebrow">Controle financeiro</p>
-<h1>Controle sua Fortuna Versão 1.0</h1>
+<h1 id="appTitle">Controle sua Fortuna Versão 1.0</h1>
 </div>
 <div class="topbar-right">
 <button class="tbtn" id="themeBtn" title="Alternar tema"></button>
@@ -778,6 +927,34 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <a href="licenca.html">Ativar agora</a>
 </div>
 
+<!-- ============================================
+     MÓDULO ADMINISTRATIVO - LOGIN E PAINEL
+     ============================================ -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-login-box">
+    <div class="admin-icon">🔐</div>
+    <h2>Acesso Administrativo</h2>
+    <p>Digite seu CPF para acessar o gerador de licenças</p>
+    <input type="text" id="adminCpf" placeholder="000.000.000-00" autocomplete="off"/>
+    <button class="admin-btn" id="btnAdminLogin">Entrar</button>
+    <button class="admin-btn-cancel" id="btnAdminCancel">Cancelar</button>
+    <div class="admin-error" id="adminError">CPF não encontrado ou não autorizado</div>
+  </div>
+</div>
+
+<div class="admin-panel-container" id="adminPanel">
+  <div class="admin-panel-header">
+    <div>
+      <h3>🔑 Gerador de Licenças</h3>
+      <div class="admin-info" id="adminInfo">Logado como: -</div>
+    </div>
+    <button id="btnCloseAdmin">✕ Sair</button>
+  </div>
+  <iframe id="adminIframe" class="admin-panel-iframe" src=""></iframe>
+</div>
+
+<div class="secret-hint" id="secretHint"></div>
+
 <script>
 /* ================================================================
    MÓDULO DE VALIDAÇÃO DE LICENÇA (ECDSA P-256)
@@ -788,15 +965,13 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
   const LICENSE_STORAGE_KEY = "financas-license-v1";
   const DEVICE_KEY          = "financas-device-id";
 
-  // Chave pública ECDSA P-256 (mesma do licenca.html)
   const ECDSA_PUBLIC_KEY_JWK = {
     kty: "EC",
     crv: "P-256",
-    x:   "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
-    y:   "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0"
+    x:   "iAvXDinVd5FjDKzq5ZkenzIgH_w2VxxiA8CXZV59v5c",
+    y:   "4ocxQqQ_mpNSc7WNTnVTOAF9umT48NtjykGh5mrJg5Y"
   };
 
-  // Gera/obtém Device ID (mesma lógica do licenca.html)
   function generateDeviceId() {
     const part1 = Math.random().toString(36).substring(2, 10);
     const part2 = Math.random().toString(36).substring(2, 8);
@@ -815,7 +990,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     return id;
   }
 
-  // Verifica assinatura ECDSA da licença
   async function verifySignedLicense(value) {
     if (!value || typeof value !== 'string') {
       return { valid: false, message: "Chave vazia." };
@@ -854,12 +1028,10 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 
       const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
 
-      // Verifica expiração
       if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) {
         return { valid: false, message: "Licença expirada.", expired: true, payload };
       }
 
-      // Verifica Device ID
       const currentDeviceId = getDeviceId();
       if (payload.deviceId && payload.deviceId !== currentDeviceId) {
         return { valid: false, message: "Licença vinculada a outro dispositivo.", wrongDevice: true };
@@ -872,17 +1044,14 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     }
   }
 
-  // Carrega dados da licença do localStorage
   function loadLicense() {
     try { return JSON.parse(localStorage.getItem(LICENSE_STORAGE_KEY)) || null; }
     catch { return null; }
   }
 
-  // Verifica o estado geral da licença
   async function checkLicenseStatus() {
     const license = loadLicense();
 
-    // Sem licença cadastrada
     if (!license || !license.active) {
       return {
         valid: false,
@@ -893,7 +1062,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
       };
     }
 
-    // Verifica expiração local rápida
     const now = new Date();
     if (license.expiresAt && new Date(license.expiresAt) <= now) {
       const expDate = new Date(license.expiresAt).toLocaleDateString("pt-BR");
@@ -906,7 +1074,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
       };
     }
 
-    // Verifica Device ID
     const currentDeviceId = getDeviceId();
     if (license.deviceId && license.deviceId !== currentDeviceId) {
       return {
@@ -918,7 +1085,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
       };
     }
 
-    // Verifica assinatura ECDSA (se houver chave)
     if (license.key && license.type === "signed") {
       const verify = await verifySignedLicense(license.key);
       if (!verify.valid) {
@@ -942,7 +1108,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
       }
     }
 
-    // Tudo OK
     const daysLeft = Math.ceil((new Date(license.expiresAt) - now) / 86400000);
     return {
       valid: true,
@@ -953,7 +1118,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     };
   }
 
-  // Aplica o estado de bloqueio/liberação na UI
   function applyLicenseUI(status) {
     const warnEl = document.getElementById("licWarn");
     const blockOverlay = document.getElementById("licBlockOverlay");
@@ -964,13 +1128,11 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     const blockInfoValue = document.getElementById("licBlockInfoValue");
 
     if (status.valid) {
-      // Licença válida: esconde tudo
       if (warnEl) warnEl.style.display = "none";
       if (blockOverlay) blockOverlay.classList.remove("show");
       document.body.style.overflow = "";
       console.log(`✅ Licença válida. Titular: ${status.holder} | Expira em: ${status.expiresAt} (${status.daysLeft} dias)`);
     } else {
-      // Licença inválida: mostra aviso e bloqueia
       if (warnEl) warnEl.style.display = "flex";
       if (blockOverlay) {
         if (blockTitle) blockTitle.textContent = status.title || "Licença inválida";
@@ -989,20 +1151,17 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     }
   }
 
-  // Expõe globalmente para uso em outros scripts se necessário
   window.LicenseModule = {
     check: checkLicenseStatus,
     apply: applyLicenseUI,
     getDeviceId: getDeviceId
   };
 
-  // Executa validação inicial
   async function initLicenseCheck() {
     const status = await checkLicenseStatus();
     applyLicenseUI(status);
   }
 
-  // Monitora mudanças no localStorage (ex: usuário ativa licença em outra aba)
   window.addEventListener("storage", function(e) {
     if (e.key === LICENSE_STORAGE_KEY) {
       console.log("🔄 Licença alterada no localStorage, revalidando...");
@@ -1010,13 +1169,9 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     }
   });
 
-  // Revalida periodicamente (a cada 60s) para pegar expiração em tempo real
   setInterval(initLicenseCheck, 60000);
-
-  // Revalida quando a aba volta ao foco
   window.addEventListener("focus", initLicenseCheck);
 
-  // Inicializa
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLicenseCheck);
   } else {
@@ -1253,7 +1408,6 @@ const openNewTxMenuBtn = document.getElementById('openNewTxMenuBtn');
 
 if (openNewTxMenuBtn) {
 openNewTxMenuBtn.addEventListener('click', function() {
-// Verifica licença antes de abrir
 if (window.LicenseModule) {
   window.LicenseModule.check().then(status => {
     if (!status.valid) {
@@ -1378,7 +1532,6 @@ document.body.style.overflow = 'hidden';
 saveAndNewMode = false;
 }
 
-/* ================================================================ RECONHECIMENTO DE VOZ - VERSÃO CORRIGIDA ================================================================ */
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 let isRecording = false;
@@ -2381,6 +2534,297 @@ document.getElementById("openCatModal")?.addEventListener("click", function() {
     ddMenu.classList.remove("open");
     openCatModal();
 });
+
+})();
+</script>
+
+<!-- ============================================
+     MÓDULO ADMINISTRATIVO - ACESSO VIA PERFIL
+     ============================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ==========================================
+  // CONFIGURAÇÃO
+  // ==========================================
+  
+  const SECRET_TAPS_REQUIRED = 7;
+  const SECRET_TAPS_TIMEOUT = 2000;
+  
+  // URL do backend (ajuste conforme seu servidor)
+  const API_BASE_URL = 'http://localhost:3000';
+
+  // Chave usada por clientes.js para salvar clientes localmente quando o
+  // backend não está disponível. Precisa ser a MESMA chave usada lá.
+  const CLIENTS_LOCAL_KEY = "financas-clients-v1";
+  
+  let tapCount = 0;
+  let lastTapTime = 0;
+
+  // ==========================================
+  // INICIALIZAÇÃO
+  // ==========================================
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    attachSecretTrigger();
+    attachAdminEvents();
+  });
+
+  // ==========================================
+  // GATILHO SECRETO (7 TOQUES NO TÍTULO)
+  // ==========================================
+  
+  function attachSecretTrigger() {
+    const title = document.getElementById('appTitle');
+    if (!title) return;
+    
+    title.style.cursor = 'pointer';
+    title.addEventListener('click', handleSecretTap);
+  }
+
+  function handleSecretTap() {
+    const now = Date.now();
+    
+    if (now - lastTapTime > SECRET_TAPS_TIMEOUT) {
+      tapCount = 0;
+    }
+    
+    tapCount++;
+    lastTapTime = now;
+
+    if (tapCount >= 3 && tapCount < SECRET_TAPS_REQUIRED) {
+      showHint(`${SECRET_TAPS_REQUIRED - tapCount} toques restantes...`);
+    }
+
+    if (tapCount >= SECRET_TAPS_REQUIRED) {
+      tapCount = 0;
+      hideHint();
+      openAdminOverlay();
+    }
+  }
+
+  function showHint(message) {
+    const hint = document.getElementById('secretHint');
+    if (!hint) return;
+    hint.textContent = message;
+    hint.classList.add('show');
+    setTimeout(() => hint.classList.remove('show'), 1500);
+  }
+
+  function hideHint() {
+    const hint = document.getElementById('secretHint');
+    if (hint) hint.classList.remove('show');
+  }
+
+  // ==========================================
+  // LOGIN ADMIN (VALIDAÇÃO VIA BACKEND)
+  // ==========================================
+  
+  function openAdminOverlay() {
+    const overlay = document.getElementById('adminOverlay');
+    if (!overlay) return;
+    
+    overlay.classList.add('active');
+    const input = document.getElementById('adminCpf');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 100);
+    }
+    
+    const error = document.getElementById('adminError');
+    if (error) error.classList.remove('show');
+  }
+
+  function closeAdminOverlay() {
+    const overlay = document.getElementById('adminOverlay');
+    if (overlay) overlay.classList.remove('active');
+  }
+
+  // ----------------------------------------------------------
+  // Tenta validar o CPF/CNPJ contra os clientes salvos no
+  // localStorage (mesma chave usada por clientes.js). Retorna
+  // o cliente encontrado (com profile === 'Administrador') ou
+  // null se não encontrar / não bater o perfil.
+  // ----------------------------------------------------------
+  function findLocalAdminByDocument(docDigitsOnly) {
+    let list = [];
+    try {
+      list = JSON.parse(localStorage.getItem(CLIENTS_LOCAL_KEY) || "[]");
+      if (!Array.isArray(list)) list = [];
+    } catch {
+      list = [];
+    }
+
+    return list.find(function(c) {
+      const cDoc = String(c.document || "").replace(/\D/g, "");
+      return cDoc === docDigitsOnly && c.profile === "Administrador";
+    }) || null;
+  }
+
+  async function handleAdminLogin() {
+    const input = document.getElementById('adminCpf');
+    const error = document.getElementById('adminError');
+    const btn = document.getElementById('btnAdminLogin');
+    
+    if (!input || !error || !btn) return;
+    
+    const cpf = input.value.replace(/\D/g, '');
+    
+    if (!cpf || (cpf.length !== 11 && cpf.length !== 14)) {
+      error.textContent = 'CPF/CNPJ inválido';
+      error.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+    error.classList.remove('show');
+
+    // ------------------------------------------------------
+    // 1) Tenta validar primeiro pelo backend (/admin/verify).
+    // ------------------------------------------------------
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document: cpf })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.valid) {
+        sessionStorage.setItem('adminToken', result.token);
+        sessionStorage.setItem('adminName', result.name);
+        sessionStorage.setItem('adminExpires', Date.now() + (result.expiresIn * 1000));
+
+        closeAdminOverlay();
+        openAdminPanel(result.token, result.name);
+        return;
+      }
+
+      // Backend respondeu mas negou o acesso: ainda tenta fallback local
+      // abaixo, caso o cadastro só exista localmente neste navegador.
+    } catch (err) {
+      // Backend indisponível (ex: servidor não está rodando). Segue para o fallback local.
+      console.warn('Backend indisponível para /admin/verify, tentando validação local:', err.message);
+    }
+
+    // ------------------------------------------------------
+    // 2) Fallback: valida contra os clientes salvos no
+    //    localStorage (cadastrados em clientes.html) com
+    //    perfil = "Administrador".
+    // ------------------------------------------------------
+    const localAdmin = findLocalAdminByDocument(cpf);
+
+    if (localAdmin) {
+      // Sem backend, não há token real: abre o gerador.html diretamente.
+      closeAdminOverlay();
+      window.location.href = 'gerador.html';
+      return;
+    }
+
+    // Nenhuma das duas formas validou o acesso.
+    error.textContent = 'CPF não encontrado ou não autorizado';
+    error.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+
+  // ==========================================
+  // PAINEL ADMIN
+  // ==========================================
+  
+  function openAdminPanel(token, name) {
+    const panel = document.getElementById('adminPanel');
+    const iframe = document.getElementById('adminIframe');
+    const info = document.getElementById('adminInfo');
+    
+    if (!panel || !iframe) return;
+    
+    // Monta URL do gerador protegido
+    iframe.src = `${API_BASE_URL}/admin/gerador?token=${token}`;
+    
+    if (info) {
+      info.textContent = `Logado como: ${name}`;
+    }
+    
+    panel.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAdminPanel() {
+    const panel = document.getElementById('adminPanel');
+    const iframe = document.getElementById('adminIframe');
+    
+    if (panel) panel.classList.remove('active');
+    if (iframe) iframe.src = '';
+    
+    sessionStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminName');
+    sessionStorage.removeItem('adminExpires');
+    
+    document.body.style.overflow = '';
+  }
+
+  // ==========================================
+  // MÁSCARA DE CPF/CNPJ
+  // ==========================================
+  
+  function formatDocument(value) {
+    const numbers = value.replace(/\D/g, '');
+    
+    if (numbers.length <= 11) {
+      // CPF
+      return numbers
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      // CNPJ
+      return numbers
+        .replace(/^(\d{2})(\d)/, '$1.$2')
+        .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+        .replace(/\.(\d{3})(\d)/, '.$1/$2')
+        .replace(/(\d{4})(\d)/, '$1-$2');
+    }
+  }
+
+  // ==========================================
+  // EVENT LISTENERS
+  // ==========================================
+  
+  function attachAdminEvents() {
+    const btnLogin = document.getElementById('btnAdminLogin');
+    const btnCancel = document.getElementById('btnAdminCancel');
+    const btnClose = document.getElementById('btnCloseAdmin');
+    const input = document.getElementById('adminCpf');
+    
+    if (btnLogin) btnLogin.addEventListener('click', handleAdminLogin);
+    if (btnCancel) btnCancel.addEventListener('click', closeAdminOverlay);
+    if (btnClose) btnClose.addEventListener('click', closeAdminPanel);
+    
+    if (input) {
+      input.addEventListener('input', function(e) {
+        e.target.value = formatDocument(e.target.value);
+      });
+      
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleAdminLogin();
+      });
+    }
+  }
+
+  // ==========================================
+  // ATALHO DE TECLADO (OPCIONAL)
+  // ==========================================
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      e.preventDefault();
+      openAdminOverlay();
+    }
+  });
 
 })();
 </script>

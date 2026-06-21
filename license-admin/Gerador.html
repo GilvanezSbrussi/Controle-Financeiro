@@ -502,10 +502,9 @@
     const ECDSA_PRIVATE_KEY_JWK = {
       kty: "EC",
       crv: "P-256",
-      // ⚠️  SUBSTITUA pelos valores reais da sua chave privada ECDSA P-256
-      d:   "SUBSTITUA_PELO_VALOR_d_DA_SUA_CHAVE_PRIVADA",
-      x:   "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
-      y:   "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0"
+      d:   "h-edO4Dzn_Ulo8gajpmfM9Ed8U9eOSjXrhCV_xtBbYc",
+      x:   "iAvXDinVd5FjDKzq5ZkenzIgH_w2VxxiA8CXZV59v5c",
+      y:   "4ocxQqQ_mpNSc7WNTnVTOAF9umT48NtjykGh5mrJg5Y"
     };
 
     // ======================================================================
@@ -561,6 +560,8 @@
     // CARREGAR CLIENTES
     // Prioridade: 1) servidor backend /clients  2) Supabase direto
     // ======================================================================
+    const CLIENTS_LOCAL_KEY = "financas-clients-v1";
+
     async function loadClients() {
       diagLog = [];
       diagLog.push(`⏱ ${new Date().toLocaleTimeString()}`);
@@ -638,14 +639,35 @@
         }
       }
 
+      // ── TENTATIVA 3: localStorage (clientes cadastrados offline em clientes.html) ──
+      try {
+        diagLog.push("\n💾 Tentando localStorage (fallback offline)");
+        const raw = JSON.parse(localStorage.getItem(CLIENTS_LOCAL_KEY) || "[]");
+        const lista = Array.isArray(raw) ? raw : [];
+        diagLog.push(`   ${lista.length} clientes encontrados no localStorage`);
+
+        if (lista.length > 0) {
+          allClients = lista.map(normalizeClient);
+          activeTable = "localStorage (offline)";
+          setConn("local", `Local — ${allClients.length} clientes (sem backend/Supabase)`);
+          updateClientCount();
+          renderClientList();
+          updateDebug();
+          return;
+        }
+      } catch (err) {
+        diagLog.push(`   ❌ Erro ao ler localStorage: ${err.message}`);
+      }
+
       // ── SEM CONEXÃO ──
       diagLog.push("\n❌ Nenhuma fonte disponível");
       allClients = [];
-      setConn("offline", "Sem conexão com o servidor ou Supabase");
+      setConn("offline", "Sem conexão com o servidor, Supabase ou dados locais");
       updateClientCount();
       renderClientList();
       updateDebug();
     }
+
 
     // ======================================================================
     // NORMALIZAR — aceita qualquer estrutura de colunas
@@ -767,47 +789,13 @@
       btn.innerHTML = '<div class="spinner"></div> Gerando licença...';
 
       try {
-        let license  = null;
-        let expiresAt = null;
-        let holder    = holderName;
+  let license  = null;
+  let expiresAt = null;
+  let holder    = holderName;
 
-        // ── TENTATIVA 1: servidor backend POST /generate ──
-        try {
-          const res = await fetch("/generate", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({
-              holder:   holderName,
-              document: holderDoc,
-              days:     validDays,
-              deviceId: deviceId,
-              clientId: selectedCli ? selectedCli.id : null
-            })
-          });
-
-          const result = await res.json();
-
-          if (!res.ok) {
-            throw new Error(result.error || `Servidor retornou ${res.status}`);
-          }
-
-          license   = result.license;
-          expiresAt = result.expiresAt;
-          holder    = result.holder || holderName;
-
-        } catch (serverErr) {
-          console.warn("Servidor indisponível, gerando localmente:", serverErr.message);
-
-          if (ECDSA_PRIVATE_KEY_JWK.d === "SUBSTITUA_PELO_VALOR_d_DA_SUA_CHAVE_PRIVADA") {
-            throw new Error(
-              "Servidor offline e chave ECDSA não configurada.\n\n" +
-              "Verifique se o servidor está rodando, ou configure a chave\n" +
-              "privada executando generateAndShowKeys() no console (F12)."
-            );
-          }
-
-          license = await generateLocalLicense({ holderName, holderDoc, deviceId, validDays });
-        }
+  // Geração sempre local, via ECDSA P-256 (backend /generate desativado
+  // propositalmente: usava um formato de licença diferente/incompatível).
+  license = await generateLocalLicense({ holderName, holderDoc, deviceId, validDays });
 
         // ── EXIBE RESULTADO ──
         licenseOutputEl.value = license;

@@ -1,283 +1,197 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const { webcrypto } = require("crypto");
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const cors = require('cors');
 
-const privateJwk = {
-  kty: "EC",
-  x: "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
-  y: "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0",
-  crv: "P-256",
-  d: "osI_x9dIIVPMm-xTny1-XuGnFSCmWxuSGWkGswYoI84"
-};
+const app = express();
+const PORT = process.env.PORT || 3000;
+const CLIENTS_FILE = path.join(__dirname, 'clients.json');
 
-const publicJwk = {
-  kty: "EC",
-  x: "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
-  y: "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0",
-  crv: "P-256"
-};
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(__dirname));
 
-const root = __dirname;
-const projectRoot = path.join(root, "..");
-const clientsFile = path.join(root, "clients.json");
-const usedLicensesFile = path.join(root, "used-licenses.json");
-const port = 8789;
-
-const types = {
-  ".html": "text/html; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".ico": "image/x-icon"
-};
-
-http.createServer(async (request, response) => {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (request.method === "OPTIONS") {
-    response.writeHead(204);
-    response.end();
-    return;
-  }
-
-  // --- CLIENTES ---
-  if (request.method === "GET" && request.url === "/clients") {
-    sendJson(response, 200, { clients: readClients() });
-    return;
-  }
-
-  if (request.method === "POST" && request.url === "/clients") {
-    try {
-      const body = await readBody(request);
-      const result = saveClient(body.name, body.document, body.email);
-      sendJson(response, 200, result);
-    } catch (error) {
-      sendJson(response, 400, { error: error.message });
-    }
-    return;
-  }
-
-  // --- GERAR LICENCA ---
-  if (request.method === "POST" && request.url === "/generate") {
-    try {
-      const body = await readBody(request);
-      const result = await generateLicense(body.holder, body.document, Number(body.days));
-      sendJson(response, 200, result);
-    } catch (error) {
-      sendJson(response, 400, { error: error.message });
-    }
-    return;
-  }
-
-  // --- VALIDAR LICENCA (uso unico) ---
-  if (request.method === "POST" && request.url === "/validate") {
-    try {
-      const body = await readBody(request);
-      const result = await validateAndActivateLicense(body.license, body.deviceId);
-      sendJson(response, result.ok ? 200 : 403, result);
-    } catch (error) {
-      sendJson(response, 400, { error: error.message });
-    }
-    return;
-  }
-
-  // --- ARQUIVOS ESTATICOS ---
-  let route = request.url === "/" ? "/index.html" : request.url;
-  route = route.split("?")[0];
-
-  // Busca primeiro na pasta raiz do projeto, depois na pasta license-admin
-  let file = path.join(projectRoot, route);
-  if (!fs.existsSync(file)) {
-    file = path.join(root, route);
-  }
-
-  // Seguranca
-  if (!file.startsWith(projectRoot) && !file.startsWith(root)) {
-    response.writeHead(403);
-    response.end("Acesso negado");
-    return;
-  }
-
-  fs.readFile(file, (error, data) => {
-    if (error) {
-      response.writeHead(404);
-      response.end("Arquivo nao encontrado");
-      return;
-    }
-    response.writeHead(200, { "Content-Type": types[path.extname(file)] || "text/plain" });
-    response.end(data);
-  });
-
-}).listen(port, "0.0.0.0", () => {
-  console.log(`Servidor rodando em:`);
-  console.log(`  Local:    http://127.0.0.1:${port}`);
-  console.log(`  Rede:     http://<seu-ip-local>:${port}`);
-  console.log(`  Admin:    http://127.0.0.1:${port}/Gerador.html`);
-  console.log(`  App:      http://127.0.0.1:${port}/index.html`);
-  console.log(`  Cadastro: http://127.0.0.1:${port}/cadastro.html`);
-});
-
-// --- CLIENTES ---
-
+// Utilitários
 function readClients() {
-  if (!fs.existsSync(clientsFile)) return [];
-  try { return JSON.parse(fs.readFileSync(clientsFile, "utf-8")); }
-  catch { return []; }
+  try {
+    const data = fs.readFileSync(CLIENTS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Erro ao ler clients.json:', error);
+    return [];
+  }
 }
 
 function writeClients(clients) {
-  fs.writeFileSync(clientsFile, JSON.stringify(clients, null, 2));
-}
-
-function saveClient(name, document, email) {
-  const cleanName = String(name || "").trim();
-  const cleanDocument = String(document || "").trim();
-  const cleanEmail = String(email || "").trim();
-  if (!cleanName) throw new Error("Informe o nome do cliente.");
-  if (!cleanDocument) throw new Error("Informe CPF ou CNPJ do cliente.");
-
-  const clients = readClients();
-  const existing = clients.find((c) => onlyDigits(c.document) === onlyDigits(cleanDocument));
-  const client = {
-    id: existing?.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    name: cleanName,
-    document: cleanDocument,
-    email: cleanEmail,
-    updatedAt: new Date().toISOString()
-  };
-
-  const nextClients = existing
-    ? clients.map((item) => (item.id === existing.id ? client : item))
-    : [client, ...clients];
-  writeClients(nextClients);
-  return { client, clients: nextClients };
-}
-
-// --- LICENCAS USADAS ---
-
-function readUsedLicenses() {
-  if (!fs.existsSync(usedLicensesFile)) return [];
-  try { return JSON.parse(fs.readFileSync(usedLicensesFile, "utf-8")); }
-  catch { return []; }
-}
-
-function writeUsedLicenses(licenses) {
-  fs.writeFileSync(usedLicensesFile, JSON.stringify(licenses, null, 2));
-}
-
-async function validateAndActivateLicense(licenseKey, deviceId) {
-  if (!licenseKey) return { ok: false, message: "Chave de licenca nao informada." };
-  if (!deviceId) return { ok: false, message: "Identificador de dispositivo nao informado." };
-
-  const parts = licenseKey.split(".");
-  if (parts.length !== 2) return { ok: false, message: "Chave de licenca invalida." };
-
-  let payload;
   try {
-    const payloadBytes = base64UrlToBytes(parts[0]);
-    const signatureBytes = base64UrlToBytes(parts[1]);
-    const key = await webcrypto.subtle.importKey("jwk", publicJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
-    const verified = await webcrypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, signatureBytes, payloadBytes);
-    if (!verified) return { ok: false, message: "Assinatura da licenca invalida." };
-    payload = JSON.parse(new TextDecoder().decode(payloadBytes));
-  } catch {
-    return { ok: false, message: "Nao foi possivel verificar a licenca." };
+    fs.writeFileSync(CLIENTS_FILE, JSON.stringify(clients, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Erro ao escrever clients.json:', error);
+    return false;
   }
+}
 
-  if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) {
-    return { ok: false, message: "Esta licenca ja esta expirada." };
+function generateId() {
+  return `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+}
+
+// GET /clients - Lista todos os clientes
+app.get('/clients', (req, res) => {
+  try {
+    const clients = readClients();
+    res.json({ clients });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao carregar clientes' });
   }
+});
 
-  const usedLicenses = readUsedLicenses();
-  const licenseHash = licenseKey.slice(-32);
-  const existing = usedLicenses.find((item) => item.licenseHash === licenseHash);
-
-  if (existing) {
-    if (existing.deviceId !== deviceId) {
-      return {
-        ok: false,
-        message: `Esta licenca ja foi ativada em outro dispositivo em ${new Date(existing.activatedAt).toLocaleDateString("pt-BR")}. Cada licenca so pode ser usada em um dispositivo.`
-      };
+// POST /clients - Cria ou atualiza cliente
+app.post('/clients', (req, res) => {
+  try {
+    const { name, document, email, profile } = req.body;
+    
+    if (!name || !document) {
+      return res.status(400).json({ error: 'Nome e documento são obrigatórios' });
     }
-    return { ok: true, payload };
+    
+    const clients = readClients();
+    const existingIndex = clients.findIndex(c => c.document === document);
+    
+    const clientData = {
+      name: name.trim(),
+      document: document.trim(),
+      email: email ? email.trim() : '',
+      profile: profile || 'Usuário',
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (existingIndex >= 0) {
+      clients[existingIndex] = { ...clients[existingIndex], ...clientData };
+    } else {
+      clients.push({
+        id: generateId(),
+        ...clientData
+      });
+    }
+    
+    writeClients(clients);
+    res.json({ success: true, clients, message: existingIndex >= 0 ? 'Cliente atualizado' : 'Cliente criado' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao salvar cliente' });
   }
+});
 
-  usedLicenses.push({
-    licenseHash,
-    deviceId,
-    holder: payload.holder,
-    activatedAt: new Date().toISOString(),
-    expiresAt: payload.expiresAt
-  });
-  writeUsedLicenses(usedLicenses);
-  return { ok: true, payload };
-}
+// DELETE /clients/:id - Remove cliente
+app.delete('/clients/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    let clients = readClients();
+    const initialLength = clients.length;
+    clients = clients.filter(c => c.id !== id);
+    
+    if (clients.length === initialLength) {
+      return res.status(404).json({ error: 'Cliente não encontrado' });
+    }
+    
+    writeClients(clients);
+    res.json({ success: true, clients });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao remover cliente' });
+  }
+});
 
-// --- GERAR LICENCA ---
-
-async function generateLicense(holder, document, days) {
-  if (!holder) throw new Error("Informe o nome do cliente.");
-  if (!Number.isFinite(days) || days <= 0) throw new Error("Informe dias de validade maior que zero.");
-
-  const issuedAt = new Date();
-  const expiresAt = addDays(issuedAt, days);
-  const payload = {
-    app: "Controle sua Fortuna",
-    holder,
-    document: document || "",
-    issuedAt: issuedAt.toISOString(),
-    expiresAt: expiresAt.toISOString()
-  };
-
-  const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
-  const key = await webcrypto.subtle.importKey("jwk", privateJwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
-  const signature = await webcrypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, payloadBytes);
-
-  return {
-    holder,
-    expiresAt: expiresAt.toLocaleDateString("pt-BR"),
-    license: `${base64Url(payloadBytes)}.${base64Url(new Uint8Array(signature))}`
-  };
-}
-
-// --- UTILITARIOS ---
-
-function onlyDigits(value) {
-  return String(value || "").replace(/\D/g, "");
-}
-
-function readBody(request) {
-  return new Promise((resolve, reject) => {
-    let body = "";
-    request.on("data", (chunk) => { body += chunk; });
-    request.on("end", () => {
-      try { resolve(JSON.parse(body || "{}")); }
-      catch { reject(new Error("Dados invalidos.")); }
+// POST /generate - Gera licença
+app.post('/generate', (req, res) => {
+  try {
+    const { holder, document, days } = req.body;
+    
+    if (!holder || !document || !days) {
+      return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+    }
+    
+    const licenseKey = crypto.randomBytes(16).toString('hex').toUpperCase();
+    const formattedLicense = licenseKey.match(/.{1,4}/g).join('-');
+    
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + parseInt(days));
+    
+    res.json({
+      license: formattedLicense,
+      holder,
+      document,
+      days: parseInt(days),
+      expiresAt: expiresAt.toLocaleDateString('pt-BR'),
+      generatedAt: new Date().toLocaleString('pt-BR')
     });
-    request.on("error", reject);
-  });
-}
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao gerar licença' });
+  }
+});
 
-function sendJson(response, status, payload) {
-  response.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  response.end(JSON.stringify(payload));
-}
+// POST /admin/verify - Verifica se CPF é administrador
+app.post('/admin/verify', (req, res) => {
+  try {
+    const { document } = req.body;
+    
+    if (!document) {
+      return res.status(400).json({ valid: false, error: 'CPF/CNPJ é obrigatório' });
+    }
+    
+    const cleanDocument = document.replace(/\D/g, '');
+    const clients = readClients();
+    const client = clients.find(c => c.document.replace(/\D/g, '') === cleanDocument);
+    
+    if (!client) {
+      return res.status(404).json({ valid: false, error: 'CPF/CNPJ não encontrado' });
+    }
+    
+    const isAdmin = (client.profile || '').toUpperCase() === 'ADMINISTRADOR';
+    
+    if (!isAdmin) {
+      return res.status(403).json({ valid: false, error: 'Perfil não autorizado. Apenas administradores podem acessar.' });
+    }
+    
+    const token = crypto.randomBytes(32).toString('hex');
+    client.adminToken = token;
+    client.tokenExpires = Date.now() + (30 * 60 * 1000);
+    
+    writeClients(clients);
+    
+    res.json({ 
+      valid: true, 
+      token: token,
+      name: client.name,
+      expiresIn: 1800
+    });
+  } catch (error) {
+    console.error('Erro ao verificar admin:', error);
+    res.status(500).json({ error: 'Erro ao verificar administrador' });
+  }
+});
 
-function addDays(date, daysToAdd) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + daysToAdd);
-  return result;
-}
+// GET /admin/gerador - Serve o Gerador.html protegido
+app.get('/admin/gerador', (req, res) => {
+  const token = req.query.token;
+  
+  if (!token) {
+    return res.status(401).send('Acesso negado. Token não fornecido.');
+  }
+  
+  const clients = readClients();
+  const client = clients.find(c => c.adminToken === token && c.tokenExpires > Date.now());
+  
+  if (!client) {
+    return res.status(401).send('Token inválido ou expirado.');
+  }
+  
+  res.sendFile(path.join(__dirname, 'Gerador.html'));
+});
 
-function base64Url(bytes) {
-  return Buffer.from(bytes).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function base64UrlToBytes(value) {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-  return Buffer.from(base64, "base64");
-}
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+  console.log(`📁 Pasta: ${__dirname}`);
+});
