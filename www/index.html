@@ -80,6 +80,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .fav-tag.selected{background:var(--primary);color:#fff}
 .fav-tags-label{font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:3px}
 .tx-list{display:flex;flex-direction:column}
+.tx-list-scroll{max-height:720px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--primary) var(--bg3);padding-right:4px}
+.tx-list-scroll::-webkit-scrollbar{width:6px}
+.tx-list-scroll::-webkit-scrollbar-track{background:var(--bg3);border-radius:3px}
+.tx-list-scroll::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+.tx-list-scroll::-webkit-scrollbar-thumb:hover{background:var(--primary);opacity:.8}
+@media(max-width:480px){.tx-list-scroll{max-height:65vh}}
 .tx-item{display:flex;align-items:flex-start;gap:10px;padding:.75rem 0;border-bottom:1px solid var(--border)}
 .tx-item:last-child{border-bottom:none}
 .tx-ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;margin-top:2px}
@@ -149,6 +155,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 canvas{width:100%!important;display:block}
 #licWarn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--expense);color:#fff;padding:12px 16px;justify-content:space-between;align-items:center;z-index:200;font-size:.88rem;font-weight:600}
 #licWarn a{color:#fff;text-decoration:underline}
+/* Overlay de bloqueio por licença */
+#licBlockOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)}
+#licBlockOverlay.show{display:flex}
+.lic-block-card{background:var(--bg2);border-radius:20px;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--expense)}
+.lic-block-icon{width:80px;height:80px;border-radius:50%;background:rgba(220,38,38,.12);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 1rem}
+.lic-block-card h2{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:.6rem}
+.lic-block-card p{font-size:.88rem;color:var(--text2);line-height:1.5;margin-bottom:1.2rem}
+.lic-block-card .lic-block-info{background:var(--bg3);border-radius:10px;padding:.75rem;margin-bottom:1.2rem;text-align:left;font-size:.8rem;color:var(--text2)}
+.lic-block-card .lic-block-info strong{color:var(--text);display:block;margin-bottom:2px}
+.lic-block-btn{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;margin-top:.4rem}
+.lic-block-btn:hover{opacity:.9}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto}
@@ -240,67 +257,86 @@ canvas{width:100%!important;display:block}
 .success-alert{position:fixed;top:20px;right:20px;background:var(--income);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:9999;animation:slideInAlert .3s ease-out}
 @keyframes slideInAlert{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
 @media(max-width:480px){.summary{grid-template-columns:1fr 1fr}}
+.button-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem}
+.btn-secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.new-tx-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.new-tx-menu-overlay.open{opacity:1;pointer-events:all}
+.new-tx-menu-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:1.1rem 1rem}
+.new-tx-menu-overlay.open .new-tx-menu-sheet{transform:translateY(0)}
+.new-tx-menu-title{font-size:.95rem;font-weight:800;margin-bottom:.75rem;text-align:center;color:var(--text)}
+.new-tx-option{display:flex;align-items:center;gap:.7rem;padding:.65rem .75rem;border-radius:10px;margin-bottom:.4rem;cursor:pointer;transition:all .2s;border:2px solid var(--border)}
+.new-tx-option:hover{background:var(--bg3);border-color:var(--primary)}
+.new-tx-option-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.new-tx-option-icon.transfer{background:rgba(37,99,235,.12);color:var(--transfer)}
+.new-tx-option-icon.income{background:rgba(22,163,74,.12);color:var(--income)}
+.new-tx-option-icon.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+.new-tx-option-icon.card{background:rgba(59,130,246,.1);color:#3b82f6}
+.new-tx-option-icon.voice{background:rgba(139,92,246,.12);color:#8b5cf6}
+.new-tx-option-text{flex:1}
+.new-tx-option-label{font-size:.85rem;font-weight:700;color:var(--text);display:block}
+.new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
 
-/* ===================== MENU NOVO LANÇAMENTO ===================== */
-.new-tx-dropdown{position:relative;margin-bottom:0}
-.new-tx-btn{width:100%;padding:16px;background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all .2s}
-.new-tx-btn:hover{opacity:.9}
-.new-tx-btn svg{width:26px;height:26px}
-.new-tx-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;display:none;z-index:100}
-.new-tx-menu.open{display:block;animation:slideDown .2s ease-out}
-@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-.new-tx-item{display:flex;align-items:center;gap:12px;width:100%;padding:16px;background:none;border:none;cursor:pointer;font-size:.95rem;color:var(--text);transition:background .15s;border-bottom:1px solid var(--border)}
-.new-tx-item:last-child{border-bottom:none}
-.new-tx-item:hover{background:var(--bg3)}
-.new-tx-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
-.new-tx-icon.transfer{background:rgba(37,99,235,.12);color:var(--transfer)}
-.new-tx-icon.income{background:rgba(22,163,74,.12);color:var(--income)}
-.new-tx-icon.expense{background:rgba(220,38,38,.1);color:var(--expense)}
-.new-tx-icon.card{background:rgba(59,130,246,.1);color:#3b82f6}
-.new-tx-icon.voice{background:rgba(139,92,246,.12);color:#8b5cf6}
-.new-tx-text{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
-.new-tx-label{font-weight:700}
-.new-tx-desc{font-size:.75rem;color:var(--text2);font-weight:500}
-#txFormWrapper{display:none;margin-top:1rem}
-#txFormWrapper.show{display:block}
+/* MODAL DE FORMULÁRIO - AJUSTADO */
+.tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.tx-form-modal-overlay.open{opacity:1;pointer-events:all}
+.tx-form-modal-sheet{background:var(--bg2);border-radius:20px;width:95%;max-width:500px;transform:scale(0.95) translateY(20px);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.tx-form-modal-overlay.open .tx-form-modal-sheet{transform:scale(1) translateY(0)}
+.tx-form-header{padding:1rem;border-bottom:1px solid var(--border)}
+.tx-form-body{padding:1rem}
 
-/* ===================== MODAL LANÇAMENTO ===================== */
-.tx-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.tx-modal-overlay.open{opacity:1;pointer-events:all}
-.tx-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:85vh;overflow-y:auto}
-.tx-modal-overlay.open .tx-modal-sheet{transform:translateY(0)}
-.tx-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0}
-.tx-modal-body{padding:0 1.25rem 2rem}
-
-/* ===================== VOZ - COMPACTO PARA MOBILE ===================== */
-.voice-box{border-radius:var(--rsm);padding:.9rem 1rem;text-align:center;margin-bottom:.8rem;background:linear-gradient(135deg,var(--primary-light),var(--bg3));border:2px solid var(--primary)}
+.voice-box{border-radius:var(--rsm);padding:.75rem 1rem;text-align:center;margin-bottom:.75rem;background:linear-gradient(135deg,var(--primary-light),var(--bg3));border:2px solid var(--primary)}
 .voice-box.active{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.06));border-color:var(--expense)}
 .voice-box.error-state{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border-color:var(--warning)}
-.voice-mic-wrap{position:relative;width:60px;height:60px;margin:0 auto .7rem}
-.voice-btn{width:60px;height:60px;border-radius:50%;border:none;color:#fff;font-size:1.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 3px 12px rgba(15,118,110,.35);background:var(--primary)}
+.voice-mic-wrap{position:relative;width:50px;height:50px;margin:0 auto .5rem}
+.voice-btn{width:50px;height:50px;border-radius:50%;border:none;color:#fff;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 3px 12px rgba(15,118,110,.35);background:var(--primary)}
 .voice-btn.recording{background:var(--expense);box-shadow:0 3px 12px rgba(220,38,38,.4);animation:micPulse 1.2s ease-in-out infinite}
 @keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 .voice-ripple{position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--expense);opacity:0;pointer-events:none}
 .voice-btn.recording + .voice-ripple{animation:rippleOut 1.2s ease-out infinite}
 @keyframes rippleOut{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
-.voice-status-text{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.25rem}
-.voice-hint-text{font-size:.72rem;color:var(--text2);margin-bottom:.6rem;line-height:1.4}
-.voice-transcript-box{background:var(--bg2);border-radius:8px;padding:.6rem .8rem;min-height:36px;font-size:.84rem;color:var(--text);border:1.5px dashed var(--border);line-height:1.4;text-align:left}
+.voice-status-text{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.voice-hint-text{font-size:.7rem;color:var(--text2);margin-bottom:.5rem;line-height:1.4}
+.voice-transcript-box{background:var(--bg2);border-radius:8px;padding:.5rem .7rem;min-height:32px;font-size:.8rem;color:var(--text);border:1.5px dashed var(--border);line-height:1.4;text-align:left}
 .voice-transcript-box.has-text{border-style:solid;border-color:var(--primary);background:var(--primary-light)}
-
-/* Alerta de permissão HTTPS compacto */
-.voice-https-warn{background:rgba(245,158,11,.12);border:1.5px solid var(--warning);border-radius:var(--rsm);padding:.7rem .8rem;font-size:.8rem;color:var(--text);line-height:1.5;margin-bottom:.8rem}
-.voice-https-warn strong{color:var(--warning);display:block;margin-bottom:.25rem;font-size:.85rem}
-.voice-https-warn code{background:var(--bg3);padding:2px 5px;border-radius:4px;font-size:.75rem;font-family:monospace}
-
-/* Permissão de microfone - tooltip amigável */
+.voice-https-warn{background:rgba(245,158,11,.12);border:1.5px solid var(--warning);border-radius:var(--rsm);padding:.6rem .7rem;font-size:.75rem;color:var(--text);line-height:1.5;margin-bottom:.7rem}
+.voice-https-warn strong{color:var(--warning);display:block;margin-bottom:.2rem;font-size:.8rem}
+.voice-https-warn code{background:var(--bg3);padding:2px 5px;border-radius:4px;font-size:.7rem;font-family:monospace}
 .mic-permission-tip{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:9999;display:none}
 .mic-permission-tip.show{display:block}
 .mic-permission-tip h4{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:.5rem}
 .mic-permission-tip p{font-size:.8rem;color:var(--text2);line-height:1.5;margin-bottom:.8rem}
 .mic-permission-tip button{width:100%;padding:8px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer}
-</style>
+.android-permission-screen{position:fixed;inset:0;background:var(--bg2);z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center}
+.android-permission-screen.show{display:flex}
+.android-permission-icon{width:120px;height:120px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin-bottom:1.5rem}
+.android-permission-screen h2{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:1rem}
+.android-permission-screen p{font-size:.9rem;color:var(--text2);line-height:1.6;margin-bottom:1.5rem;max-width:320px}
+.android-permission-steps{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin:1rem 0;text-align:left;font-size:.85rem}
+.android-permission-steps ol{padding-left:1.3rem;margin:0}
+.android-permission-steps li{margin-bottom:.5rem;color:var(--text)}
+.android-permission-screen .pbtn{max-width:280px;margin:.5rem}
+.android-permission-screen .pbtn.secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
+#txFormWrapper{display:none!important}
 
+/* Responsivo para o modal */
+@media(max-width:480px){
+  .tx-form-modal-sheet{
+    width:98%;
+    max-height:88vh;
+    border-radius:16px;
+  }
+  .voice-mic-wrap{
+    width:45px;
+    height:45px;
+  }
+  .voice-btn{
+    width:45px;
+    height:45px;
+    font-size:1.3rem;
+  }
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -309,12 +345,12 @@ canvas{width:100%!important;display:block}
 <h1>Controle sua Fortuna Versão 1.0</h1>
 </div>
 <div class="topbar-right">
-<button class="tbtn" id="themeBtn" title="Alternar tema">🌙</button>
+<button class="tbtn" id="themeBtn" title="Alternar tema"></button>
 <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
 <div class="ddmenu" id="ddMenu">
 <a class="dditem" href="extrato.html">📊 Extrato</a>
 <button class="dditem" id="openCatModal">🏷️ Categorias</button>
-<a class="dditem" href="licenca.html">🔑 Licenca</a>
+<a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
 </div>
 </div>
@@ -360,58 +396,12 @@ canvas{width:100%!important;display:block}
 <div class="acc-list" id="accountList"></div>
 </div>
 
-<!-- Card novo lançamento com menu dropdown -->
 <div class="card">
 <div class="card-title">
-<h2 id="formTitle">➕ Novo lancamento</h2>
+<h2 id="formTitle">➕ Novo lançamento</h2>
 <button class="cbtn hidden" id="cancelEditBtn">✕ Cancelar</button>
 </div>
-
-<div class="new-tx-dropdown">
-<button class="new-tx-btn" id="newTxBtn">
-<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-Escolher tipo de lançamento
-</button>
-<div class="new-tx-menu" id="newTxMenu">
-<button class="new-tx-item" data-type="transfer">
-<div class="new-tx-icon transfer">⇅</div>
-<div class="new-tx-text">
-<span class="new-tx-label">Transferência</span>
-<span class="new-tx-desc">Mover entre contas</span>
-</div>
-</button>
-<button class="new-tx-item" data-type="income">
-<div class="new-tx-icon income">+</div>
-<div class="new-tx-text">
-<span class="new-tx-label">Receita</span>
-<span class="new-tx-desc">Entrada de dinheiro</span>
-</div>
-</button>
-<button class="new-tx-item" data-type="expense">
-<div class="new-tx-icon expense">−</div>
-<div class="new-tx-text">
-<span class="new-tx-label">Despesa</span>
-<span class="new-tx-desc">Saída de dinheiro</span>
-</div>
-</button>
-<button class="new-tx-item" data-type="expense-card">
-<div class="new-tx-icon card">💳</div>
-<div class="new-tx-text">
-<span class="new-tx-label">Despesa cartão</span>
-<span class="new-tx-desc">Gasto no cartão</span>
-</div>
-</button>
-<button class="new-tx-item" id="voiceMenuItem">
-<div class="new-tx-icon voice">🎤</div>
-<div class="new-tx-text">
-<span class="new-tx-label">Reconhecimento por voz</span>
-<span class="new-tx-desc">Fale seu lançamento</span>
-</div>
-</button>
-</div>
-</div>
-
-<!-- Formulário original oculto — usado pelo app.js -->
+<button class="pbtn" id="openNewTxMenuBtn">➕ Novo Lançamento</button>
 <div id="txFormWrapper">
 <form id="txForm" autocomplete="off">
 <div class="segmented" role="radiogroup">
@@ -431,23 +421,26 @@ Escolher tipo de lançamento
 <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
 <label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
 </div>
-<button class="pbtn" id="saveBtn" type="submit">Salvar lancamento</button>
+<div class="button-group">
+<button class="pbtn" id="saveBtn" type="submit">💾 Salvar Lançamento</button>
+<button class="pbtn btn-secondary" id="saveAndNewBtn" type="button">💾 Salvar e Novo</button>
+</div>
 </form>
 </div>
 </div>
 
 <div class="card">
 <div class="card-title"><h2>💸 Ultimas despesas</h2><span id="expCount">0</span></div>
-<div class="tx-list" id="expList"></div>
+<div class="tx-list tx-list-scroll" id="expList"></div>
 </div>
 
 <div class="card">
 <div class="card-title"><h2>💰 Ultimas receitas</h2><span id="incCount">0</span></div>
-<div class="tx-list" id="incList"></div>
+<div class="tx-list tx-list-scroll" id="incList"></div>
 </div>
 
 <div class="card">
-<div class="card-title"><h2>🗂 Despesas por categoria</h2><span id="catTotal">R$ 0,00</span></div>
+<div class="card-title"><h2>🏷️ Despesas por categoria</h2><span id="catTotal">R$ 0,00</span></div>
 <div class="cat-pills" id="catPills"><div class="empty">💸 Nenhuma despesa categorizada</div></div>
 </div>
 
@@ -477,20 +470,72 @@ Escolher tipo de lançamento
 </div>
 </div>
 
-<!-- ===================== MODAL LANÇAMENTO ===================== -->
-<div class="tx-modal-overlay" id="txModal">
-<div class="tx-modal-sheet">
-<div class="tx-modal-header">
+<!-- Overlay de bloqueio por licença inválida -->
+<div id="licBlockOverlay">
+  <div class="lic-block-card">
+    <div class="lic-block-icon">🔒</div>
+    <h2 id="licBlockTitle">Licença não ativada</h2>
+    <p id="licBlockMessage">Para continuar usando o Controle sua Fortuna, você precisa ativar uma licença válida.</p>
+    <div class="lic-block-info" id="licBlockInfo" style="display:none">
+      <strong id="licBlockInfoLabel">Informação:</strong>
+      <span id="licBlockInfoValue">-</span>
+    </div>
+    <a href="licenca.html" class="lic-block-btn">🔑 Ativar Licença</a>
+  </div>
+</div>
+
+<div class="new-tx-menu-overlay" id="newTxMenuOverlay">
+<div class="new-tx-menu-sheet">
 <div class="modal-handle"></div>
+<div class="new-tx-menu-title">Escolha o tipo de lançamento</div>
+<div class="new-tx-option" data-type="transfer">
+<div class="new-tx-option-icon transfer">⇅</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Transferência</span>
+<span class="new-tx-option-desc">Mover dinheiro entre contas</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="income">
+<div class="new-tx-option-icon income">+</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Receita</span>
+<span class="new-tx-option-desc">Entrada de dinheiro</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="expense">
+<div class="new-tx-option-icon expense">−</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Despesa</span>
+<span class="new-tx-option-desc">Saída de dinheiro</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="expense-card">
+<div class="new-tx-option-icon card">💳</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Despesa cartão</span>
+<span class="new-tx-option-desc">Gasto no cartão de crédito</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="voice" id="voiceMenuOption">
+<div class="new-tx-option-icon voice">🎤</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Reconhecimento por voz</span>
+<span class="new-tx-option-desc">Fale seu lançamento</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="tx-form-modal-overlay" id="txFormModalOverlay">
+<div class="tx-form-modal-sheet">
+<div class="tx-form-header">
 <div class="modal-title">
-<h3 id="txModalTitle">Novo Lançamento</h3>
-<button class="modal-close" id="txModalClose">✕</button>
+<h3 id="txFormModalTitle">Novo Lançamento</h3>
+<button class="modal-close" id="txFormModalClose">✕</button>
 </div>
 </div>
-<div class="tx-modal-body">
-<!-- Painel de voz compacto — visível só no modo voz -->
+<div class="tx-form-body">
 <div class="voice-box" id="voiceBox" style="display:none">
-<!-- Aviso HTTPS mostrado dinamicamente se necessário -->
 <div id="voiceHttpsWarn" class="voice-https-warn" style="display:none">
 <strong>⚠️ Microfone requer HTTPS</strong>
 O reconhecimento de voz só funciona em conexões seguras (<code>https://</code>) ou em <code>localhost</code>.<br><br>
@@ -530,20 +575,38 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label id="modalToWrap" class="hidden">Destino<select id="modalToAcc"></select></label>
 <label id="modalCatWrap">Categoria<select id="modalCat"><option value="">Sem categoria</option></select></label>
 </div>
-<button class="pbtn" id="modalSaveBtn" type="submit">💾 Salvar lançamento</button>
+<div class="button-group">
+<button class="pbtn" id="modalSaveBtn" type="submit">💾 Salvar</button>
+<button class="pbtn btn-secondary" id="modalSaveAndNewBtn" type="button">💾 Salvar e Novo</button>
+</div>
 </form>
 </div>
 </div>
 </div>
 
-<!-- Tooltip de permissão de microfone -->
+<div class="android-permission-screen" id="androidPermissionScreen">
+<div class="android-permission-icon">🎤</div>
+<h2>Permitir Uso do Microfone</h2>
+<p>O reconhecimento de voz precisa de permissão para funcionar. Siga os passos abaixo:</p>
+<div class="android-permission-steps">
+<ol>
+<li>Toque em <strong>"Configurações"</strong></li>
+<li>Vá em <strong>"Aplicativos"</strong></li>
+<li>Encontre o app <strong>"Controle sua Fortuna"</strong></li>
+<li>Toque em <strong>"Permissões"</strong></li>
+<li>Ative a permissão de <strong>"Microfone"</strong></li>
+</ol>
+</div>
+<button class="pbtn" onclick="openAndroidAppSettings()">🔧 Abrir Configurações do App</button>
+<button class="pbtn secondary" onclick="closeAndroidPermissionScreen()">✕ Fechar e Usar Formulário</button>
+</div>
+
 <div class="mic-permission-tip" id="micPermissionTip">
 <h4>🎤 Permitir uso do microfone</h4>
 <p>Para usar o reconhecimento de voz, clique em <strong>"Permitir"</strong> quando o navegador solicitar acesso ao microfone.</p>
 <button onclick="requestMicPermission()">Tentar novamente</button>
 </div>
 
-<!-- MODAL EDIÇÃO LANÇAMENTO -->
 <div class="modal-overlay" id="editModal">
 <div class="modal-sheet" id="editModalSheet">
 <div class="modal-handle"></div>
@@ -574,7 +637,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 </div>
 
-<!-- MODAL DETALHE CONTA -->
 <div class="account-modal-overlay" id="accModal">
 <div class="account-modal-sheet">
 <div class="account-modal-header">
@@ -596,7 +658,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 </div>
 
-<!-- MODAL CATEGORIAS -->
 <div class="cat-modal-overlay" id="catModal">
 <div class="cat-modal-sheet">
 <div class="cat-modal-header">
@@ -655,7 +716,6 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 </div>
 
-<!-- MODAL EDIÇÃO DE CATEGORIA -->
 <div class="cat-edit-modal-overlay" id="catEditModal">
 <div class="cat-edit-modal-sheet">
 <div class="cat-edit-modal-header">
@@ -706,7 +766,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </label>
 </div>
 </div>
-<button class="cat-add-btn" id="editCatSaveBtn">💾 Salvar alterações</button>
+<button class="cat-add-btn" id="editCatSaveBtn" style="background:var(--primary);margin-top:.5rem">💾 Salvar alterações</button>
 <button class="cat-add-btn" id="editCatDeleteBtn" style="background:var(--expense);margin-top:.5rem">🗑️ Excluir categoria</button>
 </div>
 </div>
@@ -714,9 +774,256 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 
 <div id="licWarn">
-<span>⚠ Licenca expirada ou inativa</span>
+<span>⚠️ Licença expirada ou inativa</span>
 <a href="licenca.html">Ativar agora</a>
 </div>
+
+<script>
+/* ================================================================
+   MÓDULO DE VALIDAÇÃO DE LICENÇA (ECDSA P-256)
+   ================================================================ */
+(function LicenseModule() {
+  "use strict";
+
+  const LICENSE_STORAGE_KEY = "financas-license-v1";
+  const DEVICE_KEY          = "financas-device-id";
+
+  // Chave pública ECDSA P-256 (mesma do licenca.html)
+  const ECDSA_PUBLIC_KEY_JWK = {
+    kty: "EC",
+    crv: "P-256",
+    x:   "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
+    y:   "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0"
+  };
+
+  // Gera/obtém Device ID (mesma lógica do licenca.html)
+  function generateDeviceId() {
+    const part1 = Math.random().toString(36).substring(2, 10);
+    const part2 = Math.random().toString(36).substring(2, 8);
+    return `dev-${part1}-${part2}`;
+  }
+  function isValidDeviceId(id) {
+    if (!id || typeof id !== 'string') return false;
+    return /^dev-[a-z0-9]{6,}-[a-z0-9]{4,}$/i.test(id);
+  }
+  function getDeviceId() {
+    let id = localStorage.getItem(DEVICE_KEY);
+    if (!id || !isValidDeviceId(id)) {
+      id = generateDeviceId();
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  }
+
+  // Verifica assinatura ECDSA da licença
+  async function verifySignedLicense(value) {
+    if (!value || typeof value !== 'string') {
+      return { valid: false, message: "Chave vazia." };
+    }
+    const parts = value.split(".");
+    if (parts.length !== 2) return { valid: false, message: "Formato inválido." };
+
+    try {
+      const [payloadB64, signatureB64] = parts;
+
+      const publicKey = await crypto.subtle.importKey(
+        "jwk",
+        ECDSA_PUBLIC_KEY_JWK,
+        { name: "ECDSA", namedCurve: "P-256" },
+        false,
+        ["verify"]
+      );
+
+      const payloadBytes = Uint8Array.from(
+        atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")),
+        c => c.charCodeAt(0)
+      );
+      const signatureBytes = Uint8Array.from(
+        atob(signatureB64.replace(/-/g, "+").replace(/_/g, "/")),
+        c => c.charCodeAt(0)
+      );
+
+      const verified = await crypto.subtle.verify(
+        { name: "ECDSA", hash: "SHA-256" },
+        publicKey,
+        signatureBytes,
+        payloadBytes
+      );
+
+      if (!verified) return { valid: false, message: "Assinatura inválida." };
+
+      const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+
+      // Verifica expiração
+      if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) {
+        return { valid: false, message: "Licença expirada.", expired: true, payload };
+      }
+
+      // Verifica Device ID
+      const currentDeviceId = getDeviceId();
+      if (payload.deviceId && payload.deviceId !== currentDeviceId) {
+        return { valid: false, message: "Licença vinculada a outro dispositivo.", wrongDevice: true };
+      }
+
+      return { valid: true, payload };
+    } catch (e) {
+      console.error("Erro ao verificar licença:", e);
+      return { valid: false, message: "Erro ao processar licença." };
+    }
+  }
+
+  // Carrega dados da licença do localStorage
+  function loadLicense() {
+    try { return JSON.parse(localStorage.getItem(LICENSE_STORAGE_KEY)) || null; }
+    catch { return null; }
+  }
+
+  // Verifica o estado geral da licença
+  async function checkLicenseStatus() {
+    const license = loadLicense();
+
+    // Sem licença cadastrada
+    if (!license || !license.active) {
+      return {
+        valid: false,
+        reason: "no-license",
+        title: "Licença não ativada",
+        message: "Para continuar usando o Controle sua Fortuna, você precisa ativar uma licença válida.",
+        info: null
+      };
+    }
+
+    // Verifica expiração local rápida
+    const now = new Date();
+    if (license.expiresAt && new Date(license.expiresAt) <= now) {
+      const expDate = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+      return {
+        valid: false,
+        reason: "expired",
+        title: "Licença expirada",
+        message: `Sua licença venceu em ${expDate}. Renove para continuar usando o app.`,
+        info: { label: "Expirou em:", value: expDate }
+      };
+    }
+
+    // Verifica Device ID
+    const currentDeviceId = getDeviceId();
+    if (license.deviceId && license.deviceId !== currentDeviceId) {
+      return {
+        valid: false,
+        reason: "wrong-device",
+        title: "Dispositivo não autorizado",
+        message: "Esta licença está vinculada a outro dispositivo.",
+        info: { label: "Seu ID:", value: currentDeviceId }
+      };
+    }
+
+    // Verifica assinatura ECDSA (se houver chave)
+    if (license.key && license.type === "signed") {
+      const verify = await verifySignedLicense(license.key);
+      if (!verify.valid) {
+        if (verify.expired) {
+          const expDate = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+          return {
+            valid: false,
+            reason: "expired",
+            title: "Licença expirada",
+            message: `Sua licença venceu em ${expDate}. Renove para continuar usando o app.`,
+            info: { label: "Expirou em:", value: expDate }
+          };
+        }
+        return {
+          valid: false,
+          reason: "invalid-signature",
+          title: "Licença inválida",
+          message: "A assinatura da licença não é válida. Solicite uma nova licença.",
+          info: null
+        };
+      }
+    }
+
+    // Tudo OK
+    const daysLeft = Math.ceil((new Date(license.expiresAt) - now) / 86400000);
+    return {
+      valid: true,
+      reason: "ok",
+      holder: license.holder || "Cliente",
+      expiresAt: license.expiresAt,
+      daysLeft: daysLeft
+    };
+  }
+
+  // Aplica o estado de bloqueio/liberação na UI
+  function applyLicenseUI(status) {
+    const warnEl = document.getElementById("licWarn");
+    const blockOverlay = document.getElementById("licBlockOverlay");
+    const blockTitle = document.getElementById("licBlockTitle");
+    const blockMsg = document.getElementById("licBlockMessage");
+    const blockInfo = document.getElementById("licBlockInfo");
+    const blockInfoLabel = document.getElementById("licBlockInfoLabel");
+    const blockInfoValue = document.getElementById("licBlockInfoValue");
+
+    if (status.valid) {
+      // Licença válida: esconde tudo
+      if (warnEl) warnEl.style.display = "none";
+      if (blockOverlay) blockOverlay.classList.remove("show");
+      document.body.style.overflow = "";
+      console.log(`✅ Licença válida. Titular: ${status.holder} | Expira em: ${status.expiresAt} (${status.daysLeft} dias)`);
+    } else {
+      // Licença inválida: mostra aviso e bloqueia
+      if (warnEl) warnEl.style.display = "flex";
+      if (blockOverlay) {
+        if (blockTitle) blockTitle.textContent = status.title || "Licença inválida";
+        if (blockMsg) blockMsg.textContent = status.message || "Licença inválida.";
+        if (blockInfo && status.info) {
+          blockInfo.style.display = "block";
+          if (blockInfoLabel) blockInfoLabel.textContent = status.info.label;
+          if (blockInfoValue) blockInfoValue.textContent = status.info.value;
+        } else if (blockInfo) {
+          blockInfo.style.display = "none";
+        }
+        blockOverlay.classList.add("show");
+      }
+      document.body.style.overflow = "hidden";
+      console.warn(`🔒 Licença inválida (${status.reason}): ${status.message}`);
+    }
+  }
+
+  // Expõe globalmente para uso em outros scripts se necessário
+  window.LicenseModule = {
+    check: checkLicenseStatus,
+    apply: applyLicenseUI,
+    getDeviceId: getDeviceId
+  };
+
+  // Executa validação inicial
+  async function initLicenseCheck() {
+    const status = await checkLicenseStatus();
+    applyLicenseUI(status);
+  }
+
+  // Monitora mudanças no localStorage (ex: usuário ativa licença em outra aba)
+  window.addEventListener("storage", function(e) {
+    if (e.key === LICENSE_STORAGE_KEY) {
+      console.log("🔄 Licença alterada no localStorage, revalidando...");
+      setTimeout(initLicenseCheck, 100);
+    }
+  });
+
+  // Revalida periodicamente (a cada 60s) para pegar expiração em tempo real
+  setInterval(initLicenseCheck, 60000);
+
+  // Revalida quando a aba volta ao foco
+  window.addEventListener("focus", initLicenseCheck);
+
+  // Inicializa
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLicenseCheck);
+  } else {
+    initLicenseCheck();
+  }
+})();
+</script>
 
 <script>
 (function(){
@@ -728,8 +1035,23 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
 const money = new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" });
 let editingCategoryId = null;
+let saveAndNewMode = false;
 
-/* ================================================================ UTILITÁRIOS ================================================================ */
+function isAndroid() {
+return /Android/i.test(navigator.userAgent);
+}
+
+function isWebView() {
+const ua = navigator.userAgent || navigator.vendor || window.opera;
+return /(wv|WebView|Cordova|Capacitor)/i.test(ua) || 
+(typeof window.cordova !== 'undefined') || 
+(typeof window.Capacitor !== 'undefined');
+}
+
+function isAndroidCapacitor() {
+return isAndroid() && (isWebView() || window.location.protocol === 'file:');
+}
+
 function getTransactions() {
 try {
 const d = JSON.parse(localStorage.getItem("financas-v3") || "{}");
@@ -772,7 +1094,6 @@ return [
 ];
 }
 
-/* ================================================================ CATEGORIAS ================================================================ */
 function getDefaultCategories() {
 return [
 {id:"sal", name:"Salario", type:"income", isFavorite:true, hasLimit:false,monthlyLimit:0,warningPercent:80},
@@ -860,7 +1181,6 @@ return false;
 }
 }
 
-/* ================================================================ MODAL DE LANÇAMENTO — helpers ================================================================ */
 function populateModalAccounts() {
 const accs = getAccounts();
 const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
@@ -870,8 +1190,30 @@ if (from) from.innerHTML = opts;
 if (to) to.innerHTML = opts;
 }
 
+function populateAccounts() {
+const accs = getAccounts();
+const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+const from = document.getElementById('fromAcc');
+const to = document.getElementById('toAcc');
+if (from) from.innerHTML = opts;
+if (to) to.innerHTML = opts;
+}
+
 function populateModalCategories(type) {
 const catSel = document.getElementById('modalCat');
+if (!catSel) return;
+const allCats = window.getCategoriesUnified();
+let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type || c.type === 'all');
+let html = '<option value="">Sem categoria</option>';
+filtered.forEach(c => {
+const star = c.isFavorite ? '⭐ ' : '';
+html += `<option value="${c.name}">${star}${c.name}</option>`;
+});
+catSel.innerHTML = html;
+}
+
+function populateCategories(type) {
+const catSel = document.getElementById('cat');
 if (!catSel) return;
 const allCats = window.getCategoriesUnified();
 let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type || c.type === 'all');
@@ -894,257 +1236,102 @@ if (toAcc) toAcc.required = isTransfer;
 populateModalCategories(type);
 }
 
-function openModalWithType(type) {
+function updateFormMode(type) {
+const isTransfer = type === 'transfer';
+document.getElementById('toWrap')?.classList.toggle('hidden', !isTransfer);
+document.getElementById('catWrap')?.classList.toggle('hidden', isTransfer);
+const favSec = document.getElementById('favTagsSection');
+if (favSec) favSec.style.display = isTransfer ? 'none' : '';
+const toAcc = document.getElementById('toAcc');
+if (toAcc) toAcc.required = isTransfer;
+populateCategories(type);
+}
+
+const newTxMenuOverlay = document.getElementById('newTxMenuOverlay');
+const txFormModalOverlay = document.getElementById('txFormModalOverlay');
+const openNewTxMenuBtn = document.getElementById('openNewTxMenuBtn');
+
+if (openNewTxMenuBtn) {
+openNewTxMenuBtn.addEventListener('click', function() {
+// Verifica licença antes de abrir
+if (window.LicenseModule) {
+  window.LicenseModule.check().then(status => {
+    if (!status.valid) {
+      window.LicenseModule.apply(status);
+      return;
+    }
+    newTxMenuOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+} else {
+  newTxMenuOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+});
+}
+
+newTxMenuOverlay.addEventListener('click', function(e) {
+if (e.target === newTxMenuOverlay) {
+newTxMenuOverlay.classList.remove('open');
+document.body.style.overflow = '';
+}
+});
+
+document.querySelectorAll('.new-tx-option').forEach(option => {
+option.addEventListener('click', function() {
+const type = this.dataset.type;
+newTxMenuOverlay.classList.remove('open');
+
+if (type === 'voice') {
+openVoiceModal();
+} else {
+openTxFormModal(type);
+}
+});
+});
+
+function openTxFormModal(type) {
 const titles = {
-transfer:'📤 Nova Transferência',
+transfer:'🔄 Nova Transferência',
 income:'💰 Nova Receita',
 expense:'💸 Nova Despesa',
 'expense-card':'💳 Despesa com Cartão'
 };
-document.getElementById('txModalTitle').textContent = titles[type] || 'Novo Lançamento';
+
+document.getElementById('txFormModalTitle').textContent = titles[type] || 'Novo Lançamento';
 document.getElementById('voiceBox').style.display = 'none';
-populateModalAccounts();
+
 const actualType = type === 'expense-card' ? 'expense' : type;
+
+populateModalAccounts();
 const radio = document.querySelector(`input[name="mtype"][value="${actualType}"]`);
 if (radio) radio.checked = true;
 updateModalFormMode(actualType);
+
 document.getElementById('modalDt').value = getBrazilDate();
 document.getElementById('modalDesc').value = '';
 document.getElementById('modalAmt').value = '';
-document.getElementById('txModal').classList.add('open');
+
+txFormModalOverlay.classList.add('open');
 document.body.style.overflow = 'hidden';
+saveAndNewMode = false;
 }
 
-/* ================================================================ VOZ — melhorada com permissões ================================================================ */
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-async function checkMicCapability() {
-if (!SpeechRecognition) {
-return { ok:false, reason:'unsupported', needsHttps:false };
-}
-
-const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '';
-if (!isSecure) {
-return { ok:false, reason:'insecure', needsHttps:true };
-}
-
-return { ok:true, reason:'ok', needsHttps:false };
-}
-
-// Função para solicitar permissão de microfone amigável
-async function requestMicPermission() {
-try {
-const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-stream.getTracks().forEach(track => track.stop()); // Para a stream imediatamente
-document.getElementById('micPermissionTip').classList.remove('show');
-showSuccessAlert('✅ Permissão concedida! Agora você pode usar o microfone.');
-return true;
-} catch(error) {
-console.warn('Permissão de microfone negada:', error);
-return false;
-}
-}
-
-// Torna a função global para ser chamada pelo botão
-window.requestMicPermission = requestMicPermission;
-
-let recognition = null;
-let isRecording = false;
-
-function buildRecognition() {
-if (!SpeechRecognition) return null;
-const rec = new SpeechRecognition();
-rec.lang = 'pt-BR';
-rec.continuous = false;
-rec.interimResults = true;
-rec.maxAlternatives = 1;
-return rec;
-}
-
-function parseVoiceCommand(text) {
-const lower = text.toLowerCase().trim();
-let type = 'expense', amount = 0, description = '', category = '';
-
-const incomeKw = ['recebi','ganhei','entrada','salario','salário','rendimento','dividendo','lucro','comissao','comissão','bonus','bônus','reembolso','estorno','cashback'];
-const transferKw= ['transferi','enviei','pix','ted','doc','transferencia','transferência','movi','saque'];
-
-if (incomeKw.some(k => lower.includes(k))) type = 'income';
-else if (transferKw.some(k => lower.includes(k))) type = 'transfer';
-
-const patterns = [
-/r\$\s*([\d]+[.,]?[\d]*)/i,
-/([\d]+[.,]\d{2})\b/,
-/([\d]+)\s*reais?/i,
-/\b([\d]+)\b/
-];
-
-for (const p of patterns) {
-const m = lower.match(p);
-if (m) {
-const n = parseFloat((m[1]||'').replace(/\./g,'').replace(',','.'));
-if (!isNaN(n) && n > 0) {
-amount = n;
-break;
-}
-}
-}
-
-const kwCats = {
-'Alimentacao': ['comida','supermercado','restaurante','mercado','pizza','lanche','ifood','delivery','hamburguer'],
-'Transporte': ['uber','taxi','táxi','combustivel','gasolina','onibus','metro','transporte','estacionamento','pedagio','99'],
-'Moradia': ['aluguel','condominio','luz','agua','internet','telefone','moradia','iptu','energia'],
-'Saude': ['medico','farmacia','remedio','consulta','saude','hospital','plano','exame','dentista'],
-'Lazer': ['cinema','parque','viagem','lazer','diversao','streaming','netflix','spotify','jogo','ingresso'],
-'Educacao': ['curso','livro','faculdade','escola','educacao','aula','udemy','alura'],
-'Salario': ['salario','salário','provento','ordenado','holerite'],
-'Investimento':['investimento','acoes','fundos','tesouro','cdb','poupança','bolsa']
-};
-
-const allCats = window.getCategoriesUnified();
-let best = '', bestScore = 0;
-allCats.forEach(cat => {
-if (lower.includes(cat.name.toLowerCase())) {
-best = cat.name;
-bestScore = 100;
-return;
-}
-const kws = kwCats[cat.name] || [];
-kws.forEach(k => {
-if (lower.includes(k) && bestScore < 50) {
-best = cat.name;
-bestScore = 50;
-}
-});
-});
-
-category = best;
-const stop = ['despesa','receita','transferencia','transferência','de','da','do','com','em','por','reais','real','r$','rs','um','uma','ganhei','gastei','paguei','comprei','recebi','transferi'];
-const words = lower.split(/\s+/).filter(w => !stop.includes(w) && !/^\d+[.,]?\d*$/.test(w));
-
-if (category) {
-const kwsForCat = kwCats[category] || [];
-description = words.filter(w => w !== category.toLowerCase() && !kwsForCat.includes(w)).join(' ').trim();
-} else {
-description = words.join(' ').trim();
-}
-
-if (!description) description = category || (type==='income'?'Receita':type==='transfer'?'Transferência':'Despesa');
-
-return { type, amount, description, category };
-}
-
-function applyParsedToModal(parsed) {
-const radio = document.querySelector(`input[name="mtype"][value="${parsed.type}"]`);
-if (radio) {
-radio.checked = true;
-updateModalFormMode(parsed.type);
-}
-const descEl = document.getElementById('modalDesc');
-const amtEl = document.getElementById('modalAmt');
-const catEl = document.getElementById('modalCat');
-const dtEl = document.getElementById('modalDt');
-if (descEl) descEl.value = parsed.description;
-if (amtEl && parsed.amount > 0) amtEl.value = parsed.amount.toFixed(2);
-if (dtEl) dtEl.value = getBrazilDate();
-if (catEl && parsed.category) {
-for (const opt of catEl.options) {
-if (opt.value.toLowerCase() === parsed.category.toLowerCase()) {
-opt.selected = true;
-break;
-}
-}
-}
-}
-
-function startRecording() {
-if (!recognition) recognition = buildRecognition();
-if (!recognition) return;
-
-const btn = document.getElementById('voiceStartBtn');
-const statusEl = document.getElementById('voiceStatusText');
-const transcEl = document.getElementById('voiceTranscriptBox');
-const box = document.getElementById('voiceBox');
-
-recognition.onstart = () => {
-isRecording = true;
-btn.classList.add('recording');
-btn.textContent = '⏹';
-box.classList.add('active');
-statusEl.textContent = '🎙 Ouvindo… fale agora!';
-transcEl.textContent = '';
-transcEl.classList.remove('has-text');
-};
-
-recognition.onresult = (event) => {
-let interim = '', final = '';
-for (let i = event.resultIndex; i < event.results.length; i++) {
-const t = event.results[i][0].transcript;
-if (event.results[i].isFinal) final += t;
-else interim += t;
-}
-transcEl.textContent = final || interim;
-if (final || interim) transcEl.classList.add('has-text');
-if (final) {
-applyParsedToModal(parseVoiceCommand(final));
-showSuccessAlert('✅ Lançamento interpretado! Revise e confirme.');
-}
-};
-
-recognition.onerror = (event) => {
+function closeTxFormModal() {
+txFormModalOverlay.classList.remove('open');
+document.body.style.overflow = '';
 stopRecording();
-const msgs = {
-'not-allowed': '🔒 Permissão de microfone negada.',
-'no-speech': '🤫 Nenhuma fala detectada. Tente novamente.',
-'network': '📡 Erro de rede. Verifique a conexão.',
-'aborted': '⛔ Cancelado.',
-'audio-capture':'🎤 Microfone não encontrado ou ocupado.',
-'service-not-allowed':'🔒 Serviço de voz bloqueado. Requer HTTPS.'
-};
-statusEl.textContent = msgs[event.error] || ('Erro: ' + event.error);
-box.classList.remove('active');
-box.classList.add('error-state');
-
-if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-document.getElementById('micPermissionTip').classList.add('show');
-setTimeout(() => {
-document.getElementById('micPermissionTip').classList.remove('show');
-}, 10000);
-}
-};
-
-recognition.onend = () => {
-if (isRecording) stopRecording();
-};
-
-try {
-recognition.start();
-} catch(e) {
-statusEl.textContent = '⚠️ Não foi possível iniciar. ' + e.message;
-}
 }
 
-function stopRecording() {
-isRecording = false;
-const btn = document.getElementById('voiceStartBtn');
-const statusEl = document.getElementById('voiceStatusText');
-const box = document.getElementById('voiceBox');
-if (btn) {
-btn.classList.remove('recording');
-btn.textContent = '🎤';
+document.getElementById('txFormModalClose').addEventListener('click', closeTxFormModal);
+txFormModalOverlay.addEventListener('click', function(e) {
+if (e.target === txFormModalOverlay) {
+closeTxFormModal();
 }
-if (box) box.classList.remove('active');
-if (statusEl && !statusEl.textContent.includes('Erro') && !statusEl.textContent.includes('🔒')) {
-statusEl.textContent = 'Toque no microfone e fale';
-}
-if (recognition) {
-try {
-recognition.stop();
-} catch(e){}
-}
-}
+});
 
-async function openVoiceModal() {
-document.getElementById('txModalTitle').textContent = '🎤 Lançamento por Voz';
+function openVoiceModal() {
+document.getElementById('txFormModalTitle').textContent = '🎤 Lançamento por Voz';
 const voiceBox = document.getElementById('voiceBox');
 const warnEl = document.getElementById('voiceHttpsWarn');
 const micSec = document.getElementById('voiceMicSection');
@@ -1160,195 +1347,657 @@ const radio = document.querySelector('input[name="mtype"][value="expense"]');
 if (radio) radio.checked = true;
 document.getElementById('modalDt').value = getBrazilDate();
 
-const cap = await checkMicCapability();
+checkMicCapability().then(cap => {
+console.log('🎤 Capacidade do microfone:', cap);
+
 if (!cap.ok) {
 if (cap.needsHttps) {
 warnEl.style.display = 'block';
 micSec.style.display = 'none';
 voiceBox.classList.add('error-state');
+document.getElementById('voiceStatusText').textContent = '⚠️ Conexão insegura';
 } else if (cap.reason === 'unsupported') {
-document.getElementById('voiceStatusText').textContent = '❌ Seu navegador não suporta reconhecimento de voz. Use o Chrome.';
+document.getElementById('voiceStatusText').textContent = '❌ Navegador não suporta';
+document.getElementById('voiceTranscriptBox').innerHTML = 
+'<small>Use Google Chrome ou Edge para reconhecimento de voz</small>';
 micSec.querySelector('.voice-hint-text').style.display = 'none';
+} else if (cap.reason === 'android-permission') {
+document.getElementById('voiceStatusText').textContent = '🔒 Permissão necessária';
+document.getElementById('voiceTranscriptBox').innerHTML = 
+'<small>Toque no botão abaixo para configurar</small>';
 }
 } else {
 document.getElementById('voiceStatusText').textContent = 'Toque no microfone e fale';
 document.getElementById('voiceTranscriptBox').textContent = 'Sua fala aparecerá aqui…';
 document.getElementById('voiceTranscriptBox').classList.remove('has-text');
 }
+});
 
-document.getElementById('txModal').classList.add('open');
+txFormModalOverlay.classList.add('open');
 document.body.style.overflow = 'hidden';
+saveAndNewMode = false;
 }
 
-/* ================================================================ EVENTOS — menu + modal ================================================================ */
-const newTxBtn = document.getElementById('newTxBtn');
-const newTxMenu = document.getElementById('newTxMenu');
-const txModal = document.getElementById('txModal');
+/* ================================================================ RECONHECIMENTO DE VOZ - VERSÃO CORRIGIDA ================================================================ */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+let isStarting = false;
+let micPermissionGranted = false;
 
-newTxBtn.addEventListener('click', e => {
-e.stopPropagation();
-newTxMenu.classList.toggle('open');
-});
+async function requestAndroidMicPermission() {
+    const statusEl = document.getElementById('voiceStatusText');
+    
+    try {
+        statusEl.textContent = '🔍 Solicitando permissão...';
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } 
+            });
+            stream.getTracks().forEach(track => track.stop());
+            micPermissionGranted = true;
+            statusEl.textContent = '✅ Permissão concedida!';
+            setTimeout(() => { statusEl.textContent = 'Toque no microfone e fale'; }, 1500);
+            return true;
+        } catch (e) {
+            console.warn('getUserMedia falhou:', e);
+            const stream2 = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream2.getTracks().forEach(track => track.stop());
+            micPermissionGranted = true;
+            statusEl.textContent = '✅ Permissão concedida!';
+            setTimeout(() => { statusEl.textContent = 'Toque no microfone e fale'; }, 1500);
+            return true;
+        }
+    } catch(error) {
+        console.error('❌ Erro ao solicitar permissão:', error);
+        micPermissionGranted = false;
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            statusEl.textContent = '🔒 Permissão negada';
+            if (isAndroidCapacitor()) {
+                document.getElementById('androidPermissionScreen').classList.add('show');
+            } else {
+                document.getElementById('micPermissionTip').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('micPermissionTip').classList.remove('show');
+                }, 10000);
+            }
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            statusEl.textContent = '🎤 Microfone não encontrado';
+            alert('Nenhum microfone encontrado no dispositivo.');
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            statusEl.textContent = '⚠️ Microfone ocupado';
+            alert('O microfone está sendo usado por outro aplicativo.');
+        }
+        return false;
+    }
+}
 
-document.addEventListener('click', () => newTxMenu.classList.remove('open'));
-newTxMenu.addEventListener('click', e => e.stopPropagation());
+async function checkMicPermission() {
+    if (micPermissionGranted) return true;
+    try {
+        if (navigator.permissions) {
+            const result = await navigator.permissions.query({ name: 'microphone' });
+            if (result.state === 'granted') { micPermissionGranted = true; return true; }
+            else if (result.state === 'denied') { micPermissionGranted = false; return false; }
+        }
+    } catch(e) { console.warn('Não foi possível verificar permissão:', e); }
+    return false;
+}
 
-document.querySelectorAll('.new-tx-item[data-type]').forEach(item => {
-item.addEventListener('click', function() {
-newTxMenu.classList.remove('open');
-openModalWithType(this.dataset.type);
-});
-});
+function forceStopRecognition() {
+    if (recognition) {
+        try {
+            recognition.onstart = null;
+            recognition.onresult = null;
+            recognition.onerror = null;
+            recognition.onend = null;
+            recognition.stop();
+        } catch(e) {
+            console.warn('Erro ao forçar stop:', e);
+        }
+    }
+    isRecording = false;
+    isStarting = false;
+    const btn = document.getElementById('voiceStartBtn');
+    const box = document.getElementById('voiceBox');
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+    if (box) box.classList.remove('active');
+}
 
-document.getElementById('voiceMenuItem').addEventListener('click', e => {
-e.stopPropagation();
-newTxMenu.classList.remove('open');
-openVoiceModal();
-});
+function startRecording() {
+    if (isStarting) {
+        console.log('⏳ Já está iniciando, aguarde...');
+        return;
+    }
+    
+    const btn = document.getElementById('voiceStartBtn');
+    const statusEl = document.getElementById('voiceStatusText');
+    const box = document.getElementById('voiceBox');
+
+    if (isRecording) {
+        console.log('⏹ Parando gravação anterior...');
+        forceStopRecognition();
+        statusEl.textContent = 'Toque no microfone e fale';
+        return;
+    }
+
+    checkMicPermission().then(hasPermission => {
+        if (!hasPermission) {
+            statusEl.textContent = '⏳ Solicitando permissão...';
+            requestAndroidMicPermission().then(granted => {
+                if (granted) {
+                    setTimeout(() => { initializeRecognition(); }, 500);
+                } else {
+                    statusEl.textContent = '🔒 Permissão negada';
+                    box.classList.remove('active');
+                    box.classList.add('error-state');
+                }
+            });
+            return;
+        }
+        initializeRecognition();
+    });
+}
+
+function initializeRecognition() {
+    if (isStarting || isRecording) {
+        console.log('⚠️ Reconhecimento já ativo, ignorando chamada duplicada');
+        return;
+    }
+
+    if (!SpeechRecognition) {
+        document.getElementById('voiceStatusText').textContent = '❌ Reconhecimento não suportado';
+        return;
+    }
+
+    try {
+        recognition = new SpeechRecognition();
+    } catch(e) {
+        console.error('Erro ao criar SpeechRecognition:', e);
+        return;
+    }
+    
+    recognition.lang = 'pt-BR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    const btn = document.getElementById('voiceStartBtn');
+    const statusEl = document.getElementById('voiceStatusText');
+    const transcEl = document.getElementById('voiceTranscriptBox');
+    const box = document.getElementById('voiceBox');
+
+    isStarting = true;
+
+    recognition.onstart = () => {
+        console.log('✅ Reconhecimento iniciado');
+        isRecording = true;
+        isStarting = false;
+        btn.classList.add('recording');
+        btn.textContent = '⏹';
+        box.classList.add('active');
+        box.classList.remove('error-state');
+        statusEl.textContent = '🎙 Ouvindo… fale agora!';
+        transcEl.textContent = '';
+        transcEl.classList.remove('has-text');
+    };
+
+    recognition.onresult = (event) => {
+        let interim = '', final = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const t = event.results[i][0].transcript;
+            if (event.results[i].isFinal) final += t;
+            else interim += t;
+        }
+        transcEl.textContent = final || interim;
+        if (final || interim) transcEl.classList.add('has-text');
+        if (final) {
+            applyParsedToModal(parseVoiceCommand(final));
+            showSuccessAlert('✅ Lançamento interpretado! Revise e confirme.');
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Erro no reconhecimento:', event.error);
+        isStarting = false;
+        
+        const msgs = {
+            'not-allowed': '🔒 Permissão negada. Toque novamente.',
+            'no-speech': '🤫 Nenhuma fala detectada. Tente falar mais alto.',
+            'network': '📡 Erro de rede. Verifique a conexão.',
+            'aborted': '❌ Cancelado.',
+            'audio-capture': '🎤 Microfone não encontrado ou ocupado.',
+            'service-not-allowed': '🔒 Serviço bloqueado. Verifique as configurações.'
+        };
+        
+        statusEl.textContent = msgs[event.error] || ('Erro: ' + event.error);
+        box.classList.remove('active');
+        box.classList.add('error-state');
+
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            micPermissionGranted = false;
+            if (isAndroidCapacitor()) {
+                document.getElementById('androidPermissionScreen').classList.add('show');
+            }
+        }
+    };
+
+    recognition.onend = () => {
+        console.log('🔚 Reconhecimento finalizado');
+        isRecording = false;
+        isStarting = false;
+        if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+        if (box) box.classList.remove('active');
+        if (statusEl && !statusEl.textContent.includes('Erro') && !statusEl.textContent.includes('🔒')) {
+            statusEl.textContent = 'Toque no microfone e fale';
+        }
+    };
+
+    try {
+        recognition.start();
+    } catch(e) {
+        console.error('Erro ao iniciar reconhecimento:', e);
+        isStarting = false;
+        isRecording = false;
+        statusEl.textContent = '⚠️ Erro: ' + e.message;
+        
+        if (e.message && e.message.includes('already started')) {
+            forceStopRecognition();
+            setTimeout(() => {
+                statusEl.textContent = 'Toque no microfone e fale';
+            }, 300);
+        }
+    }
+}
+
+function stopRecording() {
+    console.log('⏹ Parando gravação...');
+    isStarting = false;
+    isRecording = false;
+    
+    const btn = document.getElementById('voiceStartBtn');
+    const statusEl = document.getElementById('voiceStatusText');
+    const box = document.getElementById('voiceBox');
+    
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+    if (box) box.classList.remove('active');
+    if (statusEl && !statusEl.textContent.includes('Erro') && !statusEl.textContent.includes('🔒')) {
+        statusEl.textContent = 'Toque no microfone e fale';
+    }
+    
+    if (recognition) {
+        try {
+            recognition.stop();
+        } catch(e) {
+            console.warn('Erro ao parar reconhecimento:', e);
+        }
+    }
+}
+
+async function checkMicCapability() {
+    if (!SpeechRecognition) {
+        return { ok: false, reason: 'unsupported', needsHttps: false };
+    }
+    const isSecure = location.protocol === 'https:' || 
+                     location.hostname === 'localhost' || 
+                     location.hostname === '127.0.0.1' || 
+                     location.protocol === 'file:';
+    if (!isSecure) {
+        return { ok: false, reason: 'insecure', needsHttps: true };
+    }
+    if (isAndroidCapacitor()) {
+        const hasPermission = await checkAndroidMicPermission();
+        if (!hasPermission) {
+            return { ok: false, reason: 'android-permission', needsHttps: false, isAndroid: true };
+        }
+    }
+    try {
+        if (navigator.permissions) {
+            const result = await navigator.permissions.query({ name: 'microphone' });
+            if (result.state === 'denied') {
+                return { ok: false, reason: 'permission-denied', needsHttps: false };
+            }
+        }
+    } catch(e) { console.warn('Não foi possível verificar permissão:', e); }
+    return { ok: true, reason: 'ok', needsHttps: false };
+}
+
+async function checkAndroidMicPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+        micPermissionGranted = true;
+        return true;
+    } catch(error) {
+        console.warn('Permissão do microfone não concedida:', error);
+        micPermissionGranted = false;
+        return false;
+    }
+}
+
+function openAndroidAppSettings() {
+    if (typeof Capacitor !== 'undefined' && Capacitor.Plugins.App) {
+        Capacitor.Plugins.App.openSettings();
+    } else if (typeof cordova !== 'undefined' && cordova.plugins && cordova.plugins.settings) {
+        cordova.plugins.settings.open();
+    } else {
+        showSuccessAlert('📱 Vá em: Configurações > Aplicativos > Controle sua Fortuna > Permissões > Microfone');
+        setTimeout(() => {
+            alert('Para ativar o microfone no Android:\n\n1. Abra Configurações do Android\n2. Vá em "Aplicativos"\n3. Encontre "Controle sua Fortuna"\n4. Toque em "Permissões"\n5. Ative "Microfone"');
+        }, 500);
+    }
+    closeAndroidPermissionScreen();
+}
+
+function closeAndroidPermissionScreen() {
+    document.getElementById('androidPermissionScreen').classList.remove('show');
+}
+
+window.openAndroidAppSettings = openAndroidAppSettings;
+window.closeAndroidPermissionScreen = closeAndroidPermissionScreen;
+
+async function requestMicPermission() {
+    const statusEl = document.getElementById('voiceStatusText');
+    try {
+        statusEl.textContent = '🔍 Solicitando permissão...';
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+        micPermissionGranted = true;
+        document.getElementById('micPermissionTip').classList.remove('show');
+        showSuccessAlert('✅ Permissão concedida! Agora você pode usar o microfone.');
+        statusEl.textContent = '✅ Permissão concedida! Toque para gravar';
+        return true;
+    } catch(error) {
+        console.error('❌ Erro ao solicitar permissão:', error);
+        micPermissionGranted = false;
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            statusEl.textContent = '🔒 Permissão negada';
+            if (isAndroidCapacitor()) {
+                document.getElementById('androidPermissionScreen').classList.add('show');
+            } else {
+                document.getElementById('micPermissionTip').classList.add('show');
+                setTimeout(() => { document.getElementById('micPermissionTip').classList.remove('show'); }, 10000);
+            }
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            statusEl.textContent = '🎤 Microfone não encontrado';
+            alert('Nenhum microfone encontrado no dispositivo.');
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            statusEl.textContent = '⚠️ Microfone ocupado';
+            alert('O microfone está sendo usado por outro aplicativo.');
+        }
+        return false;
+    }
+}
+
+window.requestMicPermission = requestMicPermission;
+
+function buildRecognition() {
+    if (!SpeechRecognition) return null;
+    const rec = new SpeechRecognition();
+    rec.lang = 'pt-BR';
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    return rec;
+}
+
+function parseVoiceCommand(text) {
+    const lower = text.toLowerCase().trim();
+    let type = 'expense', amount = 0, description = '', category = '';
+
+    const incomeKw = ['recebi','ganhei','entrada','salario','salário','rendimento','dividendo','lucro','comissao','comissão','bonus','bônus','reembolso','estorno','cashback'];
+    const transferKw= ['transferi','enviei','pix','ted','doc','transferencia','transferência','movi','saque'];
+
+    if (incomeKw.some(k => lower.includes(k))) type = 'income';
+    else if (transferKw.some(k => lower.includes(k))) type = 'transfer';
+
+    const patterns = [
+        /r\$\s*([\d]+[.,]?[\d]*)/i,
+        /([\d]+[.,]\d{2})\b/,
+        /([\d]+)\s*reais?/i,
+        /\b([\d]+)\b/
+    ];
+
+    for (const p of patterns) {
+        const m = lower.match(p);
+        if (m) {
+            const n = parseFloat((m[1]||'').replace(/\./g,'').replace(',','.'));
+            if (!isNaN(n) && n > 0) { amount = n; break; }
+        }
+    }
+
+    const kwCats = {
+        'Alimentacao': ['comida','supermercado','restaurante','mercado','pizza','lanche','ifood','delivery','hamburguer'],
+        'Transporte': ['uber','taxi','táxi','combustivel','gasolina','onibus','metro','transporte','estacionamento','pedagio','99'],
+        'Moradia': ['aluguel','condominio','luz','agua','internet','telefone','moradia','iptu','energia'],
+        'Saude': ['medico','farmacia','remedio','consulta','saude','hospital','plano','exame','dentista'],
+        'Lazer': ['cinema','parque','viagem','lazer','diversao','streaming','netflix','spotify','jogo','ingresso'],
+        'Educacao': ['curso','livro','faculdade','escola','educacao','aula','udemy','alura'],
+        'Salario': ['salario','salário','provento','ordenado','holerite'],
+        'Investimento':['investimento','acoes','fundos','tesouro','cdb','poupança','bolsa']
+    };
+
+    const allCats = window.getCategoriesUnified();
+    let best = '', bestScore = 0;
+    allCats.forEach(cat => {
+        if (lower.includes(cat.name.toLowerCase())) { best = cat.name; bestScore = 100; return; }
+        const kws = kwCats[cat.name] || [];
+        kws.forEach(k => { if (lower.includes(k) && bestScore < 50) { best = cat.name; bestScore = 50; } });
+    });
+
+    category = best;
+    const stop = ['despesa','receita','transferencia','transferência','de','da','do','com','em','por','reais','real','r$','rs','um','uma','ganhei','gastei','paguei','comprei','recebi','transferi'];
+    const words = lower.split(/\s+/).filter(w => !stop.includes(w) && !/^\d+[.,]?\d*$/.test(w));
+
+    if (category) {
+        const kwsForCat = kwCats[category] || [];
+        description = words.filter(w => w !== category.toLowerCase() && !kwsForCat.includes(w)).join(' ').trim();
+    } else {
+        description = words.join(' ').trim();
+    }
+
+    if (!description) description = category || (type==='income'?'Receita':type==='transfer'?'Transferência':'Despesa');
+    return { type, amount, description, category };
+}
+
+function applyParsedToModal(parsed) {
+    const radio = document.querySelector(`input[name="mtype"][value="${parsed.type}"]`);
+    if (radio) { radio.checked = true; updateModalFormMode(parsed.type); }
+    const descEl = document.getElementById('modalDesc');
+    const amtEl = document.getElementById('modalAmt');
+    const catEl = document.getElementById('modalCat');
+    const dtEl = document.getElementById('modalDt');
+    if (descEl) descEl.value = parsed.description;
+    if (amtEl && parsed.amount > 0) amtEl.value = parsed.amount.toFixed(2);
+    if (dtEl) dtEl.value = getBrazilDate();
+    if (catEl && parsed.category) {
+        for (const opt of catEl.options) {
+            if (opt.value.toLowerCase() === parsed.category.toLowerCase()) { opt.selected = true; break; }
+        }
+    }
+}
 
 document.getElementById('voiceStartBtn')?.addEventListener('click', function() {
-if (isRecording) stopRecording();
-else startRecording();
+    console.log('🎤 Botão clicado - isRecording:', isRecording, 'isStarting:', isStarting);
+    
+    if (isRecording) {
+        stopRecording();
+    } else if (isStarting) {
+        console.log('⏳ Aguardando início...');
+    } else {
+        checkMicCapability().then(cap => {
+            if (!cap.ok) {
+                if (cap.reason === 'android-permission') {
+                    document.getElementById('androidPermissionScreen').classList.add('show');
+                } else if (cap.reason === 'permission-denied') {
+                    if (isAndroidCapacitor()) {
+                        document.getElementById('androidPermissionScreen').classList.add('show');
+                    } else {
+                        document.getElementById('micPermissionTip').classList.add('show');
+                    }
+                } else if (cap.needsHttps) {
+                    document.getElementById('voiceHttpsWarn').style.display = 'block';
+                } else {
+                    alert('Reconhecimento de voz não está disponível no seu navegador. Use Google Chrome.');
+                }
+            } else {
+                startRecording();
+            }
+        });
+    }
 });
 
 document.querySelectorAll('input[name="mtype"]').forEach(r => {
-r.addEventListener('change', function() {
-updateModalFormMode(this.value);
-});
+    r.addEventListener('change', function() { updateModalFormMode(this.value); });
 });
 
-function closeTxModal() {
-txModal.classList.remove('open');
-document.body.style.overflow = '';
-stopRecording();
-}
-
-document.getElementById('txModalClose').addEventListener('click', closeTxModal);
-txModal.addEventListener('click', e => {
-if (e.target === txModal) closeTxModal();
+document.querySelectorAll('input[name="type"]').forEach(r => {
+    r.addEventListener('change', function() { updateFormMode(this.value); });
 });
 
-// Fechar tooltip de permissão ao clicar fora
-document.addEventListener('click', e => {
-if (!document.getElementById('micPermissionTip').contains(e.target)) {
-document.getElementById('micPermissionTip').classList.remove('show');
-}
+document.getElementById('saveAndNewBtn').addEventListener('click', function() {
+    saveAndNewMode = true;
+    document.getElementById('txForm').dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
 });
 
-/* ================================================================ SUBMIT DO MODAL — injeta nos campos do app.js e dispara evento ================================================================ */
+document.getElementById('modalSaveAndNewBtn').addEventListener('click', function() {
+    saveAndNewMode = true;
+    document.getElementById('modalTxForm').dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+});
+
 document.getElementById('modalTxForm').addEventListener('submit', function(e) {
-e.preventDefault();
-const mDesc = document.getElementById('modalDesc').value;
-const mAmt = document.getElementById('modalAmt').value;
-const mDt = document.getElementById('modalDt').value;
-const mFrom = document.getElementById('modalFromAcc').value;
-const mTo = document.getElementById('modalToAcc').value;
-const mCat = document.getElementById('modalCat').value;
-const mType = document.querySelector('input[name="mtype"]:checked')?.value;
+    e.preventDefault();
+    const mDesc = document.getElementById('modalDesc').value;
+    const mAmt = document.getElementById('modalAmt').value;
+    const mDt = document.getElementById('modalDt').value;
+    const mFrom = document.getElementById('modalFromAcc').value;
+    const mTo = document.getElementById('modalToAcc').value;
+    const mCat = document.getElementById('modalCat').value;
+    const mType = document.querySelector('input[name="mtype"]:checked')?.value;
 
-// 1) Muda tipo primeiro (dispara change → app.js repopula campos)
-const typeRadio = document.querySelector(`input[name="type"][value="${mType}"]`);
-if (typeRadio && !typeRadio.checked) {
-typeRadio.checked = true;
-typeRadio.dispatchEvent(new Event('change', { bubbles:true }));
-}
+    const typeRadio = document.querySelector(`input[name="type"][value="${mType}"]`);
+    if (typeRadio && !typeRadio.checked) {
+        typeRadio.checked = true;
+        typeRadio.dispatchEvent(new Event('change', { bubbles:true }));
+    }
 
-// 2) Aguarda um frame para app.js processar a mudança de tipo
-requestAnimationFrame(() => {
-const set = (id, val) => {
-const el = document.getElementById(id);
-if (el) el.value = val;
-};
-set('desc', mDesc);
-set('amt', mAmt);
-set('dt', mDt);
-set('fromAcc', mFrom);
-set('toAcc', mTo);
+    requestAnimationFrame(() => {
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        };
+        set('desc', mDesc);
+        set('amt', mAmt);
+        set('dt', mDt);
+        set('fromAcc', mFrom);
+        set('toAcc', mTo);
 
-// Categoria com busca robusta
-if (mCat) {
-const catEl = document.getElementById('cat');
-if (catEl) {
-catEl.value = mCat;
-if (catEl.value !== mCat) {
-for (const opt of catEl.options) {
-if (opt.value.toLowerCase() === mCat.toLowerCase()) {
-opt.selected = true;
-break;
-}
-}
-}
-}
-}
+        if (mCat) {
+            const catEl = document.getElementById('cat');
+            if (catEl) {
+                catEl.value = mCat;
+                if (catEl.value !== mCat) {
+                    for (const opt of catEl.options) {
+                        if (opt.value.toLowerCase() === mCat.toLowerCase()) {
+                            opt.selected = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
-closeTxModal();
+        const origForm = document.getElementById('txForm');
+        if (origForm) {
+            origForm.dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+        }
 
-// 3) Dispara submit via evento para o app.js capturar
-const origForm = document.getElementById('txForm');
-if (origForm) {
-origForm.dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
-}
+        if (saveAndNewMode) {
+            document.getElementById('modalDesc').value = '';
+            document.getElementById('modalAmt').value = '';
+            document.getElementById('modalDt').value = getBrazilDate();
+            saveAndNewMode = false;
+            showSuccessAlert('✅ Salvo! Preencha o próximo lançamento.');
+        } else {
+            closeTxFormModal();
+        }
+    });
 });
+
+function showMainForm() {
+    document.getElementById('txFormWrapper').classList.add('show');
+    document.getElementById('formTitle').textContent = '✏️ Novo lançamento';
+    document.getElementById('cancelEditBtn').classList.add('hidden');
+    populateAccounts();
+    updateFormMode('income');
+    document.getElementById('dt').value = getBrazilDate();
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', function() {
+    document.getElementById('txFormWrapper').classList.remove('show');
+    document.getElementById('formTitle').textContent = '➕ Novo lançamento';
+    this.classList.add('hidden');
 });
 
-/* ================================================================ CATEGORIAS — pills + alertas ================================================================ */
 function renderCategoryPillsFromTransactions() {
-const container = document.getElementById("catPills");
-const totalSpan = document.querySelector("#catTotal");
-if (!container) return;
+    const container = document.getElementById("catPills");
+    const totalSpan = document.querySelector("#catTotal");
+    if (!container) return;
 
-const transactions = getTransactions();
-const expenses = transactions.filter(t => t.type === "expense");
+    const transactions = getTransactions();
+    const expenses = transactions.filter(t => t.type === "expense");
 
-if (expenses.length === 0) {
-container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
-if (totalSpan) totalSpan.textContent = money.format(0);
-return;
-}
+    if (expenses.length === 0) {
+        container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
+        if (totalSpan) totalSpan.textContent = money.format(0);
+        return;
+    }
 
-const categories = window.getCategoriesUnified();
-const spendAll = {}, spendMonth = {};
-let totalAll = 0;
-const now = new Date();
-const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const categories = window.getCategoriesUnified();
+    const spendAll = {}, spendMonth = {};
+    let totalAll = 0;
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
 
-expenses.forEach(tx => {
-const cat = (tx.category || "Sem categoria").trim();
-const amt = parseFloat(tx.amount) || 0;
-spendAll[cat] = (spendAll[cat] || 0) + amt;
-totalAll += amt;
-if ((tx.date||"").startsWith(prefix)) spendMonth[cat] = (spendMonth[cat]||0) + amt;
-});
+    expenses.forEach(tx => {
+        const cat = (tx.category || "Sem categoria").trim();
+        const amt = parseFloat(tx.amount) || 0;
+        spendAll[cat] = (spendAll[cat] || 0) + amt;
+        totalAll += amt;
+        if ((tx.date||"").startsWith(prefix)) spendMonth[cat] = (spendMonth[cat]||0) + amt;
+    });
 
-const sorted = Object.entries(spendAll).map(([name, totalAmount]) => {
-const catDef = categories.find(c => (c.name||"").trim().toLowerCase() === name.toLowerCase());
-const pct = totalAll > 0 ? Math.round((totalAmount/totalAll)*100) : 0;
-const ms = spendMonth[name] || 0;
-let limitInfo = null, statusClass = "no-limit";
+    const sorted = Object.entries(spendAll).map(([name, totalAmount]) => {
+        const catDef = categories.find(c => (c.name||"").trim().toLowerCase() === name.toLowerCase());
+        const pct = totalAll > 0 ? Math.round((totalAmount/totalAll)*100) : 0;
+        const ms = spendMonth[name] || 0;
+        let limitInfo = null, statusClass = "no-limit";
 
-if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
-const lp = Math.round((ms/catDef.monthlyLimit)*100);
-const dis = catDef.monthlyLimit - ms;
-statusClass = ms >= catDef.monthlyLimit ? "over-limit" : lp >= (catDef.warningPercent||80) ? "near-limit" : "has-limit";
-const bs = ms >= catDef.monthlyLimit ? "danger" : lp >= (catDef.warningPercent||80) ? "warning" : "normal";
-limitInfo = {
-limiteCadastrado:catDef.monthlyLimit,
-valorUtilizado:ms,
-limiteDisponivel:dis,
-percent:lp,
-barStatus:bs,
-warningPercent:catDef.warningPercent||80
-};
-}
+        if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
+            const lp = Math.round((ms/catDef.monthlyLimit)*100);
+            const dis = catDef.monthlyLimit - ms;
+            statusClass = ms >= catDef.monthlyLimit ? "over-limit" : lp >= (catDef.warningPercent||80) ? "near-limit" : "has-limit";
+            const bs = ms >= catDef.monthlyLimit ? "danger" : lp >= (catDef.warningPercent||80) ? "warning" : "normal";
+            limitInfo = {
+                limiteCadastrado:catDef.monthlyLimit,
+                valorUtilizado:ms,
+                limiteDisponivel:dis,
+                percent:lp,
+                barStatus:bs,
+                warningPercent:catDef.warningPercent||80
+            };
+        }
 
-return { name, totalAmount, percentOfTotal:pct, limitInfo, statusClass };
-}).sort((a,b) => b.totalAmount - a.totalAmount);
+        return { name, totalAmount, percentOfTotal:pct, limitInfo, statusClass };
+    }).sort((a,b) => b.totalAmount - a.totalAmount);
 
-container.innerHTML = sorted.map(item => {
-if (item.limitInfo) {
-const lim = item.limitInfo;
-const bText = lim.percent >= 100 ? "LIMITE EXCEDIDO" : `${lim.percent}% USADO`;
-return `<div class="cat-pill ${item.statusClass}">
+    container.innerHTML = sorted.map(item => {
+        if (item.limitInfo) {
+            const lim = item.limitInfo;
+            const bText = lim.percent >= 100 ? "LIMITE EXCEDIDO" : `${lim.percent}% USADO`;
+            return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
 <div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
@@ -1361,8 +2010,8 @@ return `<div class="cat-pill ${item.statusClass}">
 </div>
 <div class="cat-pill-progress"><div class="cat-pill-bar ${lim.barStatus}" style="width:${Math.min(lim.percent,100)}%"></div></div>
 </div>`;
-} else {
-return `<div class="cat-pill ${item.statusClass}">
+        } else {
+            return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
 <div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
@@ -1372,328 +2021,326 @@ return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-limit-text"><span class="limit-label">📈 <strong>% do total geral:</strong></span><span class="limit-values" style="color:var(--text2)">${item.percentOfTotal}%</span></div>
 </div>
 </div>`;
-}
-}).join("");
+        }
+    }).join("");
 
-if (totalSpan) totalSpan.textContent = money.format(totalAll);
+    if (totalSpan) totalSpan.textContent = money.format(totalAll);
 }
 
 function checkCategoryLimits() {
-const categories = window.getCategoriesUnified();
-const now = new Date();
-const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-const transactions = getTransactions();
-const alerts = [];
+    const categories = window.getCategoriesUnified();
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const transactions = getTransactions();
+    const alerts = [];
 
-categories.filter(c => c.hasLimit && c.monthlyLimit > 0).forEach(cat => {
-const spent = transactions
-.filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix))
-.reduce((s,t) => s+(parseFloat(t.amount)||0), 0);
-const pct = (spent/cat.monthlyLimit)*100;
-if (pct >= 100) alerts.push({type:"danger", message:`Limite ultrapassado em ${cat.name}`, spent, limit:cat.monthlyLimit});
-else if (pct >= cat.warningPercent) alerts.push({type:"warning", message:`${Math.round(pct)}% do limite usado em ${cat.name}`, spent, limit:cat.monthlyLimit});
-});
+    categories.filter(c => c.hasLimit && c.monthlyLimit > 0).forEach(cat => {
+        const spent = transactions
+        .filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix))
+        .reduce((s,t) => s+(parseFloat(t.amount)||0), 0);
+        const pct = (spent/cat.monthlyLimit)*100;
+        if (pct >= 100) alerts.push({type:"danger", message:`Limite ultrapassado em ${cat.name}`, spent, limit:cat.monthlyLimit});
+        else if (pct >= cat.warningPercent) alerts.push({type:"warning", message:`${Math.round(pct)}% do limite usado em ${cat.name}`, spent, limit:cat.monthlyLimit});
+    });
 
-const container = document.getElementById("limitAlerts");
-const list = document.getElementById("limitAlertsList");
-if (!container||!list) return;
-if (!alerts.length) {
-container.classList.remove("show");
-return;
-}
-container.classList.add("show");
-list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
+    const container = document.getElementById("limitAlerts");
+    const list = document.getElementById("limitAlertsList");
+    if (!container||!list) return;
+    if (!alerts.length) {
+        container.classList.remove("show");
+        return;
+    }
+    container.classList.add("show");
+    list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
 }
 
 function refreshCategoryPills() {
-renderCategoryPillsFromTransactions();
-checkCategoryLimits();
+    renderCategoryPillsFromTransactions();
+    checkCategoryLimits();
 }
 
 function setupMonitoring() {
-const container = document.getElementById("catPills");
-if (container) {
-let blocked = false;
-const obs = new MutationObserver(() => {
-if (blocked) return;
-if (container.querySelector(".cat-pill") && !container.querySelector(".cat-limit-info")) {
-blocked = true;
-refreshCategoryPills();
-requestAnimationFrame(() => {
-blocked = false;
-});
-}
-});
-obs.observe(container, { childList:true, subtree:false });
-}
+    const container = document.getElementById("catPills");
+    if (container) {
+        let blocked = false;
+        const obs = new MutationObserver(() => {
+            if (blocked) return;
+            if (container.querySelector(".cat-pill") && !container.querySelector(".cat-limit-info")) {
+                blocked = true;
+                refreshCategoryPills();
+                requestAnimationFrame(() => {
+                    blocked = false;
+                });
+            }
+        });
+        obs.observe(container, { childList:true, subtree:false });
+    }
 
-const _si = Object.getOwnPropertyDescriptor(Storage.prototype, "setItem");
-Object.defineProperty(Storage.prototype, "setItem", {
-configurable:true,
-enumerable:true,
-value: function(k, v) {
-_si.value.call(this, k, v);
-if (k==="financas-v3") setTimeout(refreshCategoryPills, 80);
-}
-});
+    const _si = Object.getOwnPropertyDescriptor(Storage.prototype, "setItem");
+    Object.defineProperty(Storage.prototype, "setItem", {
+        configurable:true,
+        enumerable:true,
+        value: function(k, v) {
+            _si.value.call(this, k, v);
+            if (k==="financas-v3") setTimeout(refreshCategoryPills, 80);
+        }
+    });
 
-window.addEventListener("storage", e => {
-if (e.key==="financas-v3"||e.key==="financas-categories-v1") refreshCategoryPills();
-});
+    window.addEventListener("storage", e => {
+        if (e.key==="financas-v3"||e.key==="financas-categories-v1") refreshCategoryPills();
+    });
 
-setInterval(() => {
-if (document.querySelector("#catPills .cat-pill") && !document.querySelector("#catPills .cat-limit-info")) {
-refreshCategoryPills();
-return;
-}
-const snap = localStorage.getItem("financas-v3")||"";
-if (snap !== _lastSnap) {
-_lastSnap = snap;
-refreshCategoryPills();
-}
-}, 1500);
+    setInterval(() => {
+        if (document.querySelector("#catPills .cat-pill") && !document.querySelector("#catPills .cat-limit-info")) {
+            refreshCategoryPills();
+            return;
+        }
+        const snap = localStorage.getItem("financas-v3")||"";
+        if (snap !== _lastSnap) {
+            _lastSnap = snap;
+            refreshCategoryPills();
+        }
+    }, 1500);
 
-window.addEventListener("focus", refreshCategoryPills);
-window.addEventListener("financasUpdated", refreshCategoryPills);
+    window.addEventListener("focus", refreshCategoryPills);
+    window.addEventListener("financasUpdated", refreshCategoryPills);
 }
 
 var _lastSnap = "";
 
-/* ================================================================ MODAL DE CATEGORIAS ================================================================ */
 function renderCategoryModal() {
-const list = document.getElementById("catModalList");
-if (!list) return;
-const cats = window.getCategoriesUnified();
-if (!cats.length) {
-list.innerHTML = '<div class="cat-empty">🗂️ Nenhuma categoria cadastrada</div>';
-return;
-}
+    const list = document.getElementById("catModalList");
+    if (!list) return;
+    const cats = window.getCategoriesUnified();
+    if (!cats.length) {
+        list.innerHTML = '<div class="cat-empty">🗂️ Nenhuma categoria cadastrada</div>';
+        return;
+    }
 
-const now = new Date();
-const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-const txns = getTransactions();
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const txns = getTransactions();
 
-list.innerHTML = cats.map(cat => {
-const tl = {expense:"Despesas",income:"Receitas",investment:"Investimento",all:"Ambos"}[cat.type]||"Outros";
-const star = cat.isFavorite ? "⭐" : "☆";
+    list.innerHTML = cats.map(cat => {
+        const tl = {expense:"Despesas",income:"Receitas",investment:"Investimento",all:"Ambos"}[cat.type]||"Outros";
+        const star = cat.isFavorite ? "⭐" : "☆";
 
-if (cat.hasLimit && cat.monthlyLimit > 0) {
-const spent = txns.filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-const pct = Math.min((spent/cat.monthlyLimit)*100, 100);
-const st = pct>=100?"danger":pct>=cat.warningPercent?"warning":"normal";
-const sc = pct>=100?"over-limit":pct>=cat.warningPercent?"near-limit":"";
-const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
-return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: ${money.format(cat.monthlyLimit)}/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
-}
+        if (cat.hasLimit && cat.monthlyLimit > 0) {
+            const spent = txns.filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+            const pct = Math.min((spent/cat.monthlyLimit)*100, 100);
+            const st = pct>=100?"danger":pct>=cat.warningPercent?"warning":"normal";
+            const sc = pct>=100?"over-limit":pct>=cat.warningPercent?"near-limit":"";
+            const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
+            return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: ${money.format(cat.monthlyLimit)}/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+        }
 
-return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
-}).join("");
+        return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+    }).join("");
 }
 
 document.getElementById("catHasLimit")?.addEventListener("change", function() {
-document.getElementById("catLimitFields")?.classList.toggle("disabled", !this.checked);
-if (!this.checked) document.getElementById("catLimitAmount").value = "";
+    document.getElementById("catLimitFields")?.classList.toggle("disabled", !this.checked);
+    if (!this.checked) document.getElementById("catLimitAmount").value = "";
 });
 
 document.getElementById("catAddBtn")?.addEventListener("click", function(e) {
-e.preventDefault();
-const name = document.getElementById("catName")?.value?.trim()||"";
-const type = document.getElementById("catType")?.value||"expense";
-const isFav = document.getElementById("catFav")?.checked||false;
-const hasLim = document.getElementById("catHasLimit")?.checked||false;
-const ml = hasLim ? parseFloat(document.getElementById("catLimitAmount")?.value)||0 : 0;
-const wp = parseInt(document.getElementById("catLimitWarning")?.value)||80;
+    e.preventDefault();
+    const name = document.getElementById("catName")?.value?.trim()||"";
+    const type = document.getElementById("catType")?.value||"expense";
+    const isFav = document.getElementById("catFav")?.checked||false;
+    const hasLim = document.getElementById("catHasLimit")?.checked||false;
+    const ml = hasLim ? parseFloat(document.getElementById("catLimitAmount")?.value)||0 : 0;
+    const wp = parseInt(document.getElementById("catLimitWarning")?.value)||80;
 
-if (!name) {
-alert("⚠️ Digite um nome");
-return;
-}
-if (hasLim && ml<=0) {
-alert("⚠️ Valor inválido");
-return;
-}
+    if (!name) {
+        alert("⚠️ Digite um nome");
+        return;
+    }
+    if (hasLim && ml<=0) {
+        alert("⚠️ Valor inválido");
+        return;
+    }
 
-const ex = window.getCategoriesUnified();
-if (ex.find(c => c.name.toLowerCase()===name.toLowerCase())) {
-alert("⚠️ Nome já existe");
-return;
-}
+    const ex = window.getCategoriesUnified();
+    if (ex.find(c => c.name.toLowerCase()===name.toLowerCase())) {
+        alert("⚠️ Nome já existe");
+        return;
+    }
 
-if (saveCategoriesToApp([...ex, {id:generateId(),name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp}])) {
-clearCategoryForm();
-renderCategoryModal();
-refreshCategoryPills();
-showSuccessAlert("✅ Categoria adicionada!");
-setTimeout(() => {
-if (window.render) window.render();
-}, 150);
-} else {
-alert("❌ Erro ao salvar");
-}
+    if (saveCategoriesToApp([...ex, {id:generateId(),name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp}])) {
+        clearCategoryForm();
+        renderCategoryModal();
+        refreshCategoryPills();
+        showSuccessAlert("✅ Categoria adicionada!");
+        setTimeout(() => {
+            if (window.render) window.render();
+        }, 150);
+    } else {
+        alert("❌ Erro ao salvar");
+    }
 });
 
 function clearCategoryForm() {
-[["catName",""],["catType","expense"],["catLimitAmount",""],["catLimitWarning","80"]].forEach(([id,v])=>{
-const el=document.getElementById(id);
-if(el) el.value=v;
-});
-const cF=document.getElementById("catFav");
-if(cF) cF.checked=false;
-const cL=document.getElementById("catHasLimit");
-if(cL) cL.checked=false;
-document.getElementById("catLimitFields")?.classList.add("disabled");
+    [["catName",""],["catType","expense"],["catLimitAmount",""],["catLimitWarning","80"]].forEach(([id,v])=>{
+        const el=document.getElementById(id);
+        if(el) el.value=v;
+    });
+    const cF=document.getElementById("catFav");
+    if(cF) cF.checked=false;
+    const cL=document.getElementById("catHasLimit");
+    if(cL) cL.checked=false;
+    document.getElementById("catLimitFields")?.classList.add("disabled");
 }
 
 function openEditCategoryModal(categoryId) {
-const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
-if (!cat) return;
-editingCategoryId = categoryId;
-document.getElementById("editCatName").value = cat.name;
-document.getElementById("editCatType").value = cat.type;
-document.getElementById("editCatFav").checked = cat.isFavorite;
-document.getElementById("editCatHasLimit").checked = cat.hasLimit;
-document.getElementById("editCatLimitAmount").value = cat.monthlyLimit||"";
-document.getElementById("editCatLimitWarning").value = cat.warningPercent||80;
-document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !cat.hasLimit);
-document.getElementById("catEditModal")?.classList.add("open");
-document.body.style.overflow = "hidden";
+    const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
+    if (!cat) return;
+    editingCategoryId = categoryId;
+    document.getElementById("editCatName").value = cat.name;
+    document.getElementById("editCatType").value = cat.type;
+    document.getElementById("editCatFav").checked = cat.isFavorite;
+    document.getElementById("editCatHasLimit").checked = cat.hasLimit;
+    document.getElementById("editCatLimitAmount").value = cat.monthlyLimit||"";
+    document.getElementById("editCatLimitWarning").value = cat.warningPercent||80;
+    document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !cat.hasLimit);
+    document.getElementById("catEditModal")?.classList.add("open");
+    document.body.style.overflow = "hidden";
 }
 
 window.openEditCategoryModal = openEditCategoryModal;
 
 document.getElementById("editCatHasLimit")?.addEventListener("change", function() {
-document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !this.checked);
-if (!this.checked) document.getElementById("editCatLimitAmount").value = "";
+    document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !this.checked);
+    if (!this.checked) document.getElementById("editCatLimitAmount").value = "";
 });
 
 document.getElementById("editCatSaveBtn")?.addEventListener("click", function(e) {
-e.preventDefault();
-if (!editingCategoryId) return;
+    e.preventDefault();
+    if (!editingCategoryId) return;
 
-const name = document.getElementById("editCatName").value.trim();
-const type = document.getElementById("editCatType").value;
-const isFav = document.getElementById("editCatFav").checked;
-const hasLim = document.getElementById("editCatHasLimit").checked;
-const ml = hasLim ? parseFloat(document.getElementById("editCatLimitAmount").value)||0 : 0;
-const wp = parseInt(document.getElementById("editCatLimitWarning").value);
+    const name = document.getElementById("editCatName").value.trim();
+    const type = document.getElementById("editCatType").value;
+    const isFav = document.getElementById("editCatFav").checked;
+    const hasLim = document.getElementById("editCatHasLimit").checked;
+    const ml = hasLim ? parseFloat(document.getElementById("editCatLimitAmount").value)||0 : 0;
+    const wp = parseInt(document.getElementById("editCatLimitWarning").value);
 
-if (!name) {
-alert("⚠️ Digite um nome");
-return;
-}
-if (hasLim && ml<=0) {
-alert("⚠️ Valor inválido");
-return;
-}
+    if (!name) {
+        alert("⚠️ Digite um nome");
+        return;
+    }
+    if (hasLim && ml<=0) {
+        alert("⚠️ Valor inválido");
+        return;
+    }
 
-const cats = window.getCategoriesUnified();
-if (cats.find(c => c.name.toLowerCase()===name.toLowerCase() && c.id!==editingCategoryId)) {
-alert("⚠️ Nome já existe");
-return;
-}
+    const cats = window.getCategoriesUnified();
+    if (cats.find(c => c.name.toLowerCase()===name.toLowerCase() && c.id!==editingCategoryId)) {
+        alert("⚠️ Nome já existe");
+        return;
+    }
 
-const updated = cats.map(c => c.id===editingCategoryId ? {...c,name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp} : c);
+    const updated = cats.map(c => c.id===editingCategoryId ? {...c,name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp} : c);
 
-if (saveCategoriesToApp(updated)) {
-renderCategoryModal();
-refreshCategoryPills();
-closeEditCategoryModal();
-showSuccessAlert("✅ Categoria atualizada!");
-setTimeout(() => {
-if (window.render) window.render();
-}, 150);
-} else {
-alert("❌ Erro ao salvar");
-}
+    if (saveCategoriesToApp(updated)) {
+        renderCategoryModal();
+        refreshCategoryPills();
+        closeEditCategoryModal();
+        showSuccessAlert("✅ Categoria atualizada!");
+        setTimeout(() => {
+            if (window.render) window.render();
+        }, 150);
+    } else {
+        alert("❌ Erro ao salvar");
+    }
 });
 
 document.getElementById("editCatDeleteBtn")?.addEventListener("click", function(e) {
-e.preventDefault();
-if (!editingCategoryId) return;
-const cat = window.getCategoriesUnified().find(c => c.id===editingCategoryId);
-if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
+    e.preventDefault();
+    if (!editingCategoryId) return;
+    const cat = window.getCategoriesUnified().find(c => c.id===editingCategoryId);
+    if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
 
-const updated = window.getCategoriesUnified().filter(c => c.id!==editingCategoryId);
-if (saveCategoriesToApp(updated)) {
-renderCategoryModal();
-refreshCategoryPills();
-closeEditCategoryModal();
-showSuccessAlert("✅ Categoria excluída!");
-setTimeout(() => {
-if (window.render) window.render();
-}, 150);
-} else {
-alert("❌ Erro ao excluir");
-}
+    const updated = window.getCategoriesUnified().filter(c => c.id!==editingCategoryId);
+    if (saveCategoriesToApp(updated)) {
+        renderCategoryModal();
+        refreshCategoryPills();
+        closeEditCategoryModal();
+        showSuccessAlert("✅ Categoria excluída!");
+        setTimeout(() => {
+            if (window.render) window.render();
+        }, 150);
+    } else {
+        alert("❌ Erro ao excluir");
+    }
 });
 
 function closeEditCategoryModal() {
-document.getElementById("catEditModal")?.classList.remove("open");
-document.body.style.overflow = "";
-editingCategoryId = null;
+    document.getElementById("catEditModal")?.classList.remove("open");
+    document.body.style.overflow = "";
+    editingCategoryId = null;
 }
 
 document.getElementById("catEditModalClose")?.addEventListener("click", closeEditCategoryModal);
 document.getElementById("catEditModal")?.addEventListener("click", function(e){
-if(e.target===this) closeEditCategoryModal();
+    if(e.target===this) closeEditCategoryModal();
 });
 
 window.deleteCategory = function(categoryId) {
-const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
-if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
+    const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
+    if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
 
-const updated = window.getCategoriesUnified().filter(c => c.id!==categoryId);
-if (saveCategoriesToApp(updated)) {
-renderCategoryModal();
-refreshCategoryPills();
-showSuccessAlert("✅ Categoria excluída!");
-setTimeout(() => {
-if (window.render) window.render();
-}, 150);
-} else {
-alert("❌ Erro ao excluir");
-}
+    const updated = window.getCategoriesUnified().filter(c => c.id!==categoryId);
+    if (saveCategoriesToApp(updated)) {
+        renderCategoryModal();
+        refreshCategoryPills();
+        showSuccessAlert("✅ Categoria excluída!");
+        setTimeout(() => {
+            if (window.render) window.render();
+        }, 150);
+    } else {
+        alert("❌ Erro ao excluir");
+    }
 };
 
 function openCatModal() {
-clearCategoryForm();
-renderCategoryModal();
-document.getElementById("catModal")?.classList.add("open");
-document.body.style.overflow = "hidden";
+    clearCategoryForm();
+    renderCategoryModal();
+    document.getElementById("catModal")?.classList.add("open");
+    document.body.style.overflow = "hidden";
 }
 
 document.getElementById("catModalClose")?.addEventListener("click", function() {
-document.getElementById("catModal")?.classList.remove("open");
-document.body.style.overflow = "";
-clearCategoryForm();
+    document.getElementById("catModal")?.classList.remove("open");
+    document.body.style.overflow = "";
+    clearCategoryForm();
 });
 
 document.getElementById("catModal")?.addEventListener("click", function(e) {
-if (e.target===this) {
-this.classList.remove("open");
-document.body.style.overflow = "";
-clearCategoryForm();
-}
+    if (e.target===this) {
+        this.classList.remove("open");
+        document.body.style.overflow = "";
+        clearCategoryForm();
+    }
 });
 
-/* ================================================================ INICIALIZAÇÃO ================================================================ */
 function init() {
-const dt = document.getElementById("dt");
-if (dt) dt.value = getBrazilDate();
-setupMonitoring();
-refreshCategoryPills();
+    const dt = document.getElementById("dt");
+    if (dt) dt.value = getBrazilDate();
+    setupMonitoring();
+    refreshCategoryPills();
+    populateAccounts();
 }
 
 if (document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
 else init();
 
 window.addEventListener("load", () => {
-setTimeout(refreshCategoryPills, 150);
-setTimeout(refreshCategoryPills, 500);
-setTimeout(refreshCategoryPills, 1000);
+    setTimeout(refreshCategoryPills, 150);
+    setTimeout(refreshCategoryPills, 500);
+    setTimeout(refreshCategoryPills, 1000);
 });
 
-/* ================================================================ TEMA ================================================================ */
 const html = document.documentElement;
 const themeBtn = document.getElementById("themeBtn");
 const saved = localStorage.getItem("financas-theme") || "light";
@@ -1701,39 +2348,38 @@ html.setAttribute("data-theme", saved);
 themeBtn.textContent = saved==="dark" ? "☀️" : "🌙";
 
 themeBtn.addEventListener("click", function() {
-const next = html.getAttribute("data-theme")==="dark" ? "light" : "dark";
-html.setAttribute("data-theme", next);
-localStorage.setItem("financas-theme", next);
-themeBtn.textContent = next==="dark" ? "☀️" : "🌙";
+    const next = html.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    localStorage.setItem("financas-theme", next);
+    themeBtn.textContent = next==="dark" ? "☀️" : "🌙";
 });
 
-/* ================================================================ MENU ================================================================ */
 const menuBtn = document.getElementById("menuBtn");
 const ddMenu = document.getElementById("ddMenu");
 
 menuBtn.addEventListener("click", e => {
-e.stopPropagation();
-ddMenu.classList.toggle("open");
+    e.stopPropagation();
+    ddMenu.classList.toggle("open");
 });
 
 document.addEventListener("click", () => ddMenu.classList.remove("open"));
 ddMenu.addEventListener("click", e => e.stopPropagation());
 
 document.getElementById("prevMon")?.addEventListener("click", () => {
-let m = window.economyMonth-1, y = window.economyYear;
-if (m<0){m=11;y--;}
-if (window.drawEconomyChart) window.drawEconomyChart(m,y);
+    let m = window.economyMonth-1, y = window.economyYear;
+    if (m<0){m=11;y--;}
+    if (window.drawEconomyChart) window.drawEconomyChart(m,y);
 });
 
 document.getElementById("nextMon")?.addEventListener("click", () => {
-let m = window.economyMonth+1, y = window.economyYear;
-if (m>11){m=0;y++;}
-if (window.drawEconomyChart) window.drawEconomyChart(m,y);
+    let m = window.economyMonth+1, y = window.economyYear;
+    if (m>11){m=0;y++;}
+    if (window.drawEconomyChart) window.drawEconomyChart(m,y);
 });
 
 document.getElementById("openCatModal")?.addEventListener("click", function() {
-ddMenu.classList.remove("open");
-openCatModal();
+    ddMenu.classList.remove("open");
+    openCatModal();
 });
 
 })();

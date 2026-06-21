@@ -2,6 +2,7 @@ const clientForm = document.querySelector("#clientForm");
 const clientNameInput = document.querySelector("#clientName");
 const clientDocumentInput = document.querySelector("#clientDocument");
 const clientEmailInput = document.querySelector("#clientEmail");
+const clientProfileInput = document.querySelector("#clientProfile");
 const clientSearchInput = document.querySelector("#clientSearch");
 const clientList = document.querySelector("#clientList");
 const clientCount = document.querySelector("#clientCount");
@@ -17,10 +18,11 @@ clientForm.addEventListener("submit", async (event) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: clientNameInput.value.trim(),
-        document: clientDocumentInput.value.trim(),
-        email: clientEmailInput.value.trim()
-      })
+      name: clientNameInput.value.trim(),
+      document: clientDocumentInput.value.trim(),
+      email: clientEmailInput.value.trim(),
+      profile: clientProfileInput.value
+    })
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Nao foi possivel salvar o cliente.");
@@ -52,7 +54,7 @@ async function loadClients() {
 function renderClients() {
   const query = normalize(clientSearchInput.value);
   const filtered = clients.filter((client) => {
-    const text = normalize(`${client.name} ${client.document} ${client.email || ""}`);
+    const text = normalize(`${client.name} ${client.document} ${client.email || ""} ${client.profile || ""}`);
     return text.includes(query);
   });
 
@@ -68,7 +70,7 @@ function renderClients() {
       (client) => `
         <button class="client-item" type="button" data-id="${client.id}">
           <strong>${client.name}</strong>
-          <span>${client.document}${client.email ? ` — ${client.email}` : ""}</span>
+          <span>${client.document}${client.email ? ` — ${client.email}` : ""} — Perfil: ${client.profile || "USUARIO"}</span>
         </button>
       `
     )
@@ -81,6 +83,7 @@ function renderClients() {
       clientNameInput.value = client.name;
       clientDocumentInput.value = client.document;
       clientEmailInput.value = client.email || "";
+      clientProfileInput.value = client.profile || "USUARIO";
       statusText.textContent = `Editando cliente: ${client.name}.`;
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
