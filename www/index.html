@@ -23,14 +23,26 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* ALTERAÇÃO: topbar agora é um flex com 3 colunas (esquerda, centro, direita) */
 .topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .topbar .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px}
+/* NOVO: Estilo para o contêiner do menu esquerdo */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  position: relative; /* Para posicionar o dropdown */
+}
 .topbar-right{display:flex;gap:8px;align-items:center;position:relative}
 .tbtn{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s}
 .tbtn:hover{background:rgba(255,255,255,.3)}
 .ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:220px;z-index:999;overflow:hidden;display:none}
 .ddmenu.open{display:block}
+/* NOVO: Estilo específico para o menu dropdown esquerdo */
+.ddmenu.left-menu {
+  left: 0;
+  right: auto; /* Sobrescreve o right:0 padrão */
+}
 .dditem{display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;cursor:pointer;font-size:.93rem;color:var(--text);text-decoration:none;transition:background .15s;border-bottom:1px solid var(--border)}
 .dditem:last-child{border-bottom:none}
 .dditem:hover{background:var(--bg3)}
@@ -203,7 +215,7 @@ canvas{width:100%!important;display:block}
 .cat-form label{font-size:.76rem;font-weight:600;color:var(--text2);display:flex;flex-direction:column;gap:4px}
 .cat-form input,.cat-form select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;background:var(--bg2);color:var(--text);outline:none;width:100%}
 .cat-form input:focus,.cat-form select:focus{border-color:var(--primary)}
-.cat-fav-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem;background:var(--bg2);border-radius:8px;border:1.5px solid var(--border)}
+.cat-fav-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px}
 .cat-fav-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
 .cat-fav-row label{font-size:.83rem;font-weight:600;color:var(--text);cursor:pointer;margin:0}
 .cat-fav-row small{font-size:.72rem;color:var(--text2);display:block;margin-top:1px}
@@ -489,6 +501,15 @@ canvas{width:100%!important;display:block}
 </head>
 <body>
 <header class="topbar">
+<!-- NOVO: Container para o menu esquerdo (hamburger) -->
+<div class="topbar-left">
+  <button class="tbtn" id="leftMenuBtn" aria-label="Menu principal">☰</button>
+  <div class="ddmenu left-menu" id="leftDdMenu">
+    <a class="dditem" href="extrato.html">📊 Extrato</a>
+    <button class="dditem" id="openCatModal">🏷️ Categorias</button>
+  </div>
+</div>
+
 <div>
 <p class="eyebrow">Controle financeiro</p>
 <h1 id="appTitle">Controle sua Fortuna Versão 1.0</h1>
@@ -497,8 +518,7 @@ canvas{width:100%!important;display:block}
 <button class="tbtn" id="themeBtn" title="Alternar tema"></button>
 <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
 <div class="ddmenu" id="ddMenu">
-<a class="dditem" href="extrato.html">📊 Extrato</a>
-<button class="dditem" id="openCatModal">🏷️ Categorias</button>
+<!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
 </div>
@@ -2510,13 +2530,34 @@ themeBtn.addEventListener("click", function() {
 const menuBtn = document.getElementById("menuBtn");
 const ddMenu = document.getElementById("ddMenu");
 
+// NOVO: Seleciona o botão e o menu esquerdo
+const leftMenuBtn = document.getElementById("leftMenuBtn");
+const leftDdMenu = document.getElementById("leftDdMenu");
+
+// Listener para o botão do menu direito
 menuBtn.addEventListener("click", e => {
     e.stopPropagation();
     ddMenu.classList.toggle("open");
+    leftDdMenu.classList.remove("open"); // Fecha o menu esquerdo se estiver aberto
 });
 
-document.addEventListener("click", () => ddMenu.classList.remove("open"));
+// NOVO: Listener para o botão do menu esquerdo
+leftMenuBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    leftDdMenu.classList.toggle("open");
+    ddMenu.classList.remove("open"); // Fecha o menu direito se estiver aberto
+});
+
+
+// Listener global para fechar ambos os menus
+document.addEventListener("click", () => {
+    ddMenu.classList.remove("open");
+    leftDdMenu.classList.remove("open"); // Fecha o menu esquerdo também
+});
+// Impedir que o clique dentro dos menus os feche
 ddMenu.addEventListener("click", e => e.stopPropagation());
+leftDdMenu.addEventListener("click", e => e.stopPropagation()); // NOVO
+
 
 document.getElementById("prevMon")?.addEventListener("click", () => {
     let m = window.economyMonth-1, y = window.economyYear;
@@ -2530,8 +2571,9 @@ document.getElementById("nextMon")?.addEventListener("click", () => {
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
 });
 
+// ATUALIZADO: O listener para openCatModal agora fecha o menu esquerdo
 document.getElementById("openCatModal")?.addEventListener("click", function() {
-    ddMenu.classList.remove("open");
+    leftDdMenu.classList.remove("open"); // Garante que o menu esquerdo feche
     openCatModal();
 });
 
@@ -2553,8 +2595,8 @@ document.getElementById("openCatModal")?.addEventListener("click", function() {
   const SECRET_TAPS_TIMEOUT = 2000;
   
   // URL do backend (ajuste conforme seu servidor)
-  const API_BASE_URL = 'http://localhost:3000';
-
+  const API_BASE_URL = '';
+  
   // Chave usada por clientes.js para salvar clientes localmente quando o
   // backend não está disponível. Precisa ser a MESMA chave usada lá.
   const CLIENTS_LOCAL_KEY = "financas-clients-v1";
@@ -2720,7 +2762,7 @@ document.getElementById("openCatModal")?.addEventListener("click", function() {
     if (localAdmin) {
       // Sem backend, não há token real: abre o gerador.html diretamente.
       closeAdminOverlay();
-      window.location.href = 'gerador.html';
+      window.location.href = 'license-admin/Gerador.html';
       return;
     }
 
@@ -2743,7 +2785,7 @@ document.getElementById("openCatModal")?.addEventListener("click", function() {
     if (!panel || !iframe) return;
     
     // Monta URL do gerador protegido
-    iframe.src = `${API_BASE_URL}/admin/gerador?token=${token}`;
+    iframe.src = 'license-admin/Gerador.html';
     
     if (info) {
       info.textContent = `Logado como: ${name}`;
@@ -2766,6 +2808,7 @@ document.getElementById("openCatModal")?.addEventListener("click", function() {
     
     document.body.style.overflow = '';
   }
+  window.closeAdminPanel = closeAdminPanel;
 
   // ==========================================
   // MÁSCARA DE CPF/CNPJ

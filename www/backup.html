@@ -523,7 +523,11 @@
             userAgent: navigator.userAgent.substring(0, 100),
             timestamp: Date.now()
           },
-          data: state
+          data: state,
+          clients: JSON.parse(localStorage.getItem("financas-clients-v1") || "[]"),
+          licenseHistory: JSON.parse(localStorage.getItem("licencas-historico-v1") || "[]"),
+          categories: JSON.parse(localStorage.getItem("financas-categories-v1") || "[]"),
+          userProfile: JSON.parse(localStorage.getItem("financas-user-profile") || "null")
         };
 
         const jsonString = JSON.stringify(backup, null, 2);
@@ -613,9 +617,13 @@
           
           // Importar novos dados
           localStorage.setItem(storageKey, JSON.stringify({
-            accounts: data.accounts,
-            transactions: data.transactions
-          }));
+          accounts: data.accounts,
+          transactions: data.transactions
+        }));
+        if (parsed.clients) localStorage.setItem("financas-clients-v1", JSON.stringify(parsed.clients));
+        if (parsed.licenseHistory) localStorage.setItem("licencas-historico-v1", JSON.stringify(parsed.licenseHistory));
+        if (parsed.categories) localStorage.setItem("financas-categories-v1", JSON.stringify(parsed.categories));
+        if (parsed.userProfile) localStorage.setItem("financas-user-profile", JSON.stringify(parsed.userProfile));
           
           const importInfo = parsed.exportedAt ? 
             `<br>📅 Data do backup: ${new Date(parsed.exportedAt).toLocaleString("pt-BR")}` : "";
