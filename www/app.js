@@ -615,15 +615,35 @@ function renderAccounts(balances) {
 }
 
 function renderTransactions() {
-  const inc = state.transactions.filter(t => t.type === "income");
-  const exp = state.transactions.filter(t => t.type === "expense");
-  const trf = state.transactions.filter(t => t.type === "transfer");
+  const now = new Date();
+  const mn = now.getMonth(), yr = now.getFullYear();
+  const prefix = `${yr}-${String(mn+1).padStart(2,"0")}`;
+
+  // Mês formatado para exibir no cabeçalho
+  const monthLabel = now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+  // Atualiza rótulo dos cabeçalhos dos cards
+  const expTitle  = document.querySelector("#expList")?.closest(".card")?.querySelector(".card-title h2");
+  const incTitle  = document.querySelector("#incList")?.closest(".card")?.querySelector(".card-title h2");
+  const trfTitle  = document.querySelector("#trfList")?.closest(".card")?.querySelector(".card-title h2");
+  if (expTitle) expTitle.textContent = `💸 Despesas — ${monthCap}`;
+  if (incTitle) incTitle.textContent = `💰 Receitas — ${monthCap}`;
+  if (trfTitle) trfTitle.textContent = `🔄 Transferências — ${monthCap}`;
+
+  const all = state.transactions;
+  const inMonth = t => (t.date || "").startsWith(prefix);
+
+  const inc = all.filter(t => t.type === "income"   && inMonth(t));
+  const exp = all.filter(t => t.type === "expense"  && inMonth(t));
+  const trf = all.filter(t => t.type === "transfer" && inMonth(t));
+
   el.incCount.textContent = inc.length;
   el.expCount.textContent = exp.length;
   el.trfCount.textContent = trf.length;
-  el.incList.innerHTML = txHTML(inc, "Nenhuma receita ainda.");
-  el.expList.innerHTML = txHTML(exp, "Nenhuma despesa ainda.");
-  el.trfList.innerHTML = txHTML(trf, "Nenhuma transferencia ainda.");
+  el.incList.innerHTML = txHTML(inc, "Nenhuma receita neste mês.");
+  el.expList.innerHTML = txHTML(exp, "Nenhuma despesa neste mês.");
+  el.trfList.innerHTML = txHTML(trf, "Nenhuma transferência neste mês.");
 }
 
 function txHTML(list, empty) {
@@ -655,13 +675,24 @@ function txHTML(list, empty) {
 }
 
 function renderCatPills() {
+  const now = new Date();
+  const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  const monthLabel = now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+  // Atualiza cabeçalho do card
+  const catTitle = el.catPills?.closest(".card")?.querySelector(".card-title h2");
+  if (catTitle) catTitle.textContent = `🏷️ Despesas por categoria — ${monthCap}`;
+
   const catMap = {};
-  state.transactions.filter(t => t.type === "expense").forEach(t => {
-    const c = t.category || "Sem categoria";
-    catMap[c] = (catMap[c]||0) + Number(t.amount);
-  });
+  state.transactions
+    .filter(t => t.type === "expense" && (t.date || "").startsWith(prefix))
+    .forEach(t => {
+      const c = t.category || "Sem categoria";
+      catMap[c] = (catMap[c]||0) + Number(t.amount);
+    });
   const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
-  if (!sorted.length) { el.catPills.innerHTML = '<span style="font-size:.82rem;color:var(--text3)">Nenhuma despesa ainda.</span>'; return; }
+  if (!sorted.length) { el.catPills.innerHTML = '<span style="font-size:.82rem;color:var(--text3)">Nenhuma despesa neste mês.</span>'; return; }
   const total = sorted.reduce((s,[,v]) => s+v, 0);
   el.catPills.innerHTML = sorted.map(([c,v]) =>
     `<div class="cat-pill"><span class="cat-dot"></span>${c} <strong>${Math.round(v/total*100)}%</strong></div>`
@@ -719,7 +750,8 @@ function drawEconomyChart(m, y) {
   const inc  = txs.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount),0);
   const exp  = txs.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount),0);
   const saved = inc - exp;
-  const pct  = inc > 0 ? Math.max(0, Math.min(100, Math.round(saved/inc*100))) : 0;
+  // Permite negativo: sem Math.max(0,...) para refletir real
+  const pct  = inc > 0 ? Math.min(100, Math.round(saved/inc*100)) : (exp > 0 ? -100 : 0);
 
   el.ecoInc.textContent    = money.format(inc);
   el.ecoExp.textContent    = money.format(exp);
@@ -740,15 +772,23 @@ function drawEconomyChart(m, y) {
   const cx=sz/2, cy=sz/2, r=50, lw=13;
   const start = -Math.PI/2;
   ctx.clearRect(0,0,sz,sz);
+  // Trilha de fundo
   ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.strokeStyle="#e5e7eb"; ctx.lineWidth=lw; ctx.stroke();
-  if (pct>0) {
+
+  if (pct > 0) {
+    // Positivo: arco verde/teal/amarelo proporcional
     ctx.beginPath(); ctx.arc(cx,cy,r,start,start+2*Math.PI*pct/100);
     ctx.strokeStyle = pct>=20?"#16a34a":pct>=10?"#0f766e":"#f59e0b";
     ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
-  }
-  if (pct<100 && exp>0) {
-    ctx.beginPath(); ctx.arc(cx,cy,r,start+2*Math.PI*pct/100,start+2*Math.PI);
-    ctx.strokeStyle="#fca5a5"; ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
+    // Restante em vermelho claro
+    if (pct<100 && exp>0) {
+      ctx.beginPath(); ctx.arc(cx,cy,r,start+2*Math.PI*pct/100,start+2*Math.PI);
+      ctx.strokeStyle="#fca5a5"; ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
+    }
+  } else if (exp > 0) {
+    // Negativo: anel inteiro vermelho para indicar estouro
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI);
+    ctx.strokeStyle="#ef4444"; ctx.lineWidth=lw; ctx.stroke();
   }
 }
 

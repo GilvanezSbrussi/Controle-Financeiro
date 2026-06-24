@@ -497,6 +497,33 @@ canvas{width:100%!important;display:block}
   box-shadow:var(--shadow);
 }
 .secret-hint.show{opacity:1}
+
+/* === TOGGLE DE CONFIGURAÇÃO NO MENU === */
+.dd-config-item{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;padding:14px 16px;background:none;border:none;cursor:default;
+  font-size:.93rem;color:var(--text);border-bottom:1px solid var(--border);
+  gap:8px;
+}
+.dd-config-item:last-child{border-bottom:none}
+.dd-config-label{display:flex;align-items:center;gap:8px;flex:1;font-size:.88rem;line-height:1.3}
+.dd-config-label small{display:block;font-size:.72rem;color:var(--text3);font-weight:400;margin-top:2px}
+.dd-toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.dd-toggle input{opacity:0;width:0;height:0;position:absolute}
+.dd-toggle-track{position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:background .2s}
+.dd-toggle input:checked+.dd-toggle-track{background:var(--primary)}
+.dd-toggle-track::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.dd-toggle input:checked+.dd-toggle-track::after{transform:translateX(18px)}
+.dd-section-label{padding:8px 16px 4px;font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border)}
+.cat-required-error{color:var(--expense);font-size:.78rem;font-weight:600;margin-top:6px;display:none;padding:6px 10px;background:rgba(220,38,38,.08);border-radius:6px;border-left:3px solid var(--expense)}
+.cat-required-error.show{display:block}
+.eco-feedback{margin-top:.75rem;padding:.55rem .85rem;border-radius:8px;font-size:.78rem;font-weight:600;line-height:1.4;display:none;border-left:3px solid}
+.eco-feedback.show{display:block}
+.eco-feedback.great{background:rgba(22,163,74,.08);border-color:var(--income);color:var(--income)}
+.eco-feedback.good{background:rgba(15,118,110,.08);border-color:var(--primary);color:var(--primary)}
+.eco-feedback.warn{background:rgba(245,158,11,.08);border-color:var(--warning);color:#b45309}
+.eco-feedback.bad{background:rgba(220,38,38,.07);border-color:var(--expense);color:var(--expense)}
+.eco-feedback.empty{background:var(--bg3);border-color:var(--border);color:var(--text3)}
 </style>
 </head>
 <body>
@@ -521,6 +548,17 @@ canvas{width:100%!important;display:block}
 <!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
+<div class="dd-section-label">⚙️ Configurações</div>
+<div class="dd-config-item">
+  <div class="dd-config-label">
+    🏷️ Exigir categoria
+    <small>Bloqueia lançamento sem categoria</small>
+  </div>
+  <label class="dd-toggle">
+    <input type="checkbox" id="toggleRequireCategory"/>
+    <span class="dd-toggle-track"></span>
+  </label>
+</div>
 </div>
 </div>
 </header>
@@ -558,6 +596,7 @@ canvas{width:100%!important;display:block}
 <div class="eco-stat eco-div"><small>Valor economizado</small><strong id="ecoSaved">R$ 0,00</strong></div>
 </div>
 </div>
+<div class="eco-feedback" id="ecoFeedback"></div>
 </div>
 
 <div class="card">
@@ -599,22 +638,29 @@ canvas{width:100%!important;display:block}
 </div>
 
 <div class="card">
-<div class="card-title"><h2>💸 Ultimas despesas</h2><span id="expCount">0</span></div>
+<div class="card-title"><h2>💸 Despesas</h2><span id="expCount">0</span></div>
 <div class="tx-list tx-list-scroll" id="expList"></div>
 </div>
 
 <div class="card">
-<div class="card-title"><h2>💰 Ultimas receitas</h2><span id="incCount">0</span></div>
+<div class="card-title"><h2>💰 Receitas</h2><span id="incCount">0</span></div>
 <div class="tx-list tx-list-scroll" id="incList"></div>
 </div>
 
 <div class="card">
-<div class="card-title"><h2>🏷️ Despesas por categoria</h2><span id="catTotal">R$ 0,00</span></div>
+<div class="card-title">
+<h2 id="catCardTitle">🏷️ Despesas por categoria</h2>
+<div class="month-nav">
+<button class="mnbtn" id="prevCatMon">‹</button>
+<span id="catMonth"></span>
+<button class="mnbtn" id="nextCatMon">›</button>
+</div>
+</div>
 <div class="cat-pills" id="catPills"><div class="empty">💸 Nenhuma despesa categorizada</div></div>
 </div>
 
 <div class="card">
-<div class="card-title"><h2>🔄 Transferencias</h2><span id="trfCount">0</span></div>
+<div class="card-title"><h2>🔄 Transferências</h2><span id="trfCount">0</span></div>
 <div class="tx-list" id="trfList"></div>
 </div>
 
@@ -744,6 +790,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label id="modalToWrap" class="hidden">Destino<select id="modalToAcc"></select></label>
 <label id="modalCatWrap">Categoria<select id="modalCat"><option value="">Sem categoria</option></select></label>
 </div>
+<div class="cat-required-error" id="modalCatError">⚠️ Selecione uma categoria para continuar.</div>
 <div class="button-group">
 <button class="pbtn" id="modalSaveBtn" type="submit">💾 Salvar</button>
 <button class="pbtn btn-secondary" id="modalSaveAndNewBtn" type="button">💾 Salvar e Novo</button>
@@ -801,6 +848,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label id="editToWrap" class="hidden">Destino<select id="editToAcc" name="toAccount"></select></label>
 <label id="editCatWrap">Categoria<select id="editCat" name="category"><option value="">Sem categoria</option></select></label>
 </div>
+<div class="cat-required-error" id="editCatError">⚠️ Selecione uma categoria para continuar.</div>
 <button class="pbtn" type="submit">💾 Salvar alteracoes</button>
 </form>
 </div>
@@ -2050,6 +2098,15 @@ document.getElementById('modalTxForm').addEventListener('submit', function(e) {
     const mCat = document.getElementById('modalCat').value;
     const mType = document.querySelector('input[name="mtype"]:checked')?.value;
 
+    // Validação: categoria obrigatória (apenas para receita e despesa)
+    const modalCatError = document.getElementById('modalCatError');
+    if (isRequireCategoryEnabled() && mType !== 'transfer' && !mCat) {
+      if (modalCatError) modalCatError.classList.add('show');
+      document.getElementById('modalCat')?.focus();
+      return;
+    }
+    if (modalCatError) modalCatError.classList.remove('show');
+
     const typeRadio = document.querySelector(`input[name="type"][value="${mType}"]`);
     if (typeRadio && !typeRadio.checked) {
         typeRadio.checked = true;
@@ -2114,38 +2171,51 @@ document.getElementById('cancelEditBtn').addEventListener('click', function() {
     this.classList.add('hidden');
 });
 
-function renderCategoryPillsFromTransactions() {
+// ============================================================
+// DESPESAS POR CATEGORIA — NAVEGAÇÃO DE MÊS
+// ============================================================
+let catMonth = new Date().getMonth();
+let catYear  = new Date().getFullYear();
+
+function renderCategoryPillsFromTransactions(m, y) {
+    if (m !== undefined) catMonth = m;
+    if (y !== undefined) catYear  = y;
+
     const container = document.getElementById("catPills");
-    const totalSpan = document.querySelector("#catTotal");
+    const titleEl   = document.getElementById("catCardTitle");
+    const monthSpan = document.getElementById("catMonth");
     if (!container) return;
 
+    const prefix = `${catYear}-${String(catMonth+1).padStart(2,"0")}`;
+    const monthLabel = new Date(catYear, catMonth, 1)
+        .toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+    if (titleEl) titleEl.textContent = `🏷️ Despesas por categoria`;
+    if (monthSpan) monthSpan.textContent = monthCap;
+
     const transactions = getTransactions();
-    const expenses = transactions.filter(t => t.type === "expense");
+    const expenses = transactions.filter(t => t.type === "expense" && (t.date || "").startsWith(prefix));
 
     if (expenses.length === 0) {
-        container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
-        if (totalSpan) totalSpan.textContent = money.format(0);
+        container.innerHTML = '<div class="empty">💸 Nenhuma despesa neste mês</div>';
         return;
     }
 
     const categories = window.getCategoriesUnified();
-    const spendAll = {}, spendMonth = {};
-    let totalAll = 0;
-    const now = new Date();
-    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const spendMonth = {};
+    let totalMonth = 0;
 
     expenses.forEach(tx => {
         const cat = (tx.category || "Sem categoria").trim();
         const amt = parseFloat(tx.amount) || 0;
-        spendAll[cat] = (spendAll[cat] || 0) + amt;
-        totalAll += amt;
-        if ((tx.date||"").startsWith(prefix)) spendMonth[cat] = (spendMonth[cat]||0) + amt;
+        spendMonth[cat] = (spendMonth[cat] || 0) + amt;
+        totalMonth += amt;
     });
 
-    const sorted = Object.entries(spendAll).map(([name, totalAmount]) => {
+    const sorted = Object.entries(spendMonth).map(([name, ms]) => {
         const catDef = categories.find(c => (c.name||"").trim().toLowerCase() === name.toLowerCase());
-        const pct = totalAll > 0 ? Math.round((totalAmount/totalAll)*100) : 0;
-        const ms = spendMonth[name] || 0;
+        const pct = totalMonth > 0 ? Math.round((ms/totalMonth)*100) : 0;
         let limitInfo = null, statusClass = "no-limit";
 
         if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
@@ -2154,16 +2224,16 @@ function renderCategoryPillsFromTransactions() {
             statusClass = ms >= catDef.monthlyLimit ? "over-limit" : lp >= (catDef.warningPercent||80) ? "near-limit" : "has-limit";
             const bs = ms >= catDef.monthlyLimit ? "danger" : lp >= (catDef.warningPercent||80) ? "warning" : "normal";
             limitInfo = {
-                limiteCadastrado:catDef.monthlyLimit,
-                valorUtilizado:ms,
-                limiteDisponivel:dis,
-                percent:lp,
-                barStatus:bs,
-                warningPercent:catDef.warningPercent||80
+                limiteCadastrado: catDef.monthlyLimit,
+                valorUtilizado: ms,
+                limiteDisponivel: dis,
+                percent: lp,
+                barStatus: bs,
+                warningPercent: catDef.warningPercent||80
             };
         }
 
-        return { name, totalAmount, percentOfTotal:pct, limitInfo, statusClass };
+        return { name, totalAmount: ms, percentOfTotal: pct, limitInfo, statusClass };
     }).sort((a,b) => b.totalAmount - a.totalAmount);
 
     container.innerHTML = sorted.map(item => {
@@ -2173,13 +2243,12 @@ function renderCategoryPillsFromTransactions() {
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
-<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
+<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
 <div class="cat-limit-text"><span class="limit-label">🎯 <strong>Limite cadastrado:</strong></span><span class="limit-values" style="color:var(--primary)">${money.format(lim.limiteCadastrado)}</span></div>
-<div class="cat-limit-text"><span class="limit-label">📊 <strong>Utilizado (mês atual):</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span></div>
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Utilizado no mês:</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span></div>
 <div class="cat-limit-text"><span class="limit-label">💰 <strong>Limite disponível:</strong></span><span class="limit-values" style="color:${lim.limiteDisponivel>=0?'var(--income)':'var(--expense)'}">${money.format(Math.max(0,lim.limiteDisponivel))}${lim.limiteDisponivel<0?" (EXCEDIDO)":""}</span></div>
-<div class="cat-limit-text"><span class="limit-label">📈 <strong>Total da categoria (todos os meses):</strong></span><span class="limit-values" style="color:var(--text)">${money.format(item.totalAmount)} (${item.percentOfTotal}% do total)</span></div>
 </div>
 <div class="cat-pill-progress"><div class="cat-pill-bar ${lim.barStatus}" style="width:${Math.min(lim.percent,100)}%"></div></div>
 </div>`;
@@ -2187,17 +2256,15 @@ function renderCategoryPillsFromTransactions() {
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
-<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
+<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
-<div class="cat-limit-text"><span class="limit-label">📊 <strong>Total da categoria:</strong></span><span class="limit-values" style="color:var(--text)">${money.format(item.totalAmount)}</span></div>
-<div class="cat-limit-text"><span class="limit-label">📈 <strong>% do total geral:</strong></span><span class="limit-values" style="color:var(--text2)">${item.percentOfTotal}%</span></div>
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Gasto no mês:</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(item.totalAmount)}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📈 <strong>% do total do mês:</strong></span><span class="limit-values" style="color:var(--text2)">${item.percentOfTotal}%</span></div>
 </div>
 </div>`;
         }
     }).join("");
-
-    if (totalSpan) totalSpan.textContent = money.format(totalAll);
 }
 
 function checkCategoryLimits() {
@@ -2527,6 +2594,35 @@ themeBtn.addEventListener("click", function() {
     themeBtn.textContent = next==="dark" ? "☀️" : "🌙";
 });
 
+// ============================================================
+// CONFIGURAÇÃO: EXIGIR CATEGORIA
+// ============================================================
+const REQUIRE_CAT_KEY = 'financas-require-category';
+
+function isRequireCategoryEnabled() {
+  return localStorage.getItem(REQUIRE_CAT_KEY) === '1';
+}
+
+function initRequireCategoryToggle() {
+  const toggle = document.getElementById('toggleRequireCategory');
+  if (!toggle) return;
+  toggle.checked = isRequireCategoryEnabled();
+  toggle.addEventListener('change', function(e) {
+    e.stopPropagation(); // não fecha o menu
+    localStorage.setItem(REQUIRE_CAT_KEY, this.checked ? '1' : '0');
+    showSuccessAlert(this.checked ? '✅ Categoria obrigatória ativada!' : '✅ Categoria opcional agora.');
+  });
+}
+
+// Inicializa o toggle quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initRequireCategoryToggle);
+} else {
+  initRequireCategoryToggle();
+}
+
+// ============================================================
+
 const menuBtn = document.getElementById("menuBtn");
 const ddMenu = document.getElementById("ddMenu");
 
@@ -2571,11 +2667,130 @@ document.getElementById("nextMon")?.addEventListener("click", () => {
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
 });
 
+document.getElementById("prevCatMon")?.addEventListener("click", () => {
+    let m = catMonth-1, y = catYear;
+    if (m<0){m=11;y--;}
+    renderCategoryPillsFromTransactions(m, y);
+});
+
+document.getElementById("nextCatMon")?.addEventListener("click", () => {
+    let m = catMonth+1, y = catYear;
+    if (m>11){m=0;y++;}
+    renderCategoryPillsFromTransactions(m, y);
+});
+
 // ATUALIZADO: O listener para openCatModal agora fecha o menu esquerdo
 document.getElementById("openCatModal")?.addEventListener("click", function() {
     leftDdMenu.classList.remove("open"); // Garante que o menu esquerdo feche
     openCatModal();
 });
+
+// Validação de categoria no editForm (modal de edição via app.js)
+document.getElementById('editForm')?.addEventListener('submit', function(e) {
+    const editCatEl = document.getElementById('editCat');
+    const editCatError = document.getElementById('editCatError');
+    const eType = document.querySelector('input[name="etype"]:checked')?.value;
+    if (isRequireCategoryEnabled() && eType !== 'transfer' && editCatEl && !editCatEl.value) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (editCatError) editCatError.classList.add('show');
+        editCatEl.focus();
+        return false;
+    }
+    if (editCatError) editCatError.classList.remove('show');
+}, true); // capture=true para interceptar antes do app.js
+
+// Limpar erro ao mudar categoria no editForm
+document.getElementById('editCat')?.addEventListener('change', function() {
+    document.getElementById('editCatError')?.classList.remove('show');
+});
+
+// Limpar erro ao mudar categoria no modalForm
+document.getElementById('modalCat')?.addEventListener('change', function() {
+    document.getElementById('modalCatError')?.classList.remove('show');
+});
+
+// ============================================================
+// FEEDBACK DE ECONOMIA MENSAL
+// ============================================================
+(function() {
+  const messages = {
+    great: [
+      'Excelente! Você está economizando muito bem este mês.',
+      'Ótimo controle! Continue assim.',
+      'Meta de 30% superada. Parabéns!'
+    ],
+    good: [
+      'Bom ritmo. Você está no caminho certo.',
+      'Economia saudável. Tente manter acima de 20%.',
+      'Resultados positivos este mês.'
+    ],
+    warn: [
+      'Atenção: gastos altos em relação à receita.',
+      'Economia abaixo do ideal. Revise os gastos.',
+      'Tente reduzir despesas para economizar mais.'
+    ],
+    bad: [
+      'Atenção: suas despesas superaram as receitas este mês. Revise os gastos antes que vire hábito.',
+      'Mês no vermelho. Identifique o que pesou mais e tente cortar nas próximas semanas.',
+      'Gastou mais do que entrou. Vale a pena revisar onde o dinheiro foi parar.'
+    ],
+    empty: [
+      'Nenhum dado este mês. Mantenha seus lançamentos em dia para não perder o controle.',
+      'Sem registros no mês. Quem não acompanha os gastos costuma se surpreender no fim do mês.',
+      'Nada registrado ainda. Acompanhe suas entradas e saídas para saber onde seu dinheiro está indo.'
+    ]
+  };
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function updateEcoFeedback() {
+    const fb = document.getElementById('ecoFeedback');
+    const pctEl = document.getElementById('ecoPercent');
+    const incEl = document.getElementById('ecoInc');
+    const expEl = document.getElementById('ecoExp');
+    if (!fb || !pctEl) return;
+
+    const pctText = pctEl.textContent || '0%';
+    const pct = parseFloat(pctText.replace('%', '').replace(',', '.')) || 0;
+
+    // Considera que há dados se receita OU despesa for diferente de zero
+    const incText = (incEl ? incEl.textContent : '').replace(/\s/g, '');
+    const expText = (expEl ? expEl.textContent : '').replace(/\s/g, '');
+    const hasInc = incText && !incText.includes('0,00');
+    const hasExp = expText && !expText.includes('0,00');
+    const hasData = hasInc || hasExp;
+
+    fb.className = 'eco-feedback';
+
+    if (!hasData) {
+      fb.classList.add('show', 'empty');
+      fb.textContent = pick(messages.empty);
+    } else if (pct >= 30) {
+      fb.classList.add('show', 'great');
+      fb.textContent = pick(messages.great);
+    } else if (pct >= 15) {
+      fb.classList.add('show', 'good');
+      fb.textContent = pick(messages.good);
+    } else if (pct >= 1) {
+      fb.classList.add('show', 'warn');
+      fb.textContent = pick(messages.warn);
+    } else {
+      fb.classList.add('show', 'bad');
+      fb.textContent = pick(messages.bad);
+    }
+  }
+
+  // Observa mudanças no ecoPercent (atualizado pelo app.js / drawEconomyChart)
+  const pctEl = document.getElementById('ecoPercent');
+  if (pctEl && window.MutationObserver) {
+    new MutationObserver(updateEcoFeedback).observe(pctEl, { childList: true, characterData: true, subtree: true });
+  }
+
+  // Também dispara nos eventos de navegação de mês e ao carregar
+  ['load', 'financasUpdated'].forEach(ev => window.addEventListener(ev, () => setTimeout(updateEcoFeedback, 200)));
+  setTimeout(updateEcoFeedback, 800);
+})();
 
 })();
 </script>
