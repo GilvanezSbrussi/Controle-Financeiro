@@ -650,11 +650,6 @@ canvas{width:100%!important;display:block}
 <div class="card">
 <div class="card-title">
 <h2 id="catCardTitle">🏷️ Despesas por categoria</h2>
-<div class="month-nav">
-<button class="mnbtn" id="prevCatMon">‹</button>
-<span id="catMonth"></span>
-<button class="mnbtn" id="nextCatMon">›</button>
-</div>
 </div>
 <div class="cat-pills" id="catPills"><div class="empty">💸 Nenhuma despesa categorizada</div></div>
 </div>
@@ -2659,24 +2654,18 @@ document.getElementById("prevMon")?.addEventListener("click", () => {
     let m = window.economyMonth-1, y = window.economyYear;
     if (m<0){m=11;y--;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
+    if (window.renderTransactions) window.renderTransactions(m,y);
+    renderCategoryPillsFromTransactions(m,y);
+    checkCategoryLimits(m,y);
 });
 
 document.getElementById("nextMon")?.addEventListener("click", () => {
     let m = window.economyMonth+1, y = window.economyYear;
     if (m>11){m=0;y++;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
-});
-
-document.getElementById("prevCatMon")?.addEventListener("click", () => {
-    let m = catMonth-1, y = catYear;
-    if (m<0){m=11;y--;}
-    renderCategoryPillsFromTransactions(m, y);
-});
-
-document.getElementById("nextCatMon")?.addEventListener("click", () => {
-    let m = catMonth+1, y = catYear;
-    if (m>11){m=0;y++;}
-    renderCategoryPillsFromTransactions(m, y);
+    if (window.renderTransactions) window.renderTransactions(m,y);
+    renderCategoryPillsFromTransactions(m,y);
+    checkCategoryLimits(m,y);
 });
 
 // ATUALIZADO: O listener para openCatModal agora fecha o menu esquerdo

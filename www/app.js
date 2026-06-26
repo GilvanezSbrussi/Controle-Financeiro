@@ -37,6 +37,7 @@ let cats    = loadCats();
 let editId  = null;
 let economyMonth = new Date().getMonth();
 let economyYear  = new Date().getFullYear();
+let currentEditingCategoryId = null; // Nova variável para rastrear a categoria em edição
 
 // --- ELEMENTOS ---
 const el = {
@@ -80,6 +81,26 @@ const el = {
   accChart:      document.getElementById("accChart"),
   licWarn:       document.getElementById("licWarn"),
   favTags:       document.getElementById("favTags"),
+  catName:              document.getElementById("catName"),
+  catType:              document.getElementById("catType"),
+  catFav:               document.getElementById("catFav"),
+  catAddBtn:            document.getElementById("catAddBtn"),
+  catModalList:         document.getElementById("catModalList"),
+  catHasLimit:          document.getElementById("catHasLimit"),
+  catLimitAmount:       document.getElementById("catLimitAmount"),
+  catLimitWarning:      document.getElementById("catLimitWarning"),
+  catLimitFields:       document.getElementById("catLimitFields"),
+  editCatModal:         document.getElementById("catEditModal"),
+  catEditModalClose:    document.getElementById("catEditModalClose"),
+  editCatName:          document.getElementById("editCatName"),
+  editCatType:          document.getElementById("editCatType"),
+  editCatFav:           document.getElementById("editCatFav"),
+  editCatHasLimit:      document.getElementById("editCatHasLimit"),
+  editCatLimitAmount:   document.getElementById("editCatLimitAmount"),
+  editCatLimitWarning:  document.getElementById("editCatLimitWarning"),
+  editCatLimitFields:   document.getElementById("editCatLimitFields"),
+  editCatSaveBtn:       document.getElementById("editCatSaveBtn"),
+  editCatDeleteBtn:     document.getElementById("editCatDeleteBtn"),
 };
 
 // --- INIT ---
@@ -614,13 +635,14 @@ function renderAccounts(balances) {
   });
 }
 
-function renderTransactions() {
+function renderTransactions(m, y) {
   const now = new Date();
-  const mn = now.getMonth(), yr = now.getFullYear();
+  const mn = (m !== undefined) ? m : (window.economyMonth !== undefined ? window.economyMonth : now.getMonth());
+  const yr = (y !== undefined) ? y : (window.economyYear  !== undefined ? window.economyYear  : now.getFullYear());
   const prefix = `${yr}-${String(mn+1).padStart(2,"0")}`;
 
   // Mês formatado para exibir no cabeçalho
-  const monthLabel = now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const monthLabel = new Date(yr, mn, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
   // Atualiza rótulo dos cabeçalhos dos cards
@@ -645,6 +667,9 @@ function renderTransactions() {
   el.expList.innerHTML = txHTML(exp, "Nenhuma despesa neste mês.");
   el.trfList.innerHTML = txHTML(trf, "Nenhuma transferência neste mês.");
 }
+
+// Expor para sincronização global de mês
+window.renderTransactions = renderTransactions;
 
 function txHTML(list, empty) {
   if (!list.length) return `<div class="empty">${empty}</div>`;
@@ -675,24 +700,13 @@ function txHTML(list, empty) {
 }
 
 function renderCatPills() {
-  const now = new Date();
-  const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-  const monthLabel = now.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
-
-  // Atualiza cabeçalho do card
-  const catTitle = el.catPills?.closest(".card")?.querySelector(".card-title h2");
-  if (catTitle) catTitle.textContent = `🏷️ Despesas por categoria — ${monthCap}`;
-
   const catMap = {};
-  state.transactions
-    .filter(t => t.type === "expense" && (t.date || "").startsWith(prefix))
-    .forEach(t => {
-      const c = t.category || "Sem categoria";
-      catMap[c] = (catMap[c]||0) + Number(t.amount);
-    });
+  state.transactions.filter(t => t.type === "expense").forEach(t => {
+    const c = t.category || "Sem categoria";
+    catMap[c] = (catMap[c]||0) + Number(t.amount);
+  });
   const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
-  if (!sorted.length) { el.catPills.innerHTML = '<span style="font-size:.82rem;color:var(--text3)">Nenhuma despesa neste mês.</span>'; return; }
+  if (!sorted.length) { el.catPills.innerHTML = '<span style="font-size:.82rem;color:var(--text3)">Nenhuma despesa ainda.</span>'; return; }
   const total = sorted.reduce((s,[,v]) => s+v, 0);
   el.catPills.innerHTML = sorted.map(([c,v]) =>
     `<div class="cat-pill"><span class="cat-dot"></span>${c} <strong>${Math.round(v/total*100)}%</strong></div>`
@@ -759,6 +773,11 @@ function drawEconomyChart(m, y) {
   el.ecoSaved.style.color  = saved >= 0 ? "var(--income)" : "var(--expense)";
   el.ecoPercent.textContent = pct + "%";
   el.ecoPercent.style.color = pct>=20 ? "var(--income)" : pct>=10 ? "var(--primary)" : "var(--expense)";
+
+  // Mantém as variáveis globais sincronizadas para que os botões de navegação
+  // sempre leiam o mês/ano atual corretamente
+  window.economyMonth = economyMonth;
+  window.economyYear  = economyYear;
 
   const cv = el.ecoCanvas;
   const ctx = cv.getContext("2d");
@@ -828,7 +847,7 @@ function drawBar(canvas, rows) {
     ctx.roundRect ? ctx.roundRect(x,y,bw,vh,5) : ctx.rect(x,y,bw,vh);
     ctx.fill();
     ctx.fillStyle="var(--text,#111)"; ctx.font="700 11px Arial";
-    ctx.fillText(row.label.slice(0,12),x,H-pad-7);
+    ctx.fillText(row.label,x,H-pad-7);
     ctx.fillStyle="var(--text2,#666)"; ctx.font="700 10px Arial";
     ctx.fillText(money.format(row.value),x,Math.max(16,y-6));
   });
