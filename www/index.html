@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0f766e"/>
-<title>Controle sua Fortuna Versão 1.0</title>
+<title>Controle sua Fortuna</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="stylesheet" href="styles.css"/>
 <style>
@@ -538,8 +538,8 @@ canvas{width:100%!important;display:block}
 </div>
 
 <div>
-<p class="eyebrow">Controle financeiro</p>
-<h1 id="appTitle">Controle sua Fortuna Versão 1.0</h1>
+<p class="eyebrow"> </p>
+<h1 id="appTitle">Controle sua Fortuna</h1>
 </div>
 <div class="topbar-right">
 <button class="tbtn" id="themeBtn" title="Alternar tema"></button>
@@ -565,7 +565,7 @@ canvas{width:100%!important;display:block}
 
 <div class="content">
 <div class="limit-alerts" id="limitAlerts">
-<h3>⚠️ Alertas de Limite</h3>
+<h3>⚠️ Alertas de Limite <span id="limitAlertsMonth" style="font-weight:400;font-size:.8rem;opacity:.75"></span></h3>
 <div id="limitAlertsList"></div>
 </div>
 
@@ -1112,6 +1112,36 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     catch { return null; }
   }
 
+  // ================================================================
+  // LICENÇA DE TESTE: 10 dias automáticos no primeiro acesso
+  // ================================================================
+  const TRIAL_DAYS = 10;
+  const TRIAL_INIT_KEY = "financas-trial-init";
+
+  function initTrialLicense() {
+    const existing = loadLicense();
+    // Só cria trial se não houver nenhuma licença salva
+    if (existing) return;
+    const trialInit = localStorage.getItem(TRIAL_INIT_KEY);
+    // Se já iniciou trial e expirou, não recria
+    if (trialInit) return;
+    const now = new Date();
+    const expires = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+    const trial = {
+      active: true,
+      type: "trial",
+      holder: "Usuário Teste",
+      expiresAt: expires.toISOString(),
+      createdAt: now.toISOString()
+    };
+    localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(trial));
+    localStorage.setItem(TRIAL_INIT_KEY, now.toISOString());
+    console.log(`🕐 Licença trial de ${TRIAL_DAYS} dias criada. Expira em: ${expires.toLocaleDateString("pt-BR")}`);
+  }
+
+  // Inicializa trial imediatamente
+  initTrialLicense();
+
   async function checkLicenseStatus() {
     const license = loadLicense();
 
@@ -1172,12 +1202,15 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     }
 
     const daysLeft = Math.ceil((new Date(license.expiresAt) - now) / 86400000);
+    const isTrial = license.type === "trial";
     return {
       valid: true,
       reason: "ok",
       holder: license.holder || "Cliente",
       expiresAt: license.expiresAt,
-      daysLeft: daysLeft
+      daysLeft: daysLeft,
+      isTrial: isTrial,
+      trialWarning: isTrial && daysLeft <= 3
     };
   }
 
@@ -1191,9 +1224,20 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     const blockInfoValue = document.getElementById("licBlockInfoValue");
 
     if (status.valid) {
-      if (warnEl) warnEl.style.display = "none";
       if (blockOverlay) blockOverlay.classList.remove("show");
       document.body.style.overflow = "";
+      // Aviso trial expirando em breve
+      if (warnEl) {
+        if (status.trialWarning) {
+          warnEl.innerHTML = `⚠️ Período de teste expira em <strong>${status.daysLeft} dia(s)</strong>. <a href="licenca.html">Ativar licença completa</a>`;
+          warnEl.style.display = "flex";
+        } else if (status.isTrial) {
+          warnEl.innerHTML = `🕐 Modo de teste ativo — ${status.daysLeft} dia(s) restante(s). <a href="licenca.html">Ativar licença</a>`;
+          warnEl.style.display = "flex";
+        } else {
+          warnEl.style.display = "none";
+        }
+      }
       console.log(`✅ Licença válida. Titular: ${status.holder} | Expira em: ${status.expiresAt} (${status.daysLeft} dias)`);
     } else {
       if (warnEl) warnEl.style.display = "flex";
@@ -2262,10 +2306,13 @@ function renderCategoryPillsFromTransactions(m, y) {
     }).join("");
 }
 
-function checkCategoryLimits() {
-    const categories = window.getCategoriesUnified();
+function checkCategoryLimits(m, y) {
     const now = new Date();
-    const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+    const mn = (m !== undefined) ? m : (window.economyMonth !== undefined ? window.economyMonth : now.getMonth());
+    const yr = (y !== undefined) ? y : (window.economyYear  !== undefined ? window.economyYear  : now.getFullYear());
+    const prefix = `${yr}-${String(mn+1).padStart(2,"0")}`;
+
+    const categories = window.getCategoriesUnified();
     const transactions = getTransactions();
     const alerts = [];
 
@@ -2280,7 +2327,15 @@ function checkCategoryLimits() {
 
     const container = document.getElementById("limitAlerts");
     const list = document.getElementById("limitAlertsList");
+    const monthLbl = document.getElementById("limitAlertsMonth");
     if (!container||!list) return;
+
+    // Atualiza rótulo do mês no cabeçalho
+    if (monthLbl) {
+        const label = new Date(yr, mn, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+        monthLbl.textContent = "— " + label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
     if (!alerts.length) {
         container.classList.remove("show");
         return;
