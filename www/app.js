@@ -865,4 +865,4 @@ window.drawEconomyChart = drawEconomyChart;
 window.calculateSummary = calcSummary;
 window.economyMonth = economyMonth;
 window.economyYear  = economyYear;
-window.appData = state;
+window.appData = state; 
