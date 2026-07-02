@@ -24,9 +24,21 @@
 html{scroll-behavior:smooth}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* ALTERAÇÃO: topbar agora é um flex com 3 colunas (esquerda, centro, direita) */
-.topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;padding-top:calc(1rem + env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .topbar .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px}
+/* Avatar no header */
+#headerAvatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer;transition:background .2s;flex-shrink:0}
+#headerAvatar:hover{background:rgba(255,255,255,.35)}
+/* Perfil no modal */
+.profile-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.profile-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:.75rem}
+.avatar-grid{display:flex;flex-wrap:wrap;gap:8px;margin:.5rem 0 1rem}
+.avatar-opt{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--bg3);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.avatar-opt.selected,.avatar-opt:hover{border-color:var(--primary);background:var(--primary-light);transform:scale(1.12)}
+.profile-save-btn{background:var(--primary);color:#fff;border:none;padding:.7rem 1.2rem;border-radius:var(--rsm);font-size:.92rem;font-weight:700;cursor:pointer;width:100%;margin-top:.5rem;transition:opacity .2s}
+.profile-save-btn:hover{opacity:.88}
+.profile-saved-msg{color:var(--primary);font-size:.82rem;text-align:center;margin-top:.4rem;display:none}
 /* NOVO: Estilo para o contêiner do menu esquerdo */
 .topbar-left {
   display: flex;
@@ -524,6 +536,40 @@ canvas{width:100%!important;display:block}
 .eco-feedback.warn{background:rgba(245,158,11,.08);border-color:var(--warning);color:#b45309}
 .eco-feedback.bad{background:rgba(220,38,38,.07);border-color:var(--expense);color:var(--expense)}
 .eco-feedback.empty{background:var(--bg3);border-color:var(--border);color:var(--text3)}
+/* ── FILTROS ── */
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.85rem}
+.filter-bar select{flex:1;min-width:120px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--bg3);color:var(--text);font-size:.82rem;outline:none}
+.filter-bar select:focus{border-color:var(--primary)}
+.filter-clear{background:none;border:1.5px solid var(--border);color:var(--text2);border-radius:var(--rsm);padding:7px 10px;font-size:.82rem;cursor:pointer;white-space:nowrap}
+.filter-clear:hover{background:var(--border)}
+/* ── RECORRENTES ── */
+.recorr-item{display:flex;align-items:center;gap:10px;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.recorr-item:last-child{border-bottom:none}
+.recorr-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0}
+.recorr-badge.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+.recorr-badge.income{background:rgba(22,163,74,.1);color:var(--income)}
+.recorr-info{flex:1;min-width:0}
+.recorr-info strong{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recorr-info small{font-size:.75rem;color:var(--text2)}
+.recorr-amount{font-size:.88rem;font-weight:700;white-space:nowrap}
+.recorr-amount.expense{color:var(--expense)}
+.recorr-amount.income{color:var(--income)}
+.recorr-actions{display:flex;gap:4px}
+.recorr-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.78rem;cursor:pointer;color:var(--text2);transition:background .15s}
+.recorr-btn:hover{background:var(--border)}
+.recorr-due{font-size:.7rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px}
+.recorr-due.due-soon{background:rgba(245,158,11,.15);color:#b45309}
+.recorr-due.overdue{background:rgba(220,38,38,.12);color:var(--expense)}
+.recorr-inactive{opacity:.45}
+/* ── PROJEÇÃO ── */
+.proj-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.proj-row:last-child{border-bottom:none}
+.proj-row.proj-today{font-weight:700;background:var(--primary-light);margin:0 -.5rem;padding:.5rem .5rem;border-radius:6px}
+.proj-date{color:var(--text2);font-size:.8rem;min-width:90px}
+.proj-event{flex:1;padding:0 .5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-balance{font-weight:700;white-space:nowrap}
+.proj-balance.neg{color:var(--expense)}
+.proj-balance.pos{color:var(--income)}
 </style>
 </head>
 <body>
@@ -538,16 +584,18 @@ canvas{width:100%!important;display:block}
 </div>
 
 <div>
-<p class="eyebrow"> </p>
+<p class="eyebrow" id="headerGreeting"> </p>
 <h1 id="appTitle">Controle sua Fortuna</h1>
 </div>
 <div class="topbar-right">
+<button id="headerAvatar" title="Minha Conta" aria-label="Minha Conta">🙂</button>
 <button class="tbtn" id="themeBtn" title="Alternar tema"></button>
 <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
 <div class="ddmenu" id="ddMenu">
 <!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
+<button class="dditem" id="menuAccountBtn" type="button" style="text-align:left">👤 Minha Conta</button>
 <div class="dd-section-label">⚙️ Configurações</div>
 <div class="dd-config-item">
   <div class="dd-config-label">
@@ -638,6 +686,15 @@ canvas{width:100%!important;display:block}
 </div>
 
 <div class="card">
+<div class="card-title"><h2>🔍 Filtros</h2><button class="filter-clear" id="filterClearBtn">Limpar</button></div>
+<div class="filter-bar">
+<select id="filterType"><option value="">Todos os tipos</option><option value="income">💰 Receitas</option><option value="expense">💸 Despesas</option><option value="transfer">🔄 Transferências</option></select>
+<select id="filterCat"><option value="">Todas as categorias</option></select>
+<select id="filterAcc"><option value="">Todas as contas</option></select>
+</div>
+</div>
+
+<div class="card">
 <div class="card-title"><h2>💸 Despesas</h2><span id="expCount">0</span></div>
 <div class="tx-list tx-list-scroll" id="expList"></div>
 </div>
@@ -657,6 +714,19 @@ canvas{width:100%!important;display:block}
 <div class="card">
 <div class="card-title"><h2>🔄 Transferências</h2><span id="trfCount">0</span></div>
 <div class="tx-list" id="trfList"></div>
+</div>
+
+<div class="card">
+<div class="card-title">
+<h2>🔁 Recorrentes</h2>
+<button class="cbtn" id="addRecorrBtn">+ Adicionar</button>
+</div>
+<div id="recorrList"><div class="empty">Nenhuma conta recorrente cadastrada.</div></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>📅 Projeção 30 dias</h2><span style="font-size:.75rem;color:var(--text2)">baseado em recorrentes</span></div>
+<div id="projecaoList"><div class="empty">Cadastre recorrentes para ver a projeção.</div></div>
 </div>
 
 <div class="card">
@@ -816,6 +886,94 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <h4>🎤 Permitir uso do microfone</h4>
 <p>Para usar o reconhecimento de voz, clique em <strong>"Permitir"</strong> quando o navegador solicitar acesso ao microfone.</p>
 <button onclick="requestMicPermission()">Tentar novamente</button>
+</div>
+
+<!-- Modal recorrente -->
+<div class="modal-overlay" id="recorrModal">
+<div class="modal-sheet">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3 id="recorrModalTitle">🔁 Nova recorrente</h3>
+<button class="modal-close" id="recorrModalClose">✕</button>
+</div>
+<form id="recorrForm" autocomplete="off">
+<div class="segmented" role="radiogroup" style="margin-bottom:.75rem">
+<label><input type="radio" name="rtype" value="expense" checked/><span>💸 Despesa</span></label>
+<label><input type="radio" name="rtype" value="income"/><span>💰 Receita</span></label>
+</div>
+<div class="fgrid">
+<label class="full">Descrição<input id="recorrDesc" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário"/></label>
+<label>Valor (R$)<input id="recorrAmt" type="number" inputmode="decimal" min="0.01" step="0.01" required placeholder="0,00"/></label>
+<label>Dia do mês<input id="recorrDay" type="number" min="1" max="28" required placeholder="1-28"/></label>
+<label class="full">Conta<select id="recorrAcc"></select></label>
+<label class="full">Categoria<select id="recorrCat"><option value="">Sem categoria</option></select></label>
+</div>
+<button class="pbtn" type="submit" id="recorrSaveBtn">Salvar recorrente</button>
+</form>
+</div>
+</div>
+
+<div class="modal-overlay" id="authModal">
+<div class="modal-sheet" id="authModalSheet">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3>👤 Minha Conta</h3>
+<button class="modal-close" id="authModalClose">✕</button>
+</div>
+
+<!-- Status (anônimo ou logado) -->
+<div id="authStatusBox" style="padding:.25rem 0 1rem;font-size:.85rem;line-height:1.5;color:var(--text2)"></div>
+
+<!-- Formulário de login/criar conta -->
+<form id="authForm" autocomplete="off">
+<div class="fgrid">
+<label class="full">E-mail<input id="authEmail" type="email" required placeholder="seu@email.com" autocomplete="email"/></label>
+<label class="full">Senha<input id="authPassword" type="password" required minlength="6" placeholder="mínimo 6 caracteres" autocomplete="current-password"/></label>
+</div>
+<div id="authError" style="color:#e5484d;font-size:.82rem;margin:.4rem 0;display:none"></div>
+<button class="pbtn" type="submit" id="authSubmitBtn">Criar conta e sincronizar</button>
+<button class="pbtn" type="button" id="authToggleModeBtn" style="background:transparent;color:var(--text);border:1.5px solid var(--border);margin-top:.6rem">Já tenho conta — entrar</button>
+<button class="pbtn" type="button" id="authForgotBtn" style="background:transparent;color:var(--text2);border:none;font-size:.82rem;margin-top:.25rem;text-decoration:underline;padding:.4rem">Esqueci minha senha</button>
+</form>
+
+<!-- Perfil do usuário (visível só quando logado) -->
+<div id="profileSection" style="display:none">
+<div class="profile-section">
+<div class="profile-section-title">✏️ Perfil</div>
+<div class="fgrid">
+<label class="full">Seu nome<input id="profileName" type="text" maxlength="40" placeholder="Como quer ser chamado?"/></label>
+<label class="full">Moeda padrão
+<select id="profileCurrency">
+<option value="BRL">🇧🇷 Real (R$)</option>
+<option value="USD">🇺🇸 Dólar (US$)</option>
+<option value="EUR">🇪🇺 Euro (€)</option>
+<option value="ARS">🇦🇷 Peso argentino ($)</option>
+<option value="PYG">🇵🇾 Guarani (₲)</option>
+</select>
+</label>
+</div>
+<div class="profile-section-title" style="margin-top:.75rem">Avatar</div>
+<div class="avatar-grid" id="avatarGrid">
+<button class="avatar-opt" data-emoji="🙂" type="button">🙂</button>
+<button class="avatar-opt" data-emoji="😎" type="button">😎</button>
+<button class="avatar-opt" data-emoji="🤑" type="button">🤑</button>
+<button class="avatar-opt" data-emoji="🧑‍💼" type="button">🧑‍💼</button>
+<button class="avatar-opt" data-emoji="👩‍💼" type="button">👩‍💼</button>
+<button class="avatar-opt" data-emoji="🦁" type="button">🦁</button>
+<button class="avatar-opt" data-emoji="🐯" type="button">🐯</button>
+<button class="avatar-opt" data-emoji="🦊" type="button">🦊</button>
+<button class="avatar-opt" data-emoji="🐻" type="button">🐻</button>
+<button class="avatar-opt" data-emoji="🚀" type="button">🚀</button>
+<button class="avatar-opt" data-emoji="💎" type="button">💎</button>
+<button class="avatar-opt" data-emoji="🌟" type="button">🌟</button>
+</div>
+<button class="profile-save-btn" id="profileSaveBtn" type="button">💾 Salvar perfil</button>
+<div class="profile-saved-msg" id="profileSavedMsg">✅ Perfil salvo com sucesso!</div>
+</div>
+<button class="pbtn" type="button" id="authLogoutBtn" style="background:#e5484d;margin-top:1rem">Sair da conta</button>
+</div>
+
+</div>
 </div>
 
 <div class="modal-overlay" id="editModal">
@@ -1376,65 +1534,31 @@ return cats.map(c => ({
 id:c.id||generateId(),
 name:c.name,
 type:c.type||"expense",
-favorite:!!c.isFavorite,
+isFavorite:!!c.isFavorite,
 hasLimit:!!c.hasLimit,
 monthlyLimit:parseFloat(c.monthlyLimit)||0,
 warningPercent:parseInt(c.warningPercent)||80
 }));
 }
 
-function convertAppCategoriesToUnified(cats) {
-return cats.map(c => ({
-id:c.id||generateId(),
-name:c.name,
-type:c.type||"expense",
-isFavorite:!!(c.favorite||c.isFavorite),
-hasLimit:!!c.hasLimit,
-monthlyLimit:parseFloat(c.monthlyLimit)||0,
-warningPercent:parseInt(c.warningPercent)||80
-}));
-}
-
+// IMPORTANTE: a lista de categorias "de verdade" (persistida localmente E
+// sincronizada com o Firebase) vive em app.js, exposta via window.getCats()/
+// window.setCats(). As funções abaixo existiam antes como um sistema próprio
+// (só localStorage, sem nuvem) — foram religadas para usar o mesmo array do
+// app.js, senão categoria criada/editada aqui não ia pro Firebase.
 window.getCategoriesUnified = function() {
-const oldSources = ["financas-categories-v3-final","financas-categories-v2","unified-category-data"];
-for (const src of oldSources) {
-try {
-const raw = localStorage.getItem(src);
-if (raw && raw !== "null") {
-const parsed = JSON.parse(raw);
-if (Array.isArray(parsed) && parsed.length > 0) {
-saveCategoriesToApp(convertUnifiedToAppFormat(parsed));
-localStorage.removeItem(src);
-break;
+if (typeof window.getCats === "function") {
+const cats = window.getCats();
+if (Array.isArray(cats) && cats.length > 0) return cats;
 }
-}
-} catch(e){}
-}
-
-try {
-const main = JSON.parse(localStorage.getItem("financas-v3") || "{}");
-if (main.categories && Array.isArray(main.categories) && main.categories.length > 0) {
-return main.categories.filter(c => c && c.name).map(c => ({
-id:c.id||generateId(),
-name:c.name.trim(),
-type:c.type||"expense",
-isFavorite:!!(c.isFavorite||c.favorite),
-hasLimit:!!c.hasLimit,
-monthlyLimit:parseFloat(c.monthlyLimit)||0,
-warningPercent:parseInt(c.warningPercent)||80
-}));
-}
-} catch(e){}
-
-try {
-const appCats = JSON.parse(localStorage.getItem("financas-categories-v1") || "null");
-if (Array.isArray(appCats) && appCats.length > 0) return convertAppCategoriesToUnified(appCats);
-} catch(e){}
-
 return getDefaultCategories();
 };
 
 function saveCategoriesToApp(cats) {
+if (typeof window.setCats === "function") {
+window.setCats(convertUnifiedToAppFormat(cats));
+return true;
+}
 try {
 localStorage.setItem("financas-categories-v1", JSON.stringify(convertUnifiedToAppFormat(cats)));
 return true;
@@ -1485,6 +1609,51 @@ const star = c.isFavorite ? '⭐ ' : '';
 html += `<option value="${c.name}">${star}${c.name}</option>`;
 });
 catSel.innerHTML = html;
+}
+
+function populateEditCategories(type) {
+const catSel = document.getElementById('editCat');
+if (!catSel) return;
+const prevValue = catSel.value;
+const allCats = window.getCategoriesUnified();
+let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type || c.type === 'all');
+let html = '<option value="">Sem categoria</option>';
+filtered.forEach(c => {
+const star = c.isFavorite ? '⭐ ' : '';
+html += `<option value="${c.name}">${star}${c.name}</option>`;
+});
+catSel.innerHTML = html;
+if (prevValue) {
+catSel.value = prevValue;
+if (catSel.value !== prevValue) {
+// Categoria do lançamento não está mais na lista (ex: foi renomeada
+// ou excluída): mantém como opção extra para não perder o valor.
+const opt = document.createElement('option');
+opt.value = prevValue;
+opt.textContent = prevValue;
+opt.selected = true;
+catSel.appendChild(opt);
+}
+}
+}
+
+// Mantém o select de categoria do modal de edição sempre atualizado,
+// inclusive com categorias criadas manualmente depois do carregamento
+// da página (correção: categoria nova não aparecia ao editar).
+document.querySelectorAll('input[name="etype"]').forEach(r => {
+r.addEventListener('change', function() { populateEditCategories(this.value); });
+});
+
+const editModalEl = document.getElementById('editModal');
+if (editModalEl) {
+new MutationObserver(function(muts) {
+muts.forEach(function(m) {
+if (m.attributeName === 'class' && editModalEl.classList.contains('open')) {
+const currentType = document.querySelector('input[name="etype"]:checked')?.value || 'expense';
+setTimeout(() => populateEditCategories(currentType), 0);
+}
+});
+}).observe(editModalEl, { attributes: true });
 }
 
 function updateModalFormMode(type) {
@@ -2150,6 +2319,12 @@ document.getElementById('modalTxForm').addEventListener('submit', function(e) {
     if (typeRadio && !typeRadio.checked) {
         typeRadio.checked = true;
         typeRadio.dispatchEvent(new Event('change', { bubbles:true }));
+    } else {
+        // Mesmo que o tipo não tenha mudado, garante que o select oculto
+        // de categoria esteja com a lista atualizada (ex: categoria nova
+        // criada na hora), senão a categoria escolhida no modal não existe
+        // como opção e acaba não sendo salva no lançamento.
+        populateCategories(mType);
     }
 
     requestAnimationFrame(() => {
@@ -2168,11 +2343,22 @@ document.getElementById('modalTxForm').addEventListener('submit', function(e) {
             if (catEl) {
                 catEl.value = mCat;
                 if (catEl.value !== mCat) {
+                    let found = false;
                     for (const opt of catEl.options) {
                         if (opt.value.toLowerCase() === mCat.toLowerCase()) {
                             opt.selected = true;
+                            found = true;
                             break;
                         }
+                    }
+                    // Fallback: se a categoria ainda assim não estiver entre
+                    // as opções, adiciona-a para não perder o valor escolhido.
+                    if (!found) {
+                        const opt = document.createElement('option');
+                        opt.value = mCat;
+                        opt.textContent = mCat;
+                        opt.selected = true;
+                        catEl.appendChild(opt);
                     }
                 }
             }
@@ -3130,6 +3316,13 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
 
 })();
 </script>
+
+<!-- Firebase (compat SDK — funciona como script clássico, sem precisar de bundler) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
 <script src="app.js"></script>
 </body>
-</html> 
+</html>

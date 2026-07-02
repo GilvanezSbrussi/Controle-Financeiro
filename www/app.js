@@ -8,6 +8,7 @@ const STORAGE_KEY = "financas-v3";
 const LICENSE_KEY = "financas-license-v1";
 const DEVICE_KEY  = "financas-device-id";
 const CATS_KEY    = "financas-categories-v1";
+const RECORRENTES_KEY = "financas-recorrentes-v1";
 
 const licPubKey = {
   kty:"EC", crv:"P-256",
@@ -34,6 +35,8 @@ function getBrazilDate() {
 let state   = loadState();
 let license = loadLicense();
 let cats    = loadCats();
+let recorrentes = loadRecorrentes();
+let filters = { type: "", cat: "", acc: "" };
 let editId  = null;
 let economyMonth = new Date().getMonth();
 let economyYear  = new Date().getFullYear();
@@ -115,6 +118,18 @@ el.trfList.addEventListener("click", onTxClick);
 window.addEventListener("resize", () => { try { drawCharts(calcSummary()); drawEconomyChart(); } catch(e){} });
 
 render();
+setupAuthUI();
+setupFilters();
+setupRecorrentesUI();
+scheduleRecorrentesNotifications();
+
+// Inicia a sincronização com a nuvem em segundo plano (não bloqueia a tela inicial).
+// O app já está usável com os dados locais antes mesmo disso terminar.
+if (typeof firebase !== "undefined" && typeof auth !== "undefined") {
+  initFirebaseSync();
+} else {
+  console.warn("Firebase não carregado — verifique se firebase-config.js está incluído antes de app.js. App segue funcionando 100% local.");
+}
 
 // ============================================================
 // PERSISTÊNCIA
@@ -129,7 +144,10 @@ function loadState() {
     };
   } catch { return structuredClone(defaultState); }
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); // sempre grava local primeiro (funciona offline)
+  cloudSave("state", state);
+}
 
 function loadLicense() {
   try { return JSON.parse(localStorage.getItem(LICENSE_KEY) || "null") || { active:false }; }
@@ -144,23 +162,353 @@ function getDeviceId() {
 function loadCats() {
   try {
     const raw = JSON.parse(localStorage.getItem(CATS_KEY) || "null");
-    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw) && raw.length > 0) {
+      // Normaliza formato (migra "favorite" antigo para "isFavorite" e
+      // garante os campos de limite mensal usados na tela de categorias).
+      return raw.filter(c => c && c.name).map(c => ({
+        id: c.id || ("c" + Date.now() + Math.random().toString(36).slice(2)),
+        name: c.name,
+        type: c.type || "expense",
+        isFavorite: !!(c.isFavorite ?? c.favorite),
+        hasLimit: !!c.hasLimit,
+        monthlyLimit: parseFloat(c.monthlyLimit) || 0,
+        warningPercent: parseInt(c.warningPercent) || 80
+      }));
+    }
   } catch {}
   // Categorias padrão
   return [
-    { id: "sal",   name: "Salario",       type: "income",     favorite: true },
-    { id: "ali",   name: "Alimentacao",   type: "expense",    favorite: true },
-    { id: "tran",  name: "Transporte",    type: "expense",    favorite: false },
-    { id: "mor",   name: "Moradia",       type: "expense",    favorite: true },
-    { id: "sau",   name: "Saude",         type: "expense",    favorite: false },
-    { id: "edu",   name: "Educacao",      type: "expense",    favorite: false },
-    { id: "laz",   name: "Lazer",         type: "expense",    favorite: false },
-    { id: "inv",   name: "Investimento",  type: "investment", favorite: true },
-    { id: "rent",  name: "Rendimentos",   type: "income",     favorite: false },
-    { id: "div",   name: "Dividendos",    type: "all",        favorite: false },
+    { id: "sal",   name: "Salario",       type: "income",     isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "ali",   name: "Alimentacao",   type: "expense",    isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "tran",  name: "Transporte",    type: "expense",    isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "mor",   name: "Moradia",       type: "expense",    isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "sau",   name: "Saude",         type: "expense",    isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "edu",   name: "Educacao",      type: "expense",    isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "laz",   name: "Lazer",         type: "expense",    isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "inv",   name: "Investimento",  type: "investment", isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "rent",  name: "Rendimentos",   type: "income",     isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
+    { id: "div",   name: "Dividendos",    type: "all",        isFavorite: false, hasLimit:false, monthlyLimit:0, warningPercent:80 },
   ];
 }
-function saveCats() { localStorage.setItem(CATS_KEY, JSON.stringify(cats)); }
+function saveCats() {
+  localStorage.setItem(CATS_KEY, JSON.stringify(cats));
+  cloudSave("cats", { items: cats });
+}
+
+// Expõe a lista de categorias e uma forma de atualizá-la (com persistência
+// local + sincronização automática com o Firebase) para a UI de categorias
+// (com limites mensais e edição) definida em index.html.
+window.getCats = function() { return cats; };
+window.setCats = function(newCats) {
+  cats = Array.isArray(newCats) ? newCats : [];
+  saveCats();
+};
+
+function loadRecorrentes() {
+  try { return JSON.parse(localStorage.getItem(RECORRENTES_KEY) || "[]"); } catch { return []; }
+}
+function saveRecorrentes() {
+  localStorage.setItem(RECORRENTES_KEY, JSON.stringify(recorrentes));
+  cloudSave("recorrentes", { items: recorrentes });
+}
+
+// ============================================================
+// SINCRONIZAÇÃO COM FIREBASE (nuvem)
+// ============================================================
+// Estratégia: o app sempre funciona 100% offline com localStorage
+// (igual hoje). Quando há login + internet, espelha os dados no
+// Firestore e fica ouvindo mudanças em tempo real (outro
+// dispositivo logado na mesma conta também recebe as atualizações).
+let cloudUserId = null;
+let cloudReady = false;
+let suppressNextSnapshot = { state: false, cats: false };
+
+function cloudDocPath(name) {
+  // "name" é "state" ou "cats" — cada um vira um documento dentro de users/{uid}/data/
+  return db.collection("users").doc(cloudUserId).collection("data").doc(name);
+}
+
+function cloudSave(name, payload) {
+  if (!cloudReady || !cloudUserId) return; // sem login/sem rede: só fica salvo local mesmo
+  suppressNextSnapshot[name] = true; // evita que o próprio listener re-renderize com o que acabamos de mandar
+  cloudDocPath(name).set(payload, { merge: false }).catch((err) => {
+    console.warn(`Falha ao sincronizar "${name}" com a nuvem (vai tentar de novo no próximo save):`, err);
+  });
+}
+
+function initFirebaseSync() {
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      // ainda não logado nessa sessão: faz login anônimo automático (sem pedir nada ao usuário)
+      try { await auth.signInAnonymously(); }
+      catch (err) { console.warn("Login anônimo falhou (provável sem internet); app continua só local.", err); }
+      return;
+    }
+
+    cloudUserId = user.uid;
+    cloudReady = true;
+
+    // Carrega perfil do usuário (nome, avatar, moeda)
+    await loadProfile(user.uid);
+
+    // Migração única: se já existe dado local e ainda não existe nada na nuvem, sobe o que tem.
+    const stateDoc = await cloudDocPath("state").get().catch(() => null);
+    if (stateDoc && !stateDoc.exists) {
+      cloudSave("state", state);
+    }
+    const catsDoc = await cloudDocPath("cats").get().catch(() => null);
+    if (catsDoc && !catsDoc.exists) {
+      cloudSave("cats", { items: cats });
+    }
+    const recorrDoc = await cloudDocPath("recorrentes").get().catch(() => null);
+    if (recorrDoc && !recorrDoc.exists && recorrentes.length) {
+      cloudSave("recorrentes", { items: recorrentes });
+    }
+
+    // Ouve mudanças em tempo real (inclusive vindas de outro dispositivo)
+    cloudDocPath("state").onSnapshot((snap) => {
+      if (suppressNextSnapshot.state) { suppressNextSnapshot.state = false; return; }
+      if (!snap.exists) return;
+      const remote = snap.data();
+      if (Array.isArray(remote.transactions)) {
+        state = { accounts: remote.accounts?.length ? remote.accounts : defaultState.accounts, transactions: remote.transactions };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        render();
+      }
+    });
+
+    cloudDocPath("cats").onSnapshot((snap) => {
+      if (suppressNextSnapshot.cats) { suppressNextSnapshot.cats = false; return; }
+      if (!snap.exists) return;
+      const remote = snap.data();
+      if (Array.isArray(remote.items)) {
+        cats = remote.items;
+        localStorage.setItem(CATS_KEY, JSON.stringify(cats));
+        render();
+      }
+    });
+
+    cloudDocPath("recorrentes").onSnapshot((snap) => {
+      if (!snap.exists) return;
+      const remote = snap.data();
+      if (Array.isArray(remote.items)) {
+        recorrentes = remote.items;
+        localStorage.setItem(RECORRENTES_KEY, JSON.stringify(recorrentes));
+        renderRecorrentes();
+        renderProjecao();
+      }
+    });
+
+    renderAuthStatus();
+  });
+}
+
+// ============================================================
+// LOGIN COM E-MAIL/SENHA (upgrade da conta anônima)
+// ============================================================
+// Objetivo: o cliente pode continuar usando o app sem nenhum login
+// (modo anônimo, dados só naquele aparelho). Quando ele quiser acessar
+// os mesmos dados em outro celular, ele "vincula" um e-mail/senha à
+// conta anônima atual — isso MANTÉM o mesmo uid e os dados já salvos,
+// só adiciona uma forma de login permanente em cima da mesma conta.
+let authMode = "criar"; // "criar" = vincular conta nova | "entrar" = logar em conta já existente
+let userProfile = { name: "", avatar: "🙂", currency: "BRL" }; // perfil carregado da nuvem
+
+// ─── SAUDAÇÃO NO HEADER ──────────────────────────────────────
+function updateHeaderGreeting() {
+  const greeting = document.getElementById("headerGreeting");
+  const avatar = document.getElementById("headerAvatar");
+  if (greeting) {
+    const hour = new Date().getHours();
+    const period = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+    greeting.textContent = userProfile.name ? `${period}, ${userProfile.name}!` : period;
+  }
+  if (avatar) avatar.textContent = userProfile.avatar || "🙂";
+}
+
+// ─── PERFIL NO FIRESTORE ──────────────────────────────────────
+async function loadProfile(uid) {
+  try {
+    const snap = await db.collection("users").doc(uid).collection("data").doc("perfil").get();
+    if (snap.exists) {
+      userProfile = { name: "", avatar: "🙂", currency: "BRL", ...snap.data() };
+    }
+  } catch (e) { console.warn("Erro ao carregar perfil:", e); }
+  updateHeaderGreeting();
+}
+
+async function saveProfile(uid) {
+  await db.collection("users").doc(uid).collection("data").doc("perfil").set(userProfile, { merge: true });
+}
+
+// ─── STATUS DO MODAL ──────────────────────────────────────────
+function renderAuthStatus() {
+  const box = document.getElementById("authStatusBox");
+  const form = document.getElementById("authForm");
+  const profileSection = document.getElementById("profileSection");
+  if (!box) return;
+  const user = auth.currentUser;
+  if (user && !user.isAnonymous) {
+    box.innerHTML = `✅ Conta sincronizada como <strong>${user.email}</strong>.`;
+    if (form) form.style.display = "none";
+    if (profileSection) {
+      profileSection.style.display = "";
+      // Preenche os campos com os valores atuais do perfil
+      const nameEl = document.getElementById("profileName");
+      const currEl = document.getElementById("profileCurrency");
+      if (nameEl) nameEl.value = userProfile.name || "";
+      if (currEl) currEl.value = userProfile.currency || "BRL";
+      // Marca o avatar selecionado
+      document.querySelectorAll(".avatar-opt").forEach(btn => {
+        btn.classList.toggle("selected", btn.dataset.emoji === (userProfile.avatar || "🙂"));
+      });
+    }
+  } else {
+    box.innerHTML = `Seus dados estão salvos só neste aparelho (conta anônima).<br>Crie um login com e-mail e senha para acessar de outro celular e ter backup permanente.`;
+    if (form) form.style.display = "";
+    if (profileSection) profileSection.style.display = "none";
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById("authError");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
+// ─── LOGIN / CRIAR CONTA ──────────────────────────────────────
+async function handleAuthSubmit(email, password) {
+  showAuthError("");
+  const submitBtn = document.getElementById("authSubmitBtn");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Aguarde..."; }
+  try {
+    if (authMode === "criar") {
+      const cred = firebase.auth.EmailAuthProvider.credential(email, password);
+      await auth.currentUser.linkWithCredential(cred);
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
+    }
+    renderAuthStatus();
+    document.getElementById("authModal")?.classList.remove("open");
+  } catch (err) {
+    const msgs = {
+      "auth/email-already-in-use": "Esse e-mail já tem conta. Toque em \"Já tenho conta — entrar\".",
+      "auth/wrong-password": "E-mail ou senha incorretos.",
+      "auth/invalid-credential": "E-mail ou senha incorretos.",
+      "auth/weak-password": "Senha muito fraca — use pelo menos 6 caracteres.",
+      "auth/invalid-email": "E-mail inválido.",
+      "auth/network-request-failed": "Sem conexão com a internet. Tente novamente online."
+    };
+    showAuthError(msgs[err.code] || ("Erro: " + (err.message || err.code)));
+    console.warn("Erro de autenticação:", err);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = authMode === "criar" ? "Criar conta e sincronizar" : "Entrar";
+    }
+  }
+}
+
+// ─── ESQUECI MINHA SENHA ──────────────────────────────────────
+async function handleForgotPassword() {
+  const emailEl = document.getElementById("authEmail");
+  const email = emailEl?.value.trim();
+  if (!email) { showAuthError("Digite seu e-mail acima para redefinir a senha."); return; }
+  showAuthError("");
+  try {
+    await auth.sendPasswordResetEmail(email);
+    showAuthError(""); // limpa erros
+    const box = document.getElementById("authStatusBox");
+    if (box) box.innerHTML = `📧 E-mail de redefinição enviado para <strong>${email}</strong>. Verifique sua caixa de entrada (e o spam).`;
+  } catch (err) {
+    if (err.code === "auth/user-not-found" || err.code === "auth/invalid-email") {
+      showAuthError("E-mail não encontrado. Verifique se digitou corretamente.");
+    } else {
+      showAuthError("Erro ao enviar e-mail: " + (err.message || err.code));
+    }
+  }
+}
+
+// ─── CONFIGURA TODOS OS EVENTOS DO MODAL ─────────────────────
+function setupAuthUI() {
+  const modal   = document.getElementById("authModal");
+  const form    = document.getElementById("authForm");
+  const toggleBtn  = document.getElementById("authToggleModeBtn");
+  const submitBtn  = document.getElementById("authSubmitBtn");
+  const logoutBtn  = document.getElementById("authLogoutBtn");
+  const forgotBtn  = document.getElementById("authForgotBtn");
+  const profileSaveBtn = document.getElementById("profileSaveBtn");
+
+  // Abre o modal pelo avatar no header OU pelo item do menu
+  ["headerAvatar", "menuAccountBtn"].forEach(id => {
+    document.getElementById(id)?.addEventListener("click", () => {
+      document.getElementById("ddMenu")?.classList.remove("open");
+      renderAuthStatus();
+      showAuthError("");
+      modal?.classList.add("open");
+    });
+  });
+
+  if (modal)    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("open"); });
+  document.getElementById("authModalClose")?.addEventListener("click", () => modal?.classList.remove("open"));
+
+  if (toggleBtn) toggleBtn.addEventListener("click", () => {
+    authMode = authMode === "criar" ? "entrar" : "criar";
+    if (submitBtn) submitBtn.textContent = authMode === "criar" ? "Criar conta e sincronizar" : "Entrar";
+    toggleBtn.textContent = authMode === "criar" ? "Já tenho conta — entrar" : "Criar uma conta nova";
+    showAuthError("");
+  });
+
+  if (forgotBtn) forgotBtn.addEventListener("click", handleForgotPassword);
+
+  if (form) form.addEventListener("submit", e => {
+    e.preventDefault();
+    handleAuthSubmit(
+      document.getElementById("authEmail").value.trim(),
+      document.getElementById("authPassword").value
+    );
+  });
+
+  if (logoutBtn) logoutBtn.addEventListener("click", async () => {
+    if (!confirm("Sair da conta? O app volta a usar uma conta anônima neste aparelho.")) return;
+    await auth.signOut();
+    cloudUserId = null;
+    cloudReady = false;
+    userProfile = { name: "", avatar: "🙂", currency: "BRL" };
+    updateHeaderGreeting();
+    renderAuthStatus();
+  });
+
+  // Avatar picker
+  document.getElementById("avatarGrid")?.addEventListener("click", e => {
+    const btn = e.target.closest(".avatar-opt");
+    if (!btn) return;
+    document.querySelectorAll(".avatar-opt").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    userProfile.avatar = btn.dataset.emoji;
+    updateHeaderGreeting();
+  });
+
+  // Salvar perfil
+  if (profileSaveBtn) profileSaveBtn.addEventListener("click", async () => {
+    const nameEl = document.getElementById("profileName");
+    const currEl = document.getElementById("profileCurrency");
+    userProfile.name = nameEl?.value.trim() || "";
+    userProfile.currency = currEl?.value || "BRL";
+    updateHeaderGreeting();
+    if (cloudUserId) {
+      profileSaveBtn.disabled = true;
+      profileSaveBtn.textContent = "Salvando...";
+      try {
+        await saveProfile(cloudUserId);
+        const msg = document.getElementById("profileSavedMsg");
+        if (msg) { msg.style.display = "block"; setTimeout(() => msg.style.display = "none", 3000); }
+      } catch (e) { alert("Erro ao salvar perfil. Tente novamente."); }
+      finally { profileSaveBtn.disabled = false; profileSaveBtn.textContent = "💾 Salvar perfil"; }
+    }
+  });
+}
 
 // ============================================================
 // CATEGORIAS - helpers
@@ -170,7 +518,7 @@ function getCatsForType(type) {
   return cats.filter(c => c.type === type || c.type === "all");
 }
 function getFavCatsForType(type) {
-  return getCatsForType(type).filter(c => c.favorite);
+  return getCatsForType(type).filter(c => c.isFavorite);
 }
 
 // ============================================================
@@ -491,80 +839,10 @@ accModal.addEventListener("click", function(e) {
 // ============================================================
 // MODAL CATEGORIAS
 // ============================================================
-const catModal      = document.getElementById("catModal");
-const catModalClose = document.getElementById("catModalClose");
-const catModalList  = document.getElementById("catModalList");
-const catName       = document.getElementById("catName");
-const catType       = document.getElementById("catType");
-const catFav        = document.getElementById("catFav");
-const catAddBtn     = document.getElementById("catAddBtn");
-
-function openCatModal() {
-  renderCatModalList();
-  catModal.classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-function closeCatModal() {
-  catModal.classList.remove("open");
-  document.body.style.overflow = "";
-  render(); // re-render para atualizar selects de categoria
-}
-
-catModalClose.addEventListener("click", closeCatModal);
-catModal.addEventListener("click", function(e) {
-  if (e.target === catModal) closeCatModal();
-});
-
-catAddBtn.addEventListener("click", function() {
-  const name = catName.value.trim();
-  if (!name) { alert("Digite o nome da categoria."); return; }
-  if (cats.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-    alert("Ja existe uma categoria com este nome."); return;
-  }
-  cats.push({
-    id:       "c" + Date.now(),
-    name:     name,
-    type:     catType.value,
-    favorite: catFav.checked
-  });
-  saveCats();
-  catName.value  = "";
-  catFav.checked = false;
-  renderCatModalList();
-});
-
-function renderCatModalList() {
-  if (!cats.length) {
-    catModalList.innerHTML = '<div class="cat-empty">Nenhuma categoria cadastrada.</div>';
-    return;
-  }
-  const typeLabels = { income:"Receitas", expense:"Despesas", investment:"Investimento", all:"Todos" };
-  catModalList.innerHTML = cats.map(c => `
-    <div class="cat-list-item">
-      <div class="cat-star">${c.favorite ? "⭐" : "☆"}</div>
-      <div class="cat-list-item-info">
-        <div class="cat-list-item-name">${c.name}</div>
-        <div class="cat-list-item-meta">
-          <span class="cat-badge ${c.type}">${typeLabels[c.type] || c.type}</span>
-          ${c.favorite ? "<span style='font-size:.68rem;color:var(--primary)'>Favorita</span>" : ""}
-        </div>
-      </div>
-      <button class="cat-del-btn" data-catid="${c.id}" title="Remover">🗑</button>
-    </div>
-  `).join("");
-
-  catModalList.querySelectorAll(".cat-del-btn").forEach(btn => {
-    btn.addEventListener("click", function() {
-      if (!confirm("Remover esta categoria?")) return;
-      cats = cats.filter(c => c.id !== btn.dataset.catid);
-      saveCats();
-      renderCatModalList();
-    });
-  });
-}
-
-// Expor openCatModal globalmente
-window.openCatModal = openCatModal;
+// A UI do modal de categorias (abrir/fechar, adicionar, editar, excluir,
+// limites mensais) é implementada em index.html, usando window.getCats()/
+// window.setCats() (definidos acima) para ler e persistir os dados —
+// incluindo a sincronização com o Firebase feita por saveCats().
 
 // ============================================================
 // RENDER PRINCIPAL
@@ -572,6 +850,7 @@ window.openCatModal = openCatModal;
 function render() {
   fillSelects();
   fillCatSelect(el.cat, document.querySelector('input[name="type"]:checked')?.value || "income");
+  if (window.populateFilterSelects) window.populateFilterSelects();
   const summary = calcSummary();
   renderSummary(summary);
   renderAccounts(summary.balances);
@@ -580,6 +859,8 @@ function render() {
   renderReports(summary);
   renderLicense();
   renderFavTags(el.favTags, el.cat, document.querySelector('input[name="type"]:checked')?.value || "income", el.cat.value);
+  renderRecorrentes();
+  renderProjecao();
   try { drawCharts(summary); } catch(e) {}
   try { drawEconomyChart(); } catch(e) {}
 }
@@ -656,9 +937,9 @@ function renderTransactions(m, y) {
   const all = state.transactions;
   const inMonth = t => (t.date || "").startsWith(prefix);
 
-  const inc = all.filter(t => t.type === "income"   && inMonth(t));
-  const exp = all.filter(t => t.type === "expense"  && inMonth(t));
-  const trf = all.filter(t => t.type === "transfer" && inMonth(t));
+  const inc = applyFilters(all.filter(t => t.type === "income"   && inMonth(t)));
+  const exp = applyFilters(all.filter(t => t.type === "expense"  && inMonth(t)));
+  const trf = applyFilters(all.filter(t => t.type === "transfer" && inMonth(t)));
 
   el.incCount.textContent = inc.length;
   el.expCount.textContent = exp.length;
@@ -854,6 +1135,333 @@ function drawBar(canvas, rows) {
 }
 
 // ============================================================
+// FILTROS
+// ============================================================
+
+function setupFilters() {
+  const fType = document.getElementById("filterType");
+  const fCat  = document.getElementById("filterCat");
+  const fAcc  = document.getElementById("filterAcc");
+  const fClear = document.getElementById("filterClearBtn");
+
+  // Preenche selects de categoria e conta com os dados atuais
+  function populateFilterSelects() {
+    if (fCat) {
+      const catOpts = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+      fCat.innerHTML = `<option value="">Todas as categorias</option>${catOpts}`;
+      fCat.value = filters.cat;
+    }
+    if (fAcc) {
+      const accOpts = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
+      fAcc.innerHTML = `<option value="">Todas as contas</option>${accOpts}`;
+      fAcc.value = filters.acc;
+    }
+  }
+
+  window.populateFilterSelects = populateFilterSelects;
+
+  const onChange = () => {
+    filters.type = fType?.value || "";
+    filters.cat  = fCat?.value  || "";
+    filters.acc  = fAcc?.value  || "";
+    renderTransactions();
+    renderCatPills();
+  };
+
+  fType?.addEventListener("change", onChange);
+  fCat?.addEventListener("change",  onChange);
+  fAcc?.addEventListener("change",  onChange);
+  fClear?.addEventListener("click", () => {
+    filters = { type: "", cat: "", acc: "" };
+    if (fType) fType.value = "";
+    if (fCat)  fCat.value  = "";
+    if (fAcc)  fAcc.value  = "";
+    renderTransactions();
+    renderCatPills();
+  });
+}
+
+// Filtro aplicado sobre uma lista de transações
+function applyFilters(txs) {
+  return txs.filter(t => {
+    if (filters.type && t.type !== filters.type) return false;
+    if (filters.cat  && t.category !== filters.cat) return false;
+    if (filters.acc  && t.fromAccount !== filters.acc && t.toAccount !== filters.acc) return false;
+    return true;
+  });
+}
+
+// ============================================================
+// RECORRENTES — CRUD e UI
+// ============================================================
+let editRecorrId = null;
+
+function getDaysUntilDue(day) {
+  const today = new Date();
+  const due = new Date(today.getFullYear(), today.getMonth(), day);
+  if (due < today) due.setMonth(due.getMonth() + 1);
+  return Math.round((due - today) / 86400000);
+}
+
+function wasLaunchedThisMonth(rec) {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  return rec.lastLaunched === key;
+}
+
+function markLaunched(rec) {
+  const now = new Date();
+  rec.lastLaunched = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+}
+
+function launchRecorrente(rec) {
+  const today = getBrazilDate();
+  const [yr, mo] = today.split("-");
+  const day = String(Math.min(rec.day, new Date(+yr, +mo, 0).getDate())).padStart(2,"0");
+  const tx = {
+    id: crypto.randomUUID(),
+    type: rec.type,
+    description: rec.description,
+    amount: rec.amount,
+    date: `${yr}-${mo}-${day}`,
+    fromAccount: rec.fromAccount,
+    toAccount: "",
+    category: rec.category || ""
+  };
+  state.transactions.unshift(tx);
+  markLaunched(rec);
+  saveState();
+  saveRecorrentes();
+  render();
+  scheduleRecorrentesNotifications();
+}
+
+function renderRecorrentes() {
+  const el = document.getElementById("recorrList");
+  if (!el) return;
+  const active = recorrentes.filter(r => r.active !== false);
+  if (!recorrentes.length) { el.innerHTML = '<div class="empty">Nenhuma conta recorrente cadastrada.</div>'; return; }
+
+  el.innerHTML = recorrentes.map(rec => {
+    const daysLeft = getDaysUntilDue(rec.day);
+    const launched = wasLaunchedThisMonth(rec);
+    let dueTag = "";
+    if (!launched) {
+      if (daysLeft <= 0)       dueTag = `<span class="recorr-due overdue">Vencida</span>`;
+      else if (daysLeft <= 3)  dueTag = `<span class="recorr-due due-soon">em ${daysLeft}d</span>`;
+    }
+    const inactiveClass = rec.active === false ? " recorr-inactive" : "";
+    return `
+    <div class="recorr-item${inactiveClass}" data-id="${rec.id}">
+      <div class="recorr-badge ${rec.type}">${rec.day}</div>
+      <div class="recorr-info">
+        <strong>${rec.description}${dueTag}</strong>
+        <small>${rec.category || "Sem categoria"} · Dia ${rec.day} · ${rec.type === "expense" ? "Despesa" : "Receita"}</small>
+      </div>
+      <span class="recorr-amount ${rec.type}">${rec.type === "expense" ? "−" : "+"}${money.format(rec.amount)}</span>
+      <div class="recorr-actions">
+        ${!launched && rec.active !== false ? `<button class="recorr-btn" data-action="launch" data-id="${rec.id}" title="Lançar agora">▶</button>` : ""}
+        <button class="recorr-btn" data-action="edit"   data-id="${rec.id}" title="Editar">✏️</button>
+        <button class="recorr-btn" data-action="toggle" data-id="${rec.id}" title="${rec.active === false ? "Ativar" : "Pausar"}">${rec.active === false ? "▶" : "⏸"}</button>
+        <button class="recorr-btn" data-action="del"    data-id="${rec.id}" title="Excluir">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  el.querySelectorAll("[data-action]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id  = btn.dataset.id;
+      const rec = recorrentes.find(r => r.id === id);
+      if (!rec) return;
+      if (btn.dataset.action === "launch") {
+        if (confirm(`Lançar "${rec.description}" (${money.format(rec.amount)}) agora?`)) launchRecorrente(rec);
+      }
+      if (btn.dataset.action === "edit")   openRecorrModal(rec);
+      if (btn.dataset.action === "toggle") {
+        rec.active = rec.active === false ? true : false;
+        saveRecorrentes(); renderRecorrentes();
+      }
+      if (btn.dataset.action === "del") {
+        if (confirm(`Excluir "${rec.description}"?`)) {
+          recorrentes = recorrentes.filter(r => r.id !== id);
+          saveRecorrentes(); renderRecorrentes(); renderProjecao();
+        }
+      }
+    });
+  });
+}
+
+function openRecorrModal(rec) {
+  editRecorrId = rec ? rec.id : null;
+  const modal = document.getElementById("recorrModal");
+  document.getElementById("recorrModalTitle").textContent = rec ? "✏️ Editar recorrente" : "🔁 Nova recorrente";
+
+  // Preenche selects
+  const accEl = document.getElementById("recorrAcc");
+  accEl.innerHTML = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
+  const catEl = document.getElementById("recorrCat");
+  catEl.innerHTML = `<option value="">Sem categoria</option>` + cats.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
+
+  if (rec) {
+    document.querySelector(`input[name="rtype"][value="${rec.type}"]`).checked = true;
+    document.getElementById("recorrDesc").value = rec.description;
+    document.getElementById("recorrAmt").value  = rec.amount;
+    document.getElementById("recorrDay").value  = rec.day;
+    accEl.value = rec.fromAccount;
+    catEl.value = rec.category || "";
+  } else {
+    document.querySelector('input[name="rtype"][value="expense"]').checked = true;
+    document.getElementById("recorrDesc").value = "";
+    document.getElementById("recorrAmt").value  = "";
+    document.getElementById("recorrDay").value  = "";
+    accEl.value = state.accounts[0]?.id || "";
+    catEl.value = "";
+  }
+  modal?.classList.add("open");
+}
+
+function setupRecorrentesUI() {
+  document.getElementById("addRecorrBtn")?.addEventListener("click", () => openRecorrModal(null));
+  document.getElementById("recorrModalClose")?.addEventListener("click", () => document.getElementById("recorrModal")?.classList.remove("open"));
+  document.getElementById("recorrModal")?.addEventListener("click", e => { if (e.target.id === "recorrModal") e.target.classList.remove("open"); });
+
+  document.getElementById("recorrForm")?.addEventListener("submit", e => {
+    e.preventDefault();
+    const type = document.querySelector('input[name="rtype"]:checked')?.value || "expense";
+    const rec = {
+      id:          editRecorrId || crypto.randomUUID(),
+      type,
+      description: document.getElementById("recorrDesc").value.trim(),
+      amount:      Number(document.getElementById("recorrAmt").value),
+      day:         Number(document.getElementById("recorrDay").value),
+      fromAccount: document.getElementById("recorrAcc").value,
+      category:    document.getElementById("recorrCat").value,
+      active:      true,
+      lastLaunched: editRecorrId ? (recorrentes.find(r=>r.id===editRecorrId)?.lastLaunched || "") : ""
+    };
+    if (editRecorrId) {
+      recorrentes = recorrentes.map(r => r.id === editRecorrId ? rec : r);
+    } else {
+      recorrentes.push(rec);
+    }
+    saveRecorrentes();
+    renderRecorrentes();
+    renderProjecao();
+    scheduleRecorrentesNotifications();
+    document.getElementById("recorrModal")?.classList.remove("open");
+  });
+}
+
+// ============================================================
+// PROJEÇÃO DE SALDO — próximos 30 dias
+// ============================================================
+function renderProjecao() {
+  const el = document.getElementById("projecaoList");
+  if (!el) return;
+  const ativos = recorrentes.filter(r => r.active !== false);
+  if (!ativos.length) { el.innerHTML = '<div class="empty">Cadastre recorrentes para ver a projeção.</div>'; return; }
+
+  // Saldo atual
+  const balances = Object.fromEntries(state.accounts.map(a => [a.id, a.openingBalance || 0]));
+  state.transactions.forEach(t => {
+    const v = Number(t.amount) || 0;
+    if (t.type === "income")   balances[t.fromAccount] = (balances[t.fromAccount]||0) + v;
+    if (t.type === "expense")  balances[t.fromAccount] = (balances[t.fromAccount]||0) - v;
+    if (t.type === "transfer") { balances[t.fromAccount] = (balances[t.fromAccount]||0) - v; balances[t.toAccount] = (balances[t.toAccount]||0) + v; }
+  });
+  let saldo = Object.values(balances).reduce((s,v)=>s+v,0);
+
+  // Monta eventos dos próximos 30 dias
+  const today = new Date(); today.setHours(0,0,0,0);
+  const events = [];
+  for (let d = 0; d <= 30; d++) {
+    const date = new Date(today); date.setDate(today.getDate() + d);
+    ativos.forEach(rec => {
+      const dueDay = Math.min(rec.day, new Date(date.getFullYear(), date.getMonth()+1, 0).getDate());
+      if (date.getDate() === dueDay) {
+        const alreadyLaunched = wasLaunchedThisMonth(rec) &&
+          new Date().getMonth() === date.getMonth() && new Date().getFullYear() === date.getFullYear();
+        if (!alreadyLaunched) events.push({ date: new Date(date), rec });
+      }
+    });
+  }
+
+  if (!events.length) { el.innerHTML = '<div class="empty">Sem eventos recorrentes nos próximos 30 dias.</div>'; return; }
+
+  // Agrupa por data e calcula saldo projetado
+  const grouped = [];
+  events.sort((a,b) => a.date - b.date);
+  let currentDate = null;
+  events.forEach(ev => {
+    const key = ev.date.toISOString().slice(0,10);
+    if (key !== currentDate) { currentDate = key; grouped.push({ date: ev.date, items: [] }); }
+    grouped[grouped.length-1].items.push(ev.rec);
+  });
+
+  const todayKey = today.toISOString().slice(0,10);
+  let runSaldo = saldo;
+  el.innerHTML = grouped.map(group => {
+    const dateKey = group.date.toISOString().slice(0,10);
+    const isToday = dateKey === todayKey;
+    const dateLabel = isToday ? "Hoje" : dateFmt.format(group.date);
+    let groupHtml = "";
+    group.items.forEach(rec => {
+      runSaldo += rec.type === "income" ? rec.amount : -rec.amount;
+      const signal = rec.type === "income" ? "+" : "−";
+      const cls    = rec.type === "income" ? "income-text" : "expense-text";
+      groupHtml += `<div class="proj-row${isToday ? " proj-today" : ""}">
+        <span class="proj-date">${dateLabel}</span>
+        <span class="proj-event">${rec.description}</span>
+        <span class="proj-balance ${runSaldo < 0 ? "neg" : "pos"}">${signal}${money.format(rec.amount)} → ${money.format(runSaldo)}</span>
+      </div>`;
+    });
+    return groupHtml;
+  }).join("");
+}
+
+// ============================================================
+// NOTIFICAÇÕES — @capacitor/local-notifications
+// ============================================================
+async function scheduleRecorrentesNotifications() {
+  try {
+    const { LocalNotifications } = Capacitor?.Plugins || {};
+    if (!LocalNotifications) return; // plugin não disponível (web ou não instalado)
+
+    // Cancela notificações de recorrentes anteriores (IDs 9000-9099)
+    const ids = Array.from({length:100}, (_,i) => ({ id: 9000+i }));
+    await LocalNotifications.cancel({ notifications: ids }).catch(()=>{});
+
+    // Pede permissão
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== "granted") return;
+
+    const notifications = [];
+    recorrentes.filter(r => r.active !== false && !wasLaunchedThisMonth(r)).forEach((rec, i) => {
+      const today = new Date(); today.setHours(9, 0, 0, 0);
+      const due = new Date(today.getFullYear(), today.getMonth(), rec.day, 9, 0, 0);
+      if (due < today) due.setMonth(due.getMonth() + 1);
+
+      const daysLeft = Math.round((due - new Date()) / 86400000);
+      if (daysLeft > 7) return; // só notifica com até 7 dias de antecedência
+
+      const alertDate = new Date(due); alertDate.setDate(due.getDate() - 2); alertDate.setHours(9,0,0,0);
+      if (alertDate < new Date()) return; // já passou a data de alerta
+
+      notifications.push({
+        id: 9000 + i,
+        title: `📅 ${rec.description} vence em ${daysLeft}d`,
+        body: `${rec.type === "expense" ? "Despesa" : "Receita"} de ${money.format(rec.amount)} — toque para lançar`,
+        schedule: { at: alertDate },
+        sound: null, attachments: null, actionTypeId: "", extra: null
+      });
+    });
+
+    if (notifications.length) await LocalNotifications.schedule({ notifications });
+  } catch (e) { console.warn("Notificação local indisponível:", e); }
+}
+
+// ============================================================
 // UTILS
 // ============================================================
 function accName(id) { return state.accounts.find(a=>a.id===id)?.name||"Conta"; }
@@ -865,4 +1473,4 @@ window.drawEconomyChart = drawEconomyChart;
 window.calculateSummary = calcSummary;
 window.economyMonth = economyMonth;
 window.economyYear  = economyYear;
-window.appData = state; 
+window.appData = state;
