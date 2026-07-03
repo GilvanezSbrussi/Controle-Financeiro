@@ -132,6 +132,7 @@
         setStatus("Cadastro realizado! Redirecionando...", "success");
       } catch (err) {
         // Mesmo se o email falhar, salva o perfil e continua
+        console.error("Erro EmailJS:", err);  //Temporário
         setStatus("Cadastro salvo. Redirecionando...", "success");
       }
  
