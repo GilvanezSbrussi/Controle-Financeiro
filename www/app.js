@@ -272,6 +272,7 @@ function initFirebaseSync() {
       const remote = snap.data();
       if (Array.isArray(remote.transactions)) {
         state = { accounts: remote.accounts?.length ? remote.accounts : defaultState.accounts, transactions: remote.transactions };
+        window.appData = state; // mantem window.appData apontando pro objeto state atual
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         render();
       }
@@ -745,9 +746,13 @@ const accModalType  = document.getElementById("accModalType");
 const accModalBal   = document.getElementById("accModalBalance");
 const accModalIcon  = document.getElementById("accModalIcon");
 
+let currentAccModalId = null;
+
 function openAccModal(accId) {
   const acc = state.accounts.find(a => a.id === accId);
   if (!acc) return;
+  currentAccModalId = accId;
+  window.currentAccModalId = accId;
   const summary = calcSummary();
   const bal = summary.balances[acc.id] || 0;
 
@@ -835,6 +840,59 @@ accModalClose.addEventListener("click", function() {
 accModal.addEventListener("click", function(e) {
   if (e.target === accModal) { accModal.classList.remove("open"); document.body.style.overflow = ""; }
 });
+window.closeAccModal = function() {
+  accModal.classList.remove("open");
+  document.body.style.overflow = "";
+};
+
+// ============================================================
+// GESTÃO DE CONTAS (criar / editar / excluir)
+// Exposto em window.* para a UI de formulário implementada no
+// index.html, seguindo o mesmo padrão usado por getCats()/setCats().
+// ============================================================
+window.getAccountsData = function() {
+  return state.accounts;
+};
+
+window.addAccount = function(name, kind, openingBalance) {
+  const acc = {
+    id: "acc" + Date.now() + Math.random().toString(36).slice(2),
+    name: (name || "").trim() || "Nova conta",
+    kind: kind === "investment" ? "investment" : "checking",
+    openingBalance: parseFloat(openingBalance) || 0
+  };
+  state.accounts.push(acc);
+  saveState();
+  render();
+  return acc.id;
+};
+
+window.updateAccount = function(id, name, kind, openingBalance) {
+  const acc = state.accounts.find(a => a.id === id);
+  if (!acc) return false;
+  acc.name = (name || "").trim() || acc.name;
+  acc.kind = kind === "investment" ? "investment" : "checking";
+  acc.openingBalance = parseFloat(openingBalance) || 0;
+  saveState();
+  render();
+  return true;
+};
+
+window.deleteAccount = function(id) {
+  const temLancamentos = state.transactions.some(t => t.fromAccount === id || t.toAccount === id);
+  if (temLancamentos) {
+    alert("Essa conta tem lancamentos vinculados. Exclua ou edite esses lancamentos (mudando a conta deles) antes de excluir a conta.");
+    return false;
+  }
+  if (state.accounts.length <= 1) {
+    alert("Voce precisa manter pelo menos uma conta.");
+    return false;
+  }
+  state.accounts = state.accounts.filter(a => a.id !== id);
+  saveState();
+  render();
+  return true;
+};
 
 // ============================================================
 // MODAL CATEGORIAS

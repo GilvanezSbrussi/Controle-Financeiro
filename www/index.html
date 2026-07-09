@@ -299,6 +299,44 @@ canvas{width:100%!important;display:block}
 .new-tx-option-text{flex:1}
 .new-tx-option-label{font-size:.85rem;font-weight:700;color:var(--text);display:block}
 .new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
+.plans-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.plans-modal-overlay.open{opacity:1;pointer-events:all}
+.plans-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto;padding:1.5rem 1.25rem 2rem}
+.plans-modal-overlay.open .plans-modal-sheet{transform:translateY(0)}
+.plans-current{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--rsm);padding:.75rem .9rem;margin-bottom:1.25rem;font-size:.85rem;color:var(--text)}
+.plans-current strong{color:var(--primary)}
+.plans-list{display:flex;flex-direction:column;gap:.65rem}
+.plan-card{position:relative;display:flex;justify-content:space-between;align-items:center;gap:.75rem;background:var(--bg3);border:2px solid var(--border);border-radius:var(--rsm);padding:.85rem 1rem;transition:border-color .2s}
+.plan-card.highlight{border-color:var(--primary);background:var(--primary-light)}
+.plan-badge{position:absolute;top:-9px;right:12px;background:var(--primary);color:#fff;font-size:.65rem;font-weight:800;padding:2px 9px;border-radius:10px;letter-spacing:.02em}
+.plan-name{font-size:.92rem;font-weight:800;color:var(--text)}
+.plan-duration{font-size:.74rem;color:var(--text2);margin-top:1px}
+.plan-price-wrap{text-align:right;flex-shrink:0}
+.plan-price{font-size:1.05rem;font-weight:800;color:var(--text)}
+.plan-price.free{color:var(--income)}
+.plan-price-month{font-size:.68rem;color:var(--text2);margin-top:1px}
+.plans-cta{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);font-size:.95rem;font-weight:700;cursor:pointer;text-decoration:none;display:block;text-align:center;margin-top:1.25rem}
+.plans-cta:hover{opacity:.9}
+.plans-note{font-size:.72rem;color:var(--text3);text-align:center;margin-top:.6rem;line-height:1.4}
+/* ===== TECLADO NUMÉRICO PERSONALIZADO ===== */
+.numpad-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.numpad-overlay.open{opacity:1;pointer-events:all}
+.numpad-sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:320px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:.85rem .85rem 1.1rem;box-shadow:0 -8px 32px rgba(0,0,0,.25)}
+.numpad-overlay.open .numpad-sheet{transform:translateY(0)}
+.numpad-display{background:var(--bg3);border-radius:14px;padding:.8rem .9rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.numpad-display-value{font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:.01em;overflow-x:auto;white-space:nowrap}
+.numpad-display-actions{display:flex;gap:6px;flex-shrink:0}
+.numpad-display-actions button{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;width:34px;height:34px;font-size:.95rem;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.numpad-display-actions button:hover{background:var(--border)}
+.numpad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.numpad-btn{padding:12px 0;border:none;border-radius:12px;background:var(--bg3);color:var(--text);font-size:1.1rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.numpad-btn:active{transform:scale(.94)}
+.numpad-btn:hover{background:var(--border)}
+.numpad-btn.numpad-op{background:var(--primary-light);color:var(--primary);font-size:1.35rem}
+.numpad-btn.numpad-op:hover{background:var(--primary);color:#fff}
+.numpad-btn.numpad-check{background:var(--primary);color:#fff}
+.numpad-btn.numpad-check:hover{opacity:.9}
+.numpad-btn.numpad-comma{font-size:1.4rem}
 .tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .tx-form-modal-overlay.open{opacity:1;pointer-events:all}
 .tx-form-modal-sheet{background:var(--bg2);border-radius:20px;width:95%;max-width:500px;transform:scale(0.95) translateY(20px);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
@@ -580,6 +618,7 @@ canvas{width:100%!important;display:block}
   <div class="ddmenu left-menu" id="leftDdMenu">
     <a class="dditem" href="extrato.html">📊 Extrato</a>
     <button class="dditem" id="openCatModal">🏷️ Categorias</button>
+    <a class="dditem" href="lembretes.html">🔔 Lembretes</a>
   </div>
 </div>
 
@@ -593,6 +632,7 @@ canvas{width:100%!important;display:block}
 <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
 <div class="ddmenu" id="ddMenu">
 <!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
+<button class="dditem" id="openPlansModal" type="button" style="text-align:left">💎 Planos</button>
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
 <button class="dditem" id="menuAccountBtn" type="button" style="text-align:left">👤 Minha Conta</button>
@@ -650,6 +690,20 @@ canvas{width:100%!important;display:block}
 <div class="card">
 <div class="card-title"><h2>💳 Contas</h2><span id="accountCount">0 contas</span></div>
 <div class="acc-list" id="accountList"></div>
+<button class="pbtn btn-secondary" id="newAccountBtn" type="button" style="margin-top:.75rem">➕ Nova conta</button>
+<div class="fgrid hidden" id="accountFormWrapper" style="margin-top:.75rem">
+<input type="hidden" id="accountEditId" value=""/>
+<label class="full">Nome da conta<input type="text" id="accountName" placeholder="Ex: Carteira, Nubank, Poupanca..." maxlength="40"/></label>
+<label>Tipo<select id="accountKind">
+<option value="checking">Conta corrente</option>
+<option value="investment">Investimento</option>
+</select></label>
+<label>Saldo inicial<input type="number" id="accountOpeningBalance" step="0.01" placeholder="0,00"/></label>
+<div class="full button-group">
+<button class="pbtn" id="saveAccountBtn" type="button">💾 Salvar conta</button>
+<button class="pbtn btn-secondary" id="cancelAccountBtn" type="button">✕ Cancelar</button>
+</div>
+</div>
 </div>
 
 <div class="card">
@@ -670,8 +724,8 @@ canvas{width:100%!important;display:block}
 <div class="fav-tags" id="favTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
-<label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+<label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" placeholder="0,00" required/></label>
 <label>Data<input id="dt" name="date" type="date" required/></label>
 <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
 <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
@@ -761,6 +815,111 @@ canvas{width:100%!important;display:block}
       <span id="licBlockInfoValue">-</span>
     </div>
     <a href="licenca.html" class="lic-block-btn">🔑 Ativar Licença</a>
+    <button type="button" class="lic-block-btn" id="licBlockSeePlans" style="background:var(--bg3);color:var(--text);margin-top:.6rem">💎 Ver planos</button>
+  </div>
+</div>
+
+<!-- Tela de planos disponíveis -->
+<div class="plans-modal-overlay" id="plansModalOverlay">
+  <div class="plans-modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <h3>💎 Planos disponíveis</h3>
+      <button class="modal-close" id="plansModalClose">✕</button>
+    </div>
+
+    <div class="plans-current" id="plansCurrentStatus">Carregando seu plano atual...</div>
+
+    <div class="plans-list">
+      <div class="plan-card">
+        <div>
+          <div class="plan-name">🕐 Teste grátis</div>
+          <div class="plan-duration">10 dias</div>
+        </div>
+        <div class="plan-price-wrap">
+          <div class="plan-price free">Grátis</div>
+          <div class="plan-price-month">—</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div>
+          <div class="plan-name">Mensal</div>
+          <div class="plan-duration">30 dias</div>
+        </div>
+        <div class="plan-price-wrap">
+          <div class="plan-price">R$ 14,90</div>
+          <div class="plan-price-month">R$ 14,90/mês</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div>
+          <div class="plan-name">Trimestral</div>
+          <div class="plan-duration">90 dias</div>
+        </div>
+        <div class="plan-price-wrap">
+          <div class="plan-price">R$ 34,90</div>
+          <div class="plan-price-month">R$ 11,63/mês</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div>
+          <div class="plan-name">Semestral</div>
+          <div class="plan-duration">180 dias</div>
+        </div>
+        <div class="plan-price-wrap">
+          <div class="plan-price">R$ 59,90</div>
+          <div class="plan-price-month">R$ 9,98/mês</div>
+        </div>
+      </div>
+
+      <div class="plan-card highlight">
+        <span class="plan-badge">MELHOR PREÇO</span>
+        <div>
+          <div class="plan-name">Anual</div>
+          <div class="plan-duration">365 dias</div>
+        </div>
+        <div class="plan-price-wrap">
+          <div class="plan-price">R$ 99,90</div>
+          <div class="plan-price-month">R$ 8,32/mês</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="licenca.html" class="plans-cta">🔑 Ativar ou renovar licença</a>
+    <p class="plans-note">Após escolher e pagar seu plano, você receberá uma chave de licença para ativar na tela de Licença.</p>
+  </div>
+</div>
+
+<!-- Teclado numérico personalizado para os campos de Valor -->
+<div class="numpad-overlay" id="numpadOverlay">
+  <div class="numpad-sheet">
+    <div class="numpad-display">
+      <span class="numpad-display-value" id="numpadDisplayValue">R$ 0</span>
+      <div class="numpad-display-actions">
+        <button type="button" id="numpadClearBtn" title="Limpar">C</button>
+        <button type="button" id="numpadDelBtn" title="Apagar">⌫</button>
+      </div>
+    </div>
+    <div class="numpad-grid" id="numpadGrid">
+      <button type="button" class="numpad-btn" data-key="7">7</button>
+      <button type="button" class="numpad-btn" data-key="8">8</button>
+      <button type="button" class="numpad-btn" data-key="9">9</button>
+
+      <button type="button" class="numpad-btn" data-key="4">4</button>
+      <button type="button" class="numpad-btn" data-key="5">5</button>
+      <button type="button" class="numpad-btn" data-key="6">6</button>
+
+      <button type="button" class="numpad-btn" data-key="1">1</button>
+      <button type="button" class="numpad-btn" data-key="2">2</button>
+      <button type="button" class="numpad-btn" data-key="3">3</button>
+
+      <button type="button" class="numpad-btn numpad-comma" data-key=",">,</button>
+      <button type="button" class="numpad-btn" data-key="0">0</button>
+      <button type="button" class="numpad-btn numpad-check" data-key="ok">✓</button>
+    </div>
   </div>
 </div>
 
@@ -848,8 +1007,8 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="fav-tags" id="modalFavTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descrição<input id="modalDesc" type="text" placeholder="Ex: salário, aluguel" required/></label>
-<label>Valor<input id="modalAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+<label class="full">Descrição<input id="modalDesc" name="description" type="text" placeholder="Ex: salário, aluguel" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label>Valor<input id="modalAmt" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" placeholder="0,00" required/></label>
 <label>Data<input id="modalDt" type="date" required/></label>
 <label id="modalFromWrap">Conta<select id="modalFromAcc" required></select></label>
 <label id="modalToWrap" class="hidden">Destino<select id="modalToAcc"></select></label>
@@ -902,9 +1061,9 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label><input type="radio" name="rtype" value="income"/><span>💰 Receita</span></label>
 </div>
 <div class="fgrid">
-<label class="full">Descrição<input id="recorrDesc" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário"/></label>
-<label>Valor (R$)<input id="recorrAmt" type="number" inputmode="decimal" min="0.01" step="0.01" required placeholder="0,00"/></label>
-<label>Dia do mês<input id="recorrDay" type="number" min="1" max="28" required placeholder="1-28"/></label>
+<label class="full">Descrição<input id="recorrDesc" name="description" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true"/></label>
+<label>Valor (R$)<input id="recorrAmt" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" required placeholder="0,00"/></label>
+<label>Dia do mês<input id="recorrDay" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="28" required placeholder="1-28"/></label>
 <label class="full">Conta<select id="recorrAcc"></select></label>
 <label class="full">Categoria<select id="recorrCat"><option value="">Sem categoria</option></select></label>
 </div>
@@ -994,8 +1153,8 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="fav-tags" id="editFavTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descricao<input id="editDesc" name="description" type="text" required/></label>
-<label>Valor<input id="editAmt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" required/></label>
+<label class="full">Descricao<input id="editDesc" name="description" type="text" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label>Valor<input id="editAmt" name="amount" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" required/></label>
 <label>Data<input id="editDt" name="date" type="date" required/></label>
 <label>Conta<select id="editFromAcc" name="fromAccount" required></select></label>
 <label id="editToWrap" class="hidden">Destino<select id="editToAcc" name="toAccount"></select></label>
@@ -1022,6 +1181,10 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <strong id="accModalName">-</strong>
 <em id="accModalBalance">R$ 0,00</em>
 </div>
+</div>
+<div style="display:flex;gap:8px;margin-top:.75rem">
+<button class="abtn" id="accModalEditBtn" type="button">✏️ Editar</button>
+<button class="abtn del" id="accModalDeleteBtn" type="button">🗑️ Excluir</button>
 </div>
 </div>
 <div class="account-modal-body" id="accModalBody"></div>
@@ -1068,7 +1231,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label for="catHasLimit">🎯 Definir limite mensal</label>
 </div>
 <div class="cat-limit-fields disabled" id="catLimitFields">
-<label>Limite mensal (R$)<input type="number" id="catLimitAmount" min="0" step="0.01" placeholder="1000.00"/></label>
+<label>Limite mensal (R$)<input type="number" id="catLimitAmount" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0" step="0.01" placeholder="1000.00"/></label>
 <label>Alerta em (%)
 <select id="catLimitWarning">
 <option value="80">80% do limite</option>
@@ -1125,7 +1288,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label for="editCatHasLimit">🎯 Definir limite mensal</label>
 </div>
 <div class="cat-limit-fields disabled" id="editCatLimitFields">
-<label>Limite mensal (R$)<input type="number" id="editCatLimitAmount" min="0" step="0.01"/></label>
+<label>Limite mensal (R$)<input type="number" id="editCatLimitAmount" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0" step="0.01"/></label>
 <label>Alerta em (%)
 <select id="editCatLimitWarning">
 <option value="80">80% do limite</option>
@@ -1503,6 +1666,10 @@ return Date.now().toString() + "_" + Math.random().toString(36).substr(2,5);
 }
 
 function getAccounts() {
+if (typeof window.getAccountsData === "function") {
+const accs = window.getAccountsData();
+if (Array.isArray(accs) && accs.length > 0) return accs;
+}
 if (window.appData && window.appData.accounts) return window.appData.accounts;
 try {
 const d = JSON.parse(localStorage.getItem("financas-v3") || "{}");
@@ -1512,6 +1679,59 @@ return [
 {id:"corrente", name:"Conta corrente", kind:"checking", openingBalance:0},
 {id:"investimentos",name:"Investimentos", kind:"investment", openingBalance:0}
 ];
+}
+
+// ==========================================
+// NOTIFICAÇÃO NATIVA AO ATINGIR O LIMITE DE UMA CATEGORIA
+// Dispara uma notificação de verdade (fora do app) quando uma
+// categoria com limite mensal atinge o "% de aviso" configurado
+// (padrao 80%) ou estoura 100%. So notifica uma vez por
+// categoria/mes/nivel, pra nao repetir a cada lançamento novo.
+// ==========================================
+const LIMIT_NOTIFIED_KEY = "financas-limit-notified-v1";
+
+function getLimitNotifiedMap() {
+try { return JSON.parse(localStorage.getItem(LIMIT_NOTIFIED_KEY) || "{}"); }
+catch(e) { return {}; }
+}
+
+function marcarLimiteNotificado(chave) {
+const map = getLimitNotifiedMap();
+map[chave] = true;
+try { localStorage.setItem(LIMIT_NOTIFIED_KEY, JSON.stringify(map)); } catch(e) {}
+}
+
+function isCapacitorNativeApp() {
+return !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform());
+}
+
+async function notificarLimiteCategoria(catName, mesPrefix, nivel, mensagem) {
+// nivel: "warning" (80% por padrao) ou "danger" (100%)
+const chave = mesPrefix + ":" + catName.trim().toLowerCase() + ":" + nivel;
+const map = getLimitNotifiedMap();
+if (map[chave]) return; // ja notificado esse mes/categoria/nivel
+
+try {
+if (isCapacitorNativeApp() && window.Capacitor.Plugins.LocalNotifications) {
+const { LocalNotifications } = window.Capacitor.Plugins;
+const perm = await LocalNotifications.checkPermissions();
+if (perm.display !== "granted") return; // nao pede permissao aqui, so no ecra de Lembretes
+
+await LocalNotifications.schedule({
+notifications: [{
+id: Math.floor(Date.now() % 2147483647),
+title: nivel === "danger" ? "🚨 Limite ultrapassado" : "⚠️ Quase no limite",
+body: mensagem
+}]
+});
+marcarLimiteNotificado(chave);
+} else if ("Notification" in window && Notification.permission === "granted") {
+new Notification(nivel === "danger" ? "🚨 Limite ultrapassado" : "⚠️ Quase no limite", { body: mensagem });
+marcarLimiteNotificado(chave);
+}
+} catch(e) {
+console.warn("Nao foi possivel notificar limite de categoria:", e);
+}
 }
 
 function getDefaultCategories() {
@@ -1584,6 +1804,88 @@ const to = document.getElementById('toAcc');
 if (from) from.innerHTML = opts;
 if (to) to.innerHTML = opts;
 }
+
+// ==========================================
+// CRIAR / EDITAR / EXCLUIR CONTAS
+// Usa window.addAccount / window.updateAccount / window.deleteAccount,
+// expostos pelo app.js (dono de state.accounts + persistencia local
+// e sincronizacao com o Firebase).
+// ==========================================
+function showAccountForm(mode, acc) {
+const wrapper = document.getElementById('accountFormWrapper');
+const idField = document.getElementById('accountEditId');
+const nameField = document.getElementById('accountName');
+const kindField = document.getElementById('accountKind');
+const balField = document.getElementById('accountOpeningBalance');
+if (!wrapper) return;
+
+if (mode === 'edit' && acc) {
+idField.value = acc.id;
+nameField.value = acc.name || '';
+kindField.value = acc.kind === 'investment' ? 'investment' : 'checking';
+balField.value = acc.openingBalance || 0;
+} else {
+idField.value = '';
+nameField.value = '';
+kindField.value = 'checking';
+balField.value = '';
+}
+
+wrapper.classList.remove('hidden');
+wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+nameField.focus();
+}
+
+function hideAccountForm() {
+const wrapper = document.getElementById('accountFormWrapper');
+if (wrapper) wrapper.classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+const newBtn = document.getElementById('newAccountBtn');
+const saveBtn = document.getElementById('saveAccountBtn');
+const cancelBtn = document.getElementById('cancelAccountBtn');
+const editBtn = document.getElementById('accModalEditBtn');
+const delBtn = document.getElementById('accModalDeleteBtn');
+
+if (newBtn) newBtn.addEventListener('click', function () { showAccountForm('create'); });
+if (cancelBtn) cancelBtn.addEventListener('click', hideAccountForm);
+
+if (saveBtn) saveBtn.addEventListener('click', function () {
+const id = document.getElementById('accountEditId').value;
+const name = document.getElementById('accountName').value.trim();
+const kind = document.getElementById('accountKind').value;
+const bal = document.getElementById('accountOpeningBalance').value;
+
+if (!name) { alert('Digite um nome para a conta.'); return; }
+
+if (id) {
+if (typeof window.updateAccount === 'function') window.updateAccount(id, name, kind, bal);
+} else {
+if (typeof window.addAccount === 'function') window.addAccount(name, kind, bal);
+}
+hideAccountForm();
+});
+
+if (editBtn) editBtn.addEventListener('click', function () {
+const accId = window.currentAccModalId;
+if (!accId || typeof window.getAccountsData !== 'function') return;
+const acc = window.getAccountsData().find(a => a.id === accId);
+if (!acc) return;
+if (typeof window.closeAccModal === 'function') window.closeAccModal();
+showAccountForm('edit', acc);
+});
+
+if (delBtn) delBtn.addEventListener('click', function () {
+const accId = window.currentAccModalId;
+if (!accId) return;
+if (!confirm('Excluir esta conta? So funciona se ela nao tiver lancamentos.')) return;
+if (typeof window.deleteAccount === 'function') {
+const ok = window.deleteAccount(accId);
+if (ok && typeof window.closeAccModal === 'function') window.closeAccModal();
+}
+});
+});
 
 function populateModalCategories(type) {
 const catSel = document.getElementById('modalCat');
@@ -2509,6 +2811,10 @@ function checkCategoryLimits(m, y) {
         const pct = (spent/cat.monthlyLimit)*100;
         if (pct >= 100) alerts.push({type:"danger", message:`Limite ultrapassado em ${cat.name}`, spent, limit:cat.monthlyLimit});
         else if (pct >= cat.warningPercent) alerts.push({type:"warning", message:`${Math.round(pct)}% do limite usado em ${cat.name}`, spent, limit:cat.monthlyLimit});
+
+        // Notificação nativa (uma vez só por categoria/mês/nível, pra não repetir a cada lançamento)
+        if (pct >= 100) notificarLimiteCategoria(cat.name, prefix, "danger", `🚨 Limite ultrapassado em "${cat.name}" (${Math.round(pct)}%)`);
+        else if (pct >= cat.warningPercent) notificarLimiteCategoria(cat.name, prefix, "warning", `⚠️ "${cat.name}" já usou ${Math.round(pct)}% do limite mensal`);
     });
 
     const container = document.getElementById("limitAlerts");
@@ -2889,6 +3195,179 @@ document.addEventListener("click", () => {
 // Impedir que o clique dentro dos menus os feche
 ddMenu.addEventListener("click", e => e.stopPropagation());
 leftDdMenu.addEventListener("click", e => e.stopPropagation()); // NOVO
+
+// ============================================================
+// TELA DE PLANOS
+// ============================================================
+(function plansModalSetup() {
+  const overlay   = document.getElementById("plansModalOverlay");
+  const openBtn   = document.getElementById("openPlansModal");
+  const closeBtn  = document.getElementById("plansModalClose");
+  const seePlansBtn = document.getElementById("licBlockSeePlans");
+  const statusEl  = document.getElementById("plansCurrentStatus");
+  if (!overlay) return;
+
+  function describeCurrentPlan() {
+    try {
+      const raw = localStorage.getItem("financas-license-v1");
+      const license = raw ? JSON.parse(raw) : null;
+      if (!license || !license.active) {
+        return "Você ainda não tem nenhum plano ativo.";
+      }
+      const now = new Date();
+      const expires = license.expiresAt ? new Date(license.expiresAt) : null;
+      const expired = expires && expires <= now;
+      const expDateStr = expires ? expires.toLocaleDateString("pt-BR") : "—";
+
+      if (expired) {
+        return `Seu plano <strong>${nomePlano(license)}</strong> expirou em ${expDateStr}. Escolha um plano abaixo para renovar.`;
+      }
+      const daysLeft = expires ? Math.ceil((expires - now) / 86400000) : null;
+      return `Seu plano atual: <strong>${nomePlano(license)}</strong> — válido até ${expDateStr}${daysLeft !== null ? ` (${daysLeft} dia(s) restante(s))` : ""}.`;
+    } catch (e) {
+      return "Não foi possível verificar seu plano atual.";
+    }
+  }
+
+  function nomePlano(license) {
+    if (license.type === "trial") return "Teste grátis";
+    if (license.issuedAt && license.expiresAt) {
+      const dias = Math.round((new Date(license.expiresAt) - new Date(license.issuedAt)) / 86400000);
+      if (dias <= 12) return "Mensal (curta duração)";
+      if (dias <= 45) return "Mensal";
+      if (dias <= 100) return "Trimestral";
+      if (dias <= 200) return "Semestral";
+      return "Anual";
+    }
+    return "Licença ativa";
+  }
+
+  function openPlansModal() {
+    if (statusEl) statusEl.innerHTML = describeCurrentPlan();
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closePlansModal() {
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  if (openBtn) openBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    ddMenu.classList.remove("open");
+    openPlansModal();
+  });
+  if (seePlansBtn) seePlansBtn.addEventListener("click", openPlansModal);
+  if (closeBtn) closeBtn.addEventListener("click", closePlansModal);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closePlansModal(); });
+})();
+
+// ============================================================
+// TECLADO NUMÉRICO PERSONALIZADO (campos de Valor)
+// ============================================================
+(function customNumpadSetup() {
+  const overlay    = document.getElementById("numpadOverlay");
+  const displayEl  = document.getElementById("numpadDisplayValue");
+  const grid       = document.getElementById("numpadGrid");
+  const delBtn     = document.getElementById("numpadDelBtn");
+  const clearBtn   = document.getElementById("numpadClearBtn");
+  if (!overlay || !displayEl || !grid) return;
+
+  let targetInput = null;
+  let display     = "0";   // valor sendo digitado (vírgula como decimal)
+  let stored      = null;  // valor guardado antes de uma operação
+  let pendingOp   = null;  // operador pendente (+ - * /)
+  let freshEntry  = false; // próximo dígito começa um novo número
+
+  function toNumber(str) {
+    return parseFloat(String(str).replace(",", ".")) || 0;
+  }
+  function calc(a, b, op) {
+    if (op === "+") return a + b;
+    if (op === "-") return a - b;
+    if (op === "*") return a * b;
+    if (op === "/") return b !== 0 ? a / b : a;
+    return b;
+  }
+  function updateDisplay() {
+    displayEl.textContent = "R$ " + display;
+  }
+
+  function openNumpad(input) {
+    targetInput = input;
+    const raw = (input.value || "").toString().trim();
+    display = raw ? raw.replace(".", ",") : "0";
+    stored = null; pendingOp = null; freshEntry = false;
+    updateDisplay();
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeNumpad() {
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+    targetInput = null;
+  }
+
+  function pressDigit(d) {
+    if (freshEntry) { display = (d === ",") ? "0," : d; freshEntry = false; return updateDisplay(); }
+    if (d === ",") { if (!display.includes(",")) display += ","; return updateDisplay(); }
+    if (display.includes(",")) {
+      const dec = display.split(",")[1] || "";
+      if (dec.length >= 2) return; // no máximo 2 casas decimais
+    }
+    display = (display === "0") ? d : display + d;
+    updateDisplay();
+  }
+  function pressOperator(op) {
+    const current = toNumber(display);
+    stored = (stored !== null && pendingOp) ? calc(stored, current, pendingOp) : current;
+    pendingOp = op;
+    freshEntry = true;
+  }
+  function pressDel() {
+    display = display.length <= 1 ? "0" : display.slice(0, -1);
+    updateDisplay();
+  }
+  function pressClear() {
+    display = "0"; stored = null; pendingOp = null; freshEntry = false;
+    updateDisplay();
+  }
+  function pressConfirm() {
+    let result = toNumber(display);
+    if (stored !== null && pendingOp) result = calc(stored, result, pendingOp);
+    if (targetInput) {
+      targetInput.value = result.toFixed(2);
+      targetInput.dispatchEvent(new Event("input", { bubbles: true }));
+      targetInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    closeNumpad();
+  }
+
+  grid.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-key]");
+    if (!btn) return;
+    const key = btn.dataset.key;
+    if (key >= "0" && key <= "9") return pressDigit(key);
+    if (key === ",") return pressDigit(",");
+    if (key === "ok") return pressConfirm();
+    if (["+", "-", "*", "/"].includes(key)) return pressOperator(key);
+  });
+  delBtn?.addEventListener("click", pressDel);
+  clearBtn?.addEventListener("click", pressClear);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeNumpad(); });
+
+  // Liga o teclado personalizado aos campos de Valor (com fallback:
+  // se por algum motivo o JS não rodar, os campos continuam number/decimal normais)
+  ["amt", "modalAmt", "recorrAmt", "editAmt"].forEach((id) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.setAttribute("readonly", "readonly");
+    input.setAttribute("inputmode", "none");
+    input.style.cursor = "pointer";
+    input.addEventListener("click", () => openNumpad(input));
+    input.addEventListener("focus", () => openNumpad(input));
+  });
+})();
 
 
 document.getElementById("prevMon")?.addEventListener("click", () => {
@@ -3322,6 +3801,9 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+
+<!-- Plugin nativo de notificações locais (funciona dentro do APK) -->
+<script src="capacitor-local-notifications.js"></script>
 
 <script src="app.js"></script>
 </body>
