@@ -22,9 +22,13 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
+html,body{max-width:100vw;overflow-x:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* ALTERAÇÃO: topbar agora é um flex com 3 colunas (esquerda, centro, direita) */
-.topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;padding-top:calc(1rem + env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;padding-top:calc(1rem + env(safe-area-inset-top,0px) + 14px);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;gap:8px}
+.topbar>div{min-width:0}
+.topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px;overflow-wrap:break-word}
+.topbar-right{flex-shrink:0}
 .topbar .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
 .topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px}
 /* Avatar no header */
@@ -39,6 +43,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .profile-save-btn{background:var(--primary);color:#fff;border:none;padding:.7rem 1.2rem;border-radius:var(--rsm);font-size:.92rem;font-weight:700;cursor:pointer;width:100%;margin-top:.5rem;transition:opacity .2s}
 .profile-save-btn:hover{opacity:.88}
 .profile-saved-msg{color:var(--primary);font-size:.82rem;text-align:center;margin-top:.4rem;display:none}
+/* Biometria de acesso */
+.bio-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:.5rem 0;cursor:pointer;font-size:.88rem;font-weight:600}
+.bio-toggle-row input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.bio-list{display:flex;flex-direction:column;gap:6px;margin:.5rem 0}
+.bio-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg3);border-radius:var(--rsm);padding:.6rem .8rem;font-size:.84rem}
+.bio-item .bio-item-name{display:flex;align-items:center;gap:8px;min-width:0}
+.bio-item .bio-item-name strong{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bio-item .bio-item-name small{color:var(--text3);font-size:.7rem;white-space:nowrap}
+.bio-del-btn{background:none;border:none;color:var(--expense);cursor:pointer;font-size:.95rem;flex-shrink:0;padding:2px 4px}
+.bio-empty{font-size:.8rem;color:var(--text3);padding:.4rem 0}
+.bio-add-btn{width:100%;padding:11px;background:transparent;color:var(--primary);border:1.5px solid var(--primary);border-radius:var(--rsm);font-size:.88rem;font-weight:700;cursor:pointer;margin-top:.3rem}
+.bio-add-btn:hover{background:var(--primary-light)}
+.bio-add-btn:disabled{opacity:.5;cursor:not-allowed}
+.bio-forgot-btn{background:none;border:none;color:var(--text3);font-size:.75rem;text-decoration:underline;margin-top:.7rem;cursor:pointer;padding:.3rem 0;display:block}
+#bioLockScreen{position:fixed;inset:0;z-index:5000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;gap:1.1rem}
+#bioLockScreen .bio-lock-icon{font-size:3.5rem}
+#bioLockScreen h2{font-size:1.15rem;font-weight:800}
+#bioLockScreen p{color:var(--text2);font-size:.88rem;max-width:320px;line-height:1.5}
+#bioUnlockBtn{max-width:300px;width:100%}
 /* NOVO: Estilo para o contêiner do menu esquerdo */
 .topbar-left {
   display: flex;
@@ -46,6 +69,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   position: relative; /* Para posicionar o dropdown */
 }
 .topbar-right{display:flex;gap:8px;align-items:center;position:relative}
+.money-value{transition:filter .2s ease}
+body.values-hidden .money-value{filter:blur(7px);user-select:none;pointer-events:none}
+body.values-hidden canvas.money-value{filter:blur(9px)}
 .tbtn{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s}
 .tbtn:hover{background:rgba(255,255,255,.3)}
 .ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:220px;z-index:999;overflow:hidden;display:none}
@@ -65,7 +91,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .card-title span{font-size:.78rem;color:var(--text2)}
 .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 @media(min-width:480px){.summary{grid-template-columns:repeat(4,1fr)}}
-.metric{background:var(--bg2);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow)}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);min-width:0}
+.metric strong{font-size:1.15rem;font-weight:800;overflow-wrap:break-word}
 .metric span{font-size:.73rem;color:var(--text2);font-weight:600;display:block;margin-bottom:5px}
 .metric strong{font-size:1.15rem;font-weight:800}
 .metric.primary{background:var(--primary)}
@@ -74,6 +101,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .acc-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:var(--rsm);padding:.75rem 1rem;cursor:pointer;transition:all .2s;border:2px solid transparent}
 .acc-card:hover{border-color:var(--primary);background:var(--primary-light)}
 .acc-card:hover .acc-info em{color:var(--primary)}
+/* Barra de progresso do objetivo da conta */
+.acc-goal-bar-wrap{margin-top:6px;width:100%;display:flex;align-items:center;gap:6px}
+.acc-goal-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.acc-goal-fill{height:100%;border-radius:3px;background:var(--primary);transition:width .3s ease}
+.acc-goal-fill.done{background:var(--income)}
+.acc-goal-label{font-size:.72rem;font-weight:700;color:var(--text2);white-space:nowrap}
+.acc-goal-label.done{color:var(--income)}
+.acc-goal-info{font-size:.68rem;color:var(--text3);margin-top:1px;display:block}
 .acc-card-inner{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
 .acc-info small{font-size:.7rem;color:var(--text2);display:block}
 .acc-info strong{font-size:.93rem;font-weight:700;display:block;margin:2px 0;color:var(--text)}
@@ -82,6 +117,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .acc-icon.checking{background:var(--primary)}
 .acc-icon.investment{background:var(--transfer)}
 .acc-arrow{font-size:.8rem;color:var(--text3);margin-left:4px}
+/* Barra de progresso do objetivo da conta */
+.acc-goal-bar-wrap{margin-top:6px;width:100%;display:flex;align-items:center;gap:6px}
+.acc-goal-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.acc-goal-fill{height:100%;border-radius:3px;background:var(--primary);transition:width .3s ease}
+.acc-goal-fill.done{background:var(--income)}
+.acc-goal-label{font-size:.72rem;font-weight:700;color:var(--text2);white-space:nowrap}
+.acc-goal-label.done{color:var(--income)}
+.acc-goal-info{font-size:.68rem;color:var(--text3);margin-top:1px;display:block}
 .segmented{display:flex;background:var(--bg3);border-radius:var(--rsm);padding:3px;gap:3px;margin-bottom:1rem}
 .segmented label{flex:1;cursor:pointer}
 .segmented input{display:none}
@@ -133,12 +176,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cat-pills{display:flex;flex-direction:column;gap:12px;min-height:40px}
 .cat-pill{padding:14px 16px;border-radius:var(--rsm);background:var(--bg3);border:1.5px solid var(--border);transition:all .2s;position:relative;overflow:hidden}
 .cat-pill:hover{background:var(--primary-light)}
-.cat-pill-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.cat-pill-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.cat-pill-name,.cat-pill-amount{min-width:0}
 .cat-pill-name{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
 .cat-pill-amount{font-size:.9rem;color:var(--expense);font-weight:700;text-align:right;line-height:1.2}
 .cat-pill-percent{font-size:.75rem;color:var(--text2);margin-top:1px}
 .cat-limit-info{margin-bottom:8px}
-.cat-limit-text{font-size:.8rem;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.cat-limit-text{font-size:.8rem;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.cat-limit-text .limit-label,.cat-limit-text .limit-values{min-width:0}
 .cat-limit-text .limit-label{font-weight:600}
 .cat-limit-text .limit-values{font-weight:700}
 .cat-pill-progress{background:var(--border);height:8px;border-radius:4px;overflow:hidden;position:relative}
@@ -191,7 +236,7 @@ canvas{width:100%!important;display:block}
 .lic-block-btn:hover{opacity:.9}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto}
+.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,0px));max-height:calc(97dvh - env(safe-area-inset-top,0px));overflow-y:auto}
 .modal-overlay.open .modal-sheet{transform:translateY(0)}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem}
 .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
@@ -200,7 +245,7 @@ canvas{width:100%!important;display:block}
 .modal-close:hover{background:var(--border)}
 .account-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .account-modal-overlay.open{opacity:1;pointer-events:all}
-.account-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+.account-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:calc(95vh - env(safe-area-inset-top,0px));height:calc(95dvh - env(safe-area-inset-top,0px));display:flex;flex-direction:column}
 .account-modal-overlay.open .account-modal-sheet{transform:translateY(0)}
 .account-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0}
 .account-modal-body{flex:1;overflow-y:auto;padding:0 1.25rem 2rem}
@@ -216,7 +261,7 @@ canvas{width:100%!important;display:block}
 .day-subtotal{font-size:.72rem;color:var(--text3);float:right;font-weight:600;margin-top:-1px}
 .cat-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .cat-modal-overlay.open{opacity:1;pointer-events:all}
-.cat-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+.cat-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:calc(95vh - env(safe-area-inset-top,0px));height:calc(95dvh - env(safe-area-inset-top,0px));display:flex;flex-direction:column}
 .cat-modal-overlay.open .cat-modal-sheet{transform:translateY(0)}
 .cat-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
 .cat-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
@@ -273,7 +318,7 @@ canvas{width:100%!important;display:block}
 .limit-alert.warning .limit-alert-amount{color:var(--warning)}
 .cat-edit-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .cat-edit-modal-overlay.open{opacity:1;pointer-events:all}
-.cat-edit-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:75vh;display:flex;flex-direction:column}
+.cat-edit-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:calc(90vh - env(safe-area-inset-top,0px));height:calc(90dvh - env(safe-area-inset-top,0px));display:flex;flex-direction:column}
 .cat-edit-modal-overlay.open .cat-edit-modal-sheet{transform:translateY(0)}
 .cat-edit-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
 .cat-edit-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
@@ -285,7 +330,7 @@ canvas{width:100%!important;display:block}
 .btn-secondary:hover{background:var(--border)}
 .new-tx-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .new-tx-menu-overlay.open{opacity:1;pointer-events:all}
-.new-tx-menu-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:1.1rem 1rem}
+.new-tx-menu-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:1.1rem 1rem calc(1.5rem + env(safe-area-inset-bottom,0px));min-height:calc(58vh - env(safe-area-inset-top,0px));min-height:calc(58dvh - env(safe-area-inset-top,0px));box-sizing:border-box}
 .new-tx-menu-overlay.open .new-tx-menu-sheet{transform:translateY(0)}
 .new-tx-menu-title{font-size:.95rem;font-weight:800;margin-bottom:.75rem;text-align:center;color:var(--text)}
 .new-tx-option{display:flex;align-items:center;gap:.7rem;padding:.65rem .75rem;border-radius:10px;margin-bottom:.4rem;cursor:pointer;transition:all .2s;border:2px solid var(--border)}
@@ -301,7 +346,7 @@ canvas{width:100%!important;display:block}
 .new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
 .plans-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .plans-modal-overlay.open{opacity:1;pointer-events:all}
-.plans-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto;padding:1.5rem 1.25rem 2rem}
+.plans-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,0px));max-height:calc(97dvh - env(safe-area-inset-top,0px));overflow-y:auto;padding:1.5rem 1.25rem 2rem}
 .plans-modal-overlay.open .plans-modal-sheet{transform:translateY(0)}
 .plans-current{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--rsm);padding:.75rem .9rem;margin-bottom:1.25rem;font-size:.85rem;color:var(--text)}
 .plans-current strong{color:var(--primary)}
@@ -321,7 +366,7 @@ canvas{width:100%!important;display:block}
 /* ===== TECLADO NUMÉRICO PERSONALIZADO ===== */
 .numpad-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .numpad-overlay.open{opacity:1;pointer-events:all}
-.numpad-sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:320px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:.85rem .85rem 1.1rem;box-shadow:0 -8px 32px rgba(0,0,0,.25)}
+.numpad-sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:320px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:.85rem .85rem calc(1.1rem + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 32px rgba(0,0,0,.25);min-height:calc(52vh - env(safe-area-inset-top,0px));min-height:calc(52dvh - env(safe-area-inset-top,0px));max-height:calc(90vh - env(safe-area-inset-top,0px));max-height:calc(90dvh - env(safe-area-inset-top,0px));overflow-y:auto;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start}
 .numpad-overlay.open .numpad-sheet{transform:translateY(0)}
 .numpad-display{background:var(--bg3);border-radius:14px;padding:.8rem .9rem;margin-bottom:.8rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
 .numpad-display-value{font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:.01em;overflow-x:auto;white-space:nowrap}
@@ -337,9 +382,9 @@ canvas{width:100%!important;display:block}
 .numpad-btn.numpad-check{background:var(--primary);color:#fff}
 .numpad-btn.numpad-check:hover{opacity:.9}
 .numpad-btn.numpad-comma{font-size:1.4rem}
-.tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:flex-start;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding-top:calc(1.25rem + env(safe-area-inset-top,0px));overflow-y:auto}
 .tx-form-modal-overlay.open{opacity:1;pointer-events:all}
-.tx-form-modal-sheet{background:var(--bg2);border-radius:20px;width:95%;max-width:500px;transform:scale(0.95) translateY(20px);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.tx-form-modal-sheet{background:var(--bg2);border-radius:20px;width:95%;max-width:500px;transform:scale(0.95) translateY(20px);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(95vh - env(safe-area-inset-top,0px));max-height:calc(95dvh - env(safe-area-inset-top,0px));overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);margin-bottom:1.25rem}
 .tx-form-modal-overlay.open .tx-form-modal-sheet{transform:scale(1) translateY(0)}
 .tx-form-header{padding:1rem;border-bottom:1px solid var(--border)}
 .tx-form-body{padding:1rem}
@@ -377,7 +422,7 @@ canvas{width:100%!important;display:block}
 .android-permission-screen .pbtn.secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
 #txFormWrapper{display:none!important}
 @media(max-width:480px){
-  .tx-form-modal-sheet{width:98%;max-height:88vh;border-radius:16px}
+  .tx-form-modal-sheet{width:98%;max-height:calc(96vh - env(safe-area-inset-top,0px));max-height:calc(96dvh - env(safe-area-inset-top,0px));border-radius:16px}
   .voice-mic-wrap{width:45px;height:45px}
   .voice-btn{width:45px;height:45px;font-size:1.3rem}
 }
@@ -577,7 +622,8 @@ canvas{width:100%!important;display:block}
 /* ── FILTROS ── */
 .filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.85rem}
 .filter-bar select{flex:1;min-width:120px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--bg3);color:var(--text);font-size:.82rem;outline:none}
-.filter-bar select:focus{border-color:var(--primary)}
+.filter-bar input[type="text"]{flex:2;min-width:160px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--bg3);color:var(--text);font-size:.82rem;outline:none}
+.filter-bar select:focus,.filter-bar input[type="text"]:focus{border-color:var(--primary)}
 .filter-clear{background:none;border:1.5px solid var(--border);color:var(--text2);border-radius:var(--rsm);padding:7px 10px;font-size:.82rem;cursor:pointer;white-space:nowrap}
 .filter-clear:hover{background:var(--border)}
 /* ── RECORRENTES ── */
@@ -599,6 +645,12 @@ canvas{width:100%!important;display:block}
 .recorr-due.due-soon{background:rgba(245,158,11,.15);color:#b45309}
 .recorr-due.overdue{background:rgba(220,38,38,.12);color:var(--expense)}
 .recorr-inactive{opacity:.45}
+.recorr-parcelas{font-size:.7rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px;background:rgba(99,102,241,.12);color:var(--primary)}
+.recorr-parcelas.done{background:rgba(22,163,74,.12);color:var(--income)}
+.exp-kind-tag{font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:6px;white-space:nowrap;display:inline-block;vertical-align:middle}
+.exp-kind-tag.fixed{background:rgba(37,99,235,.12);color:#2563eb}
+.exp-kind-tag.variable{background:rgba(245,158,11,.15);color:#b45309}
+.exp-kind-tag.emotional{background:rgba(219,39,119,.12);color:#db2777}
 /* ── PROJEÇÃO ── */
 .proj-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
 .proj-row:last-child{border-bottom:none}
@@ -611,6 +663,32 @@ canvas{width:100%!important;display:block}
 </style>
 </head>
 <body>
+<!-- Tela de bloqueio por biometria (fica na frente de tudo enquanto o app não é desbloqueado) -->
+<div id="bioLockScreen" class="hidden">
+<div class="bio-lock-icon">🔒</div>
+<h2>Controle sua Fortuna</h2>
+<p>Use sua biometria para desbloquear e acessar seus dados financeiros.</p>
+<button class="pbtn" id="bioUnlockBtn">🔓 Desbloquear com biometria</button>
+<div id="bioLockError" style="color:#e5484d;font-size:.82rem;display:none"></div>
+<button type="button" class="bio-forgot-btn" id="bioLockForgotBtn">Não consigo usar a biometria</button>
+</div>
+<script>
+// Verificação síncrona e imediata, antes do restante da página renderizar,
+// para evitar mostrar dados por um instante antes do bloqueio aparecer.
+(function () {
+  try {
+    var lockEnabled = localStorage.getItem("financas-bio-lock-enabled") === "1";
+    var creds = [];
+    try { creds = JSON.parse(localStorage.getItem("financas-bio-credentials") || "[]"); } catch (e) {}
+    var unlocked = sessionStorage.getItem("financas-bio-unlocked") === "1";
+    if (lockEnabled && Array.isArray(creds) && creds.length > 0 && !unlocked) {
+      var screen = document.getElementById("bioLockScreen");
+      if (screen) screen.classList.remove("hidden");
+      document.documentElement.style.overflow = "hidden";
+    }
+  } catch (e) {}
+})();
+</script>
 <header class="topbar">
 <!-- NOVO: Container para o menu esquerdo (hamburger) -->
 <div class="topbar-left">
@@ -627,8 +705,8 @@ canvas{width:100%!important;display:block}
 <h1 id="appTitle">Controle sua Fortuna</h1>
 </div>
 <div class="topbar-right">
+<button class="tbtn" id="toggleValuesBtn" title="Mostrar/ocultar valores" aria-label="Mostrar/ocultar valores">👁️</button>
 <button id="headerAvatar" title="Minha Conta" aria-label="Minha Conta">🙂</button>
-<button class="tbtn" id="themeBtn" title="Alternar tema"></button>
 <button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
 <div class="ddmenu" id="ddMenu">
 <!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
@@ -636,17 +714,7 @@ canvas{width:100%!important;display:block}
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
 <button class="dditem" id="menuAccountBtn" type="button" style="text-align:left">👤 Minha Conta</button>
-<div class="dd-section-label">⚙️ Configurações</div>
-<div class="dd-config-item">
-  <div class="dd-config-label">
-    🏷️ Exigir categoria
-    <small>Bloqueia lançamento sem categoria</small>
-  </div>
-  <label class="dd-toggle">
-    <input type="checkbox" id="toggleRequireCategory"/>
-    <span class="dd-toggle-track"></span>
-  </label>
-</div>
+<button class="dditem" id="openSettingsModal" type="button" style="text-align:left">⚙️ Configurações</button>
 </div>
 </div>
 </header>
@@ -658,10 +726,10 @@ canvas{width:100%!important;display:block}
 </div>
 
 <div class="summary">
-<div class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></div>
-<div class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></div>
-<div class="metric"><span>Despesas</span><strong id="expenseTotal">R$ 0,00</strong></div>
-<div class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></div>
+<div class="metric primary"><span>Saldo total</span><strong id="totalBalance" class="money-value">R$ 0,00</strong></div>
+<div class="metric"><span>Receitas</span><strong id="incomeTotal" class="money-value">R$ 0,00</strong></div>
+<div class="metric"><span>Despesas</span><strong id="expenseTotal" class="money-value">R$ 0,00</strong></div>
+<div class="metric"><span>Investimentos</span><strong id="investmentTotal" class="money-value">R$ 0,00</strong></div>
 </div>
 
 <div class="card">
@@ -679,9 +747,9 @@ canvas{width:100%!important;display:block}
 <div class="eco-label"><strong id="ecoPercent">0%</strong><small>de economia</small></div>
 </div>
 <div class="eco-stats">
-<div class="eco-stat"><small>Receitas consideradas</small><strong class="income-text" id="ecoInc">R$ 0,00</strong></div>
-<div class="eco-stat"><small>Despesas consideradas</small><strong class="expense-text" id="ecoExp">R$ 0,00</strong></div>
-<div class="eco-stat eco-div"><small>Valor economizado</small><strong id="ecoSaved">R$ 0,00</strong></div>
+<div class="eco-stat"><small>Receitas consideradas</small><strong class="income-text money-value" id="ecoInc">R$ 0,00</strong></div>
+<div class="eco-stat"><small>Despesas consideradas</small><strong class="expense-text money-value" id="ecoExp">R$ 0,00</strong></div>
+<div class="eco-stat eco-div"><small>Valor economizado</small><strong id="ecoSaved" class="money-value">R$ 0,00</strong></div>
 </div>
 </div>
 <div class="eco-feedback" id="ecoFeedback"></div>
@@ -699,6 +767,7 @@ canvas{width:100%!important;display:block}
 <option value="investment">Investimento</option>
 </select></label>
 <label>Saldo inicial<input type="number" id="accountOpeningBalance" step="0.01" placeholder="0,00"/></label>
+<label>🎯 Objetivo (opcional)<input type="number" id="accountGoal" step="0.01" placeholder="Valor que quer guardar..."/></label>
 <div class="full button-group">
 <button class="pbtn" id="saveAccountBtn" type="button">💾 Salvar conta</button>
 <button class="pbtn btn-secondary" id="cancelAccountBtn" type="button">✕ Cancelar</button>
@@ -730,6 +799,7 @@ canvas{width:100%!important;display:block}
 <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
 <label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
 <label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
+<label id="kindWrap" class="hidden full">Tipo de despesa<select id="expKind" name="expenseKind"><option value="">Não informado</option><option value="fixed">📌 Fixo</option><option value="variable">🔀 Variável</option><option value="emotional">❤️ Emocional</option></select></label>
 </div>
 <div class="button-group">
 <button class="pbtn" id="saveBtn" type="submit">💾 Salvar Lançamento</button>
@@ -742,9 +812,11 @@ canvas{width:100%!important;display:block}
 <div class="card">
 <div class="card-title"><h2>🔍 Filtros</h2><button class="filter-clear" id="filterClearBtn">Limpar</button></div>
 <div class="filter-bar">
+<input type="text" id="filterSearch" placeholder="🔍 Buscar por descrição..." autocomplete="off"/>
 <select id="filterType"><option value="">Todos os tipos</option><option value="income">💰 Receitas</option><option value="expense">💸 Despesas</option><option value="transfer">🔄 Transferências</option></select>
 <select id="filterCat"><option value="">Todas as categorias</option></select>
 <select id="filterAcc"><option value="">Todas as contas</option></select>
+<select id="filterExpKind"><option value="">Tipo de despesa (todos)</option><option value="fixed">📌 Fixo</option><option value="variable">🔀 Variável</option><option value="emotional">❤️ Emocional</option></select>
 </div>
 </div>
 
@@ -786,8 +858,8 @@ canvas{width:100%!important;display:block}
 <div class="card">
 <div class="card-title"><h2>📊 Resumo geral</h2></div>
 <div class="rep-grid">
-<div class="rep-card"><span>Resultado</span><strong id="netResult">R$ 0,00</strong><small>Receitas - despesas</small></div>
-<div class="rep-card"><span>Maior despesa</span><strong id="topExp">R$ 0,00</strong><small id="topExpLbl">-</small></div>
+<div class="rep-card"><span>Resultado</span><strong id="netResult" class="money-value">R$ 0,00</strong><small>Receitas - despesas</small></div>
+<div class="rep-card"><span>Maior despesa</span><strong id="topExp" class="money-value">R$ 0,00</strong><small id="topExpLbl">-</small></div>
 <div class="rep-card"><span>Taxa economia</span><strong id="savRate">0%</strong><small>Do total recebido</small></div>
 </div>
 <div class="insights" id="insights"></div>
@@ -795,12 +867,12 @@ canvas{width:100%!important;display:block}
 
 <div class="card">
 <div class="card-title"><h2>📉 Receitas x Despesas</h2><span>Mes atual</span></div>
-<canvas id="flowChart" height="180"></canvas>
+<canvas id="flowChart" height="180" class="money-value"></canvas>
 </div>
 
 <div class="card">
 <div class="card-title"><h2>🏦 Saldo por conta</h2></div>
-<canvas id="accChart" height="180"></canvas>
+<canvas id="accChart" height="180" class="money-value"></canvas>
 </div>
 </div>
 
@@ -1013,6 +1085,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label id="modalFromWrap">Conta<select id="modalFromAcc" required></select></label>
 <label id="modalToWrap" class="hidden">Destino<select id="modalToAcc"></select></label>
 <label id="modalCatWrap">Categoria<select id="modalCat"><option value="">Sem categoria</option></select></label>
+<label id="modalKindWrap" class="hidden full">Tipo de despesa<select id="modalExpKind"><option value="">Não informado</option><option value="fixed">📌 Fixo</option><option value="variable">🔀 Variável</option><option value="emotional">❤️ Emocional</option></select></label>
 </div>
 <div class="cat-required-error" id="modalCatError">⚠️ Selecione uma categoria para continuar.</div>
 <div class="button-group">
@@ -1048,6 +1121,51 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 
 <!-- Modal recorrente -->
+<div class="modal-overlay" id="settingsModal">
+<div class="modal-sheet">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3>⚙️ Configurações</h3>
+<button class="modal-close" id="settingsModalClose">✕</button>
+</div>
+
+<div class="dd-section-label" style="padding-left:0;border-bottom:none">🎨 Aparência</div>
+<div class="dd-config-item">
+  <div class="dd-config-label">
+    🌙 Tema escuro
+    <small>Alterna entre tema claro e escuro</small>
+  </div>
+  <label class="dd-toggle">
+    <input type="checkbox" id="settingsThemeToggle"/>
+    <span class="dd-toggle-track"></span>
+  </label>
+</div>
+
+<div class="dd-config-item">
+  <div class="dd-config-label">
+    👁️ Ocultar valores
+    <small>Borra os valores em tela para privacidade</small>
+  </div>
+  <label class="dd-toggle">
+    <input type="checkbox" id="settingsHideValuesToggle"/>
+    <span class="dd-toggle-track"></span>
+  </label>
+</div>
+
+<div class="dd-section-label" style="padding-left:0">🧾 Lançamentos</div>
+<div class="dd-config-item">
+  <div class="dd-config-label">
+    🏷️ Exigir categoria
+    <small>Bloqueia lançamento sem categoria</small>
+  </div>
+  <label class="dd-toggle">
+    <input type="checkbox" id="toggleRequireCategory"/>
+    <span class="dd-toggle-track"></span>
+  </label>
+</div>
+</div>
+</div>
+
 <div class="modal-overlay" id="recorrModal">
 <div class="modal-sheet">
 <div class="modal-handle"></div>
@@ -1064,6 +1182,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label class="full">Descrição<input id="recorrDesc" name="description" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true"/></label>
 <label>Valor (R$)<input id="recorrAmt" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" required placeholder="0,00"/></label>
 <label>Dia do mês<input id="recorrDay" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="28" required placeholder="1-28"/></label>
+<label>Parcelas<input id="recorrParcelas" type="number" inputmode="numeric" pattern="[0-9]*" min="1" placeholder="Deixe vazio p/ sem fim"/></label>
 <label class="full">Conta<select id="recorrAcc"></select></label>
 <label class="full">Categoria<select id="recorrCat"><option value="">Sem categoria</option></select></label>
 </div>
@@ -1132,6 +1251,23 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <button class="pbtn" type="button" id="authLogoutBtn" style="background:#e5484d;margin-top:1rem">Sair da conta</button>
 </div>
 
+<!-- Biometria de acesso (funciona independente de estar logado ou não) -->
+<div class="profile-section" id="bioSection">
+<div class="profile-section-title">🔒 Biometria de acesso</div>
+<div id="bioStatusBox" style="font-size:.8rem;color:var(--text2);line-height:1.5;margin-bottom:.5rem"></div>
+
+<label class="bio-toggle-row">
+<span>Exigir biometria para abrir o app</span>
+<input type="checkbox" id="bioLockToggle"/>
+</label>
+
+<div class="bio-list" id="bioList"></div>
+
+<button class="bio-add-btn" type="button" id="bioAddBtn">👆 Adicionar biometria</button>
+<div id="bioError" style="color:#e5484d;font-size:.8rem;margin-top:.5rem;display:none"></div>
+<button type="button" class="bio-forgot-btn" id="bioForgotBtn">Remover todas as biometrias cadastradas</button>
+</div>
+
 </div>
 </div>
 
@@ -1159,6 +1295,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label>Conta<select id="editFromAcc" name="fromAccount" required></select></label>
 <label id="editToWrap" class="hidden">Destino<select id="editToAcc" name="toAccount"></select></label>
 <label id="editCatWrap">Categoria<select id="editCat" name="category"><option value="">Sem categoria</option></select></label>
+<label id="editKindWrap" class="hidden full">Tipo de despesa<select id="editExpKind" name="expenseKind"><option value="">Não informado</option><option value="fixed">📌 Fixo</option><option value="variable">🔀 Variável</option><option value="emotional">❤️ Emocional</option></select></label>
 </div>
 <div class="cat-required-error" id="editCatError">⚠️ Selecione uma categoria para continuar.</div>
 <button class="pbtn" type="submit">💾 Salvar alteracoes</button>
@@ -1179,7 +1316,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="acc-modal-info">
 <small id="accModalType">Conta corrente</small>
 <strong id="accModalName">-</strong>
-<em id="accModalBalance">R$ 0,00</em>
+<em id="accModalBalance" class="money-value">R$ 0,00</em>
 </div>
 </div>
 <div style="display:flex;gap:8px;margin-top:.75rem">
@@ -1817,6 +1954,7 @@ const idField = document.getElementById('accountEditId');
 const nameField = document.getElementById('accountName');
 const kindField = document.getElementById('accountKind');
 const balField = document.getElementById('accountOpeningBalance');
+const goalField = document.getElementById('accountGoal');
 if (!wrapper) return;
 
 if (mode === 'edit' && acc) {
@@ -1824,11 +1962,13 @@ idField.value = acc.id;
 nameField.value = acc.name || '';
 kindField.value = acc.kind === 'investment' ? 'investment' : 'checking';
 balField.value = acc.openingBalance || 0;
+goalField.value = acc.goal || '';
 } else {
 idField.value = '';
 nameField.value = '';
 kindField.value = 'checking';
 balField.value = '';
+goalField.value = '';
 }
 
 wrapper.classList.remove('hidden');
@@ -1856,13 +1996,14 @@ const id = document.getElementById('accountEditId').value;
 const name = document.getElementById('accountName').value.trim();
 const kind = document.getElementById('accountKind').value;
 const bal = document.getElementById('accountOpeningBalance').value;
+const goal = document.getElementById('accountGoal').value;
 
 if (!name) { alert('Digite um nome para a conta.'); return; }
 
 if (id) {
-if (typeof window.updateAccount === 'function') window.updateAccount(id, name, kind, bal);
+if (typeof window.updateAccount === 'function') window.updateAccount(id, name, kind, bal, goal);
 } else {
-if (typeof window.addAccount === 'function') window.addAccount(name, kind, bal);
+if (typeof window.addAccount === 'function') window.addAccount(name, kind, bal, goal);
 }
 hideAccountForm();
 });
@@ -1962,6 +2103,7 @@ function updateModalFormMode(type) {
 const isTransfer = type === 'transfer';
 document.getElementById('modalToWrap')?.classList.toggle('hidden', !isTransfer);
 document.getElementById('modalCatWrap')?.classList.toggle('hidden', isTransfer);
+document.getElementById('modalKindWrap')?.classList.toggle('hidden', type !== 'expense');
 const favSec = document.getElementById('modalFavTagsSection');
 if (favSec) favSec.style.display = isTransfer ? 'none' : '';
 const toAcc = document.getElementById('modalToAcc');
@@ -2043,6 +2185,8 @@ updateModalFormMode(actualType);
 document.getElementById('modalDt').value = getBrazilDate();
 document.getElementById('modalDesc').value = '';
 document.getElementById('modalAmt').value = '';
+const modalExpKindEl = document.getElementById('modalExpKind');
+if (modalExpKindEl) modalExpKindEl.value = '';
 
 txFormModalOverlay.classList.add('open');
 document.body.style.overflow = 'hidden';
@@ -2606,6 +2750,7 @@ document.getElementById('modalTxForm').addEventListener('submit', function(e) {
     const mFrom = document.getElementById('modalFromAcc').value;
     const mTo = document.getElementById('modalToAcc').value;
     const mCat = document.getElementById('modalCat').value;
+    const mExpKind = document.getElementById('modalExpKind')?.value || '';
     const mType = document.querySelector('input[name="mtype"]:checked')?.value;
 
     // Validação: categoria obrigatória (apenas para receita e despesa)
@@ -2639,6 +2784,7 @@ document.getElementById('modalTxForm').addEventListener('submit', function(e) {
         set('dt', mDt);
         set('fromAcc', mFrom);
         set('toAcc', mTo);
+        set('expKind', mType === 'expense' ? mExpKind : '');
 
         if (mCat) {
             const catEl = document.getElementById('cat');
@@ -2770,12 +2916,12 @@ function renderCategoryPillsFromTransactions(m, y) {
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
-<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
+<div class="cat-pill-amount money-value">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
-<div class="cat-limit-text"><span class="limit-label">🎯 <strong>Limite cadastrado:</strong></span><span class="limit-values" style="color:var(--primary)">${money.format(lim.limiteCadastrado)}</span></div>
-<div class="cat-limit-text"><span class="limit-label">📊 <strong>Utilizado no mês:</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span></div>
-<div class="cat-limit-text"><span class="limit-label">💰 <strong>Limite disponível:</strong></span><span class="limit-values" style="color:${lim.limiteDisponivel>=0?'var(--income)':'var(--expense)'}">${money.format(Math.max(0,lim.limiteDisponivel))}${lim.limiteDisponivel<0?" (EXCEDIDO)":""}</span></div>
+<div class="cat-limit-text"><span class="limit-label">🎯 <strong>Limite cadastrado:</strong></span><span class="limit-values money-value" style="color:var(--primary)">${money.format(lim.limiteCadastrado)}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Utilizado no mês:</strong></span><span class="limit-values money-value" style="color:var(--expense)">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span></div>
+<div class="cat-limit-text"><span class="limit-label">💰 <strong>Limite disponível:</strong></span><span class="limit-values money-value" style="color:${lim.limiteDisponivel>=0?'var(--income)':'var(--expense)'}">${money.format(Math.max(0,lim.limiteDisponivel))}${lim.limiteDisponivel<0?" (EXCEDIDO)":""}</span></div>
 </div>
 <div class="cat-pill-progress"><div class="cat-pill-bar ${lim.barStatus}" style="width:${Math.min(lim.percent,100)}%"></div></div>
 </div>`;
@@ -2783,10 +2929,10 @@ function renderCategoryPillsFromTransactions(m, y) {
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
 <div class="cat-pill-name"><strong>${item.name}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
-<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
+<div class="cat-pill-amount money-value">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
-<div class="cat-limit-text"><span class="limit-label">📊 <strong>Gasto no mês:</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(item.totalAmount)}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Gasto no mês:</strong></span><span class="limit-values money-value" style="color:var(--expense)">${money.format(item.totalAmount)}</span></div>
 <div class="cat-limit-text"><span class="limit-label">📈 <strong>% do total do mês:</strong></span><span class="limit-values" style="color:var(--text2)">${item.percentOfTotal}%</span></div>
 </div>
 </div>`;
@@ -2833,7 +2979,7 @@ function checkCategoryLimits(m, y) {
         return;
     }
     container.classList.add("show");
-    list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
+    list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount money-value">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
 }
 
 function refreshCategoryPills() {
@@ -2912,8 +3058,8 @@ function renderCategoryModal() {
             const pct = Math.min((spent/cat.monthlyLimit)*100, 100);
             const st = pct>=100?"danger":pct>=cat.warningPercent?"warning":"normal";
             const sc = pct>=100?"over-limit":pct>=cat.warningPercent?"near-limit":"";
-            const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
-            return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: ${money.format(cat.monthlyLimit)}/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+            const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text money-value">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
+            return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: <span class="money-value">${money.format(cat.monthlyLimit)}</span>/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
         }
 
         return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
@@ -3124,17 +3270,26 @@ window.addEventListener("load", () => {
 });
 
 const html = document.documentElement;
-const themeBtn = document.getElementById("themeBtn");
 const saved = localStorage.getItem("financas-theme") || "light";
 html.setAttribute("data-theme", saved);
-themeBtn.textContent = saved==="dark" ? "☀️" : "🌙";
 
-themeBtn.addEventListener("click", function() {
-    const next = html.getAttribute("data-theme")==="dark" ? "light" : "dark";
-    html.setAttribute("data-theme", next);
-    localStorage.setItem("financas-theme", next);
-    themeBtn.textContent = next==="dark" ? "☀️" : "🌙";
-});
+// Toggle de tema agora vive dentro da tela de Configurações (settingsModal)
+function initThemeToggle() {
+    const toggle = document.getElementById("settingsThemeToggle");
+    if (!toggle) return;
+    toggle.checked = html.getAttribute("data-theme") === "dark";
+    toggle.addEventListener("change", function(e) {
+        e.stopPropagation();
+        const next = this.checked ? "dark" : "light";
+        html.setAttribute("data-theme", next);
+        localStorage.setItem("financas-theme", next);
+    });
+}
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initThemeToggle);
+} else {
+    initThemeToggle();
+}
 
 // ============================================================
 // CONFIGURAÇÃO: EXIGIR CATEGORIA
@@ -3162,6 +3317,45 @@ if (document.readyState === 'loading') {
 } else {
   initRequireCategoryToggle();
 }
+
+// ============================================================
+// TELA DE CONFIGURAÇÕES (tema, categoria obrigatória, ocultar valores)
+// ============================================================
+(function settingsModalSetup() {
+  const overlay  = document.getElementById("settingsModal");
+  const openBtn  = document.getElementById("openSettingsModal");
+  const closeBtn = document.getElementById("settingsModalClose");
+  const hideValuesToggle = document.getElementById("settingsHideValuesToggle");
+  if (!overlay) return;
+
+  function open() {
+    // Sincroniza o toggle de ocultar valores com o estado atual (botão do olho)
+    if (hideValuesToggle) {
+      hideValuesToggle.checked = document.body.classList.contains("values-hidden");
+    }
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function close() {
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  openBtn?.addEventListener("click", function() {
+    document.getElementById("ddMenu")?.classList.remove("open");
+    open();
+  });
+  closeBtn?.addEventListener("click", close);
+  overlay.addEventListener("click", function(e) {
+    if (e.target === overlay) close();
+  });
+
+  // Reaproveita o mesmo botão/estado do olho (👁️) na topbar
+  hideValuesToggle?.addEventListener("change", function(e) {
+    e.stopPropagation();
+    document.getElementById("toggleValuesBtn")?.click();
+  });
+})();
 
 // ============================================================
 
@@ -3370,8 +3564,21 @@ leftDdMenu.addEventListener("click", e => e.stopPropagation()); // NOVO
 })();
 
 
+// Garante um mês/ano numérico válido, mesmo se window.economyMonth/economyYear
+// ainda não tiverem sido inicializados (evita cair em NaN e zerar os cards
+// de "Economia mensal" e "Despesas" ao navegar entre meses).
+function getSafeEconomyMonthYear() {
+    const now = new Date();
+    let m = window.economyMonth;
+    let y = window.economyYear;
+    if (typeof m !== "number" || isNaN(m)) m = now.getMonth();
+    if (typeof y !== "number" || isNaN(y)) y = now.getFullYear();
+    return { m, y };
+}
+
 document.getElementById("prevMon")?.addEventListener("click", () => {
-    let m = window.economyMonth-1, y = window.economyYear;
+    const cur = getSafeEconomyMonthYear();
+    let m = cur.m - 1, y = cur.y;
     if (m<0){m=11;y--;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
     if (window.renderTransactions) window.renderTransactions(m,y);
@@ -3380,7 +3587,8 @@ document.getElementById("prevMon")?.addEventListener("click", () => {
 });
 
 document.getElementById("nextMon")?.addEventListener("click", () => {
-    let m = window.economyMonth+1, y = window.economyYear;
+    const cur = getSafeEconomyMonthYear();
+    let m = cur.m + 1, y = cur.y;
     if (m>11){m=0;y++;}
     if (window.drawEconomyChart) window.drawEconomyChart(m,y);
     if (window.renderTransactions) window.renderTransactions(m,y);

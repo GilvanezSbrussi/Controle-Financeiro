@@ -9,6 +9,54 @@ const LICENSE_KEY = "financas-license-v1";
 const DEVICE_KEY  = "financas-device-id";
 const CATS_KEY    = "financas-categories-v1";
 const RECORRENTES_KEY = "financas-recorrentes-v1";
+const VALUES_HIDDEN_KEY = "financas-values-hidden";
+const BIO_CREDS_KEY = "financas-bio-credentials";   // credenciais WebAuthn cadastradas neste aparelho
+const BIO_LOCK_KEY  = "financas-bio-lock-enabled";  // "1" = bloqueio ativo ao abrir o app
+const BIO_UNLOCKED_SESSION_KEY = "financas-bio-unlocked"; // desbloqueado nesta sessão (sessionStorage)
+const BIO_MAX_CREDENTIALS = 3;
+
+// ============================================================
+// MOSTRAR / OCULTAR VALORES (privacidade)
+// ============================================================
+const EXPENSE_KIND_META = {
+  fixed:     { label: "📌 Fixo",      cls: "fixed" },
+  variable:  { label: "🔀 Variável",  cls: "variable" },
+  emotional: { label: "❤️ Emocional", cls: "emotional" }
+};
+function expenseKindLabel(kind) { return EXPENSE_KIND_META[kind]?.label || ""; }
+
+function initValuesToggle() {
+  const btn = document.getElementById("toggleValuesBtn");
+  let hidden = false;
+  try {
+    hidden = localStorage.getItem(VALUES_HIDDEN_KEY) === "1";
+  } catch (e) {
+    console.warn("Erro ao ler estado de ocultar valores, usando padrão (mostrar):", e);
+  }
+
+  function apply() {
+    document.body.classList.toggle("values-hidden", hidden);
+    if (btn) {
+      btn.textContent = hidden ? "🙈" : "👁️";
+      btn.title = hidden ? "Mostrar valores" : "Ocultar valores";
+      btn.setAttribute("aria-label", btn.title);
+    }
+  }
+
+  apply();
+  btn?.addEventListener("click", () => {
+    hidden = !hidden;
+    try {
+      localStorage.setItem(VALUES_HIDDEN_KEY, hidden ? "1" : "0");
+    } catch (e) {
+      console.warn("Erro ao salvar estado de ocultar valores:", e);
+    }
+    apply();
+  });
+}
+
+initValuesToggle();
+applyBioLockOnLoad();
 
 const licPubKey = {
   kty:"EC", crv:"P-256",
@@ -18,8 +66,8 @@ const licPubKey = {
 
 const defaultState = {
   accounts: [
-    { id:"corrente",     name:"Conta corrente", kind:"checking",   openingBalance:0 },
-    { id:"investimentos",name:"Investimentos",  kind:"investment", openingBalance:0 }
+    { id:"corrente",     name:"Conta corrente", kind:"checking",   openingBalance:0, goal:0 },
+    { id:"investimentos",name:"Investimentos",  kind:"investment", openingBalance:0, goal:0 }
   ],
   transactions: []
 };
@@ -36,11 +84,11 @@ let state   = loadState();
 let license = loadLicense();
 let cats    = loadCats();
 let recorrentes = loadRecorrentes();
-let filters = { type: "", cat: "", acc: "" };
+let filters = { type: "", cat: "", acc: "", search: "", expenseKind: "" };
 let editId  = null;
 let economyMonth = new Date().getMonth();
 let economyYear  = new Date().getFullYear();
-let currentEditingCategoryId = null; // Nova variável para rastrear a categoria em edição
+let currentEditingCategoryId = null;
 
 // --- ELEMENTOS ---
 const el = {
@@ -119,12 +167,11 @@ window.addEventListener("resize", () => { try { drawCharts(calcSummary()); drawE
 
 render();
 setupAuthUI();
+setupBiometricUI();
 setupFilters();
 setupRecorrentesUI();
 scheduleRecorrentesNotifications();
 
-// Inicia a sincronização com a nuvem em segundo plano (não bloqueia a tela inicial).
-// O app já está usável com os dados locais antes mesmo disso terminar.
 if (typeof firebase !== "undefined" && typeof auth !== "undefined") {
   initFirebaseSync();
 } else {
@@ -145,7 +192,7 @@ function loadState() {
   } catch { return structuredClone(defaultState); }
 }
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); // sempre grava local primeiro (funciona offline)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   cloudSave("state", state);
 }
 
@@ -163,8 +210,6 @@ function loadCats() {
   try {
     const raw = JSON.parse(localStorage.getItem(CATS_KEY) || "null");
     if (Array.isArray(raw) && raw.length > 0) {
-      // Normaliza formato (migra "favorite" antigo para "isFavorite" e
-      // garante os campos de limite mensal usados na tela de categorias).
       return raw.filter(c => c && c.name).map(c => ({
         id: c.id || ("c" + Date.now() + Math.random().toString(36).slice(2)),
         name: c.name,
@@ -176,7 +221,6 @@ function loadCats() {
       }));
     }
   } catch {}
-  // Categorias padrão
   return [
     { id: "sal",   name: "Salario",       type: "income",     isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
     { id: "ali",   name: "Alimentacao",   type: "expense",    isFavorite: true,  hasLimit:false, monthlyLimit:0, warningPercent:80 },
@@ -195,9 +239,6 @@ function saveCats() {
   cloudSave("cats", { items: cats });
 }
 
-// Expõe a lista de categorias e uma forma de atualizá-la (com persistência
-// local + sincronização automática com o Firebase) para a UI de categorias
-// (com limites mensais e edição) definida em index.html.
 window.getCats = function() { return cats; };
 window.setCats = function(newCats) {
   cats = Array.isArray(newCats) ? newCats : [];
@@ -215,22 +256,17 @@ function saveRecorrentes() {
 // ============================================================
 // SINCRONIZAÇÃO COM FIREBASE (nuvem)
 // ============================================================
-// Estratégia: o app sempre funciona 100% offline com localStorage
-// (igual hoje). Quando há login + internet, espelha os dados no
-// Firestore e fica ouvindo mudanças em tempo real (outro
-// dispositivo logado na mesma conta também recebe as atualizações).
 let cloudUserId = null;
 let cloudReady = false;
 let suppressNextSnapshot = { state: false, cats: false };
 
 function cloudDocPath(name) {
-  // "name" é "state" ou "cats" — cada um vira um documento dentro de users/{uid}/data/
   return db.collection("users").doc(cloudUserId).collection("data").doc(name);
 }
 
 function cloudSave(name, payload) {
-  if (!cloudReady || !cloudUserId) return; // sem login/sem rede: só fica salvo local mesmo
-  suppressNextSnapshot[name] = true; // evita que o próprio listener re-renderize com o que acabamos de mandar
+  if (!cloudReady || !cloudUserId) return;
+  suppressNextSnapshot[name] = true;
   cloudDocPath(name).set(payload, { merge: false }).catch((err) => {
     console.warn(`Falha ao sincronizar "${name}" com a nuvem (vai tentar de novo no próximo save):`, err);
   });
@@ -239,7 +275,6 @@ function cloudSave(name, payload) {
 function initFirebaseSync() {
   auth.onAuthStateChanged(async (user) => {
     if (!user) {
-      // ainda não logado nessa sessão: faz login anônimo automático (sem pedir nada ao usuário)
       try { await auth.signInAnonymously(); }
       catch (err) { console.warn("Login anônimo falhou (provável sem internet); app continua só local.", err); }
       return;
@@ -248,10 +283,8 @@ function initFirebaseSync() {
     cloudUserId = user.uid;
     cloudReady = true;
 
-    // Carrega perfil do usuário (nome, avatar, moeda)
     await loadProfile(user.uid);
 
-    // Migração única: se já existe dado local e ainda não existe nada na nuvem, sobe o que tem.
     const stateDoc = await cloudDocPath("state").get().catch(() => null);
     if (stateDoc && !stateDoc.exists) {
       cloudSave("state", state);
@@ -265,14 +298,13 @@ function initFirebaseSync() {
       cloudSave("recorrentes", { items: recorrentes });
     }
 
-    // Ouve mudanças em tempo real (inclusive vindas de outro dispositivo)
     cloudDocPath("state").onSnapshot((snap) => {
       if (suppressNextSnapshot.state) { suppressNextSnapshot.state = false; return; }
       if (!snap.exists) return;
       const remote = snap.data();
       if (Array.isArray(remote.transactions)) {
         state = { accounts: remote.accounts?.length ? remote.accounts : defaultState.accounts, transactions: remote.transactions };
-        window.appData = state; // mantem window.appData apontando pro objeto state atual
+        window.appData = state;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         render();
       }
@@ -305,17 +337,11 @@ function initFirebaseSync() {
 }
 
 // ============================================================
-// LOGIN COM E-MAIL/SENHA (upgrade da conta anônima)
+// LOGIN COM E-MAIL/SENHA
 // ============================================================
-// Objetivo: o cliente pode continuar usando o app sem nenhum login
-// (modo anônimo, dados só naquele aparelho). Quando ele quiser acessar
-// os mesmos dados em outro celular, ele "vincula" um e-mail/senha à
-// conta anônima atual — isso MANTÉM o mesmo uid e os dados já salvos,
-// só adiciona uma forma de login permanente em cima da mesma conta.
-let authMode = "criar"; // "criar" = vincular conta nova | "entrar" = logar em conta já existente
-let userProfile = { name: "", avatar: "🙂", currency: "BRL" }; // perfil carregado da nuvem
+let authMode = "criar";
+let userProfile = { name: "", avatar: "🙂", currency: "BRL" };
 
-// ─── SAUDAÇÃO NO HEADER ──────────────────────────────────────
 function updateHeaderGreeting() {
   const greeting = document.getElementById("headerGreeting");
   const avatar = document.getElementById("headerAvatar");
@@ -327,7 +353,6 @@ function updateHeaderGreeting() {
   if (avatar) avatar.textContent = userProfile.avatar || "🙂";
 }
 
-// ─── PERFIL NO FIRESTORE ──────────────────────────────────────
 async function loadProfile(uid) {
   try {
     const snap = await db.collection("users").doc(uid).collection("data").doc("perfil").get();
@@ -342,7 +367,6 @@ async function saveProfile(uid) {
   await db.collection("users").doc(uid).collection("data").doc("perfil").set(userProfile, { merge: true });
 }
 
-// ─── STATUS DO MODAL ──────────────────────────────────────────
 function renderAuthStatus() {
   const box = document.getElementById("authStatusBox");
   const form = document.getElementById("authForm");
@@ -354,12 +378,10 @@ function renderAuthStatus() {
     if (form) form.style.display = "none";
     if (profileSection) {
       profileSection.style.display = "";
-      // Preenche os campos com os valores atuais do perfil
       const nameEl = document.getElementById("profileName");
       const currEl = document.getElementById("profileCurrency");
       if (nameEl) nameEl.value = userProfile.name || "";
       if (currEl) currEl.value = userProfile.currency || "BRL";
-      // Marca o avatar selecionado
       document.querySelectorAll(".avatar-opt").forEach(btn => {
         btn.classList.toggle("selected", btn.dataset.emoji === (userProfile.avatar || "🙂"));
       });
@@ -378,7 +400,6 @@ function showAuthError(msg) {
   el.style.display = msg ? "block" : "none";
 }
 
-// ─── LOGIN / CRIAR CONTA ──────────────────────────────────────
 async function handleAuthSubmit(email, password) {
   showAuthError("");
   const submitBtn = document.getElementById("authSubmitBtn");
@@ -411,7 +432,6 @@ async function handleAuthSubmit(email, password) {
   }
 }
 
-// ─── ESQUECI MINHA SENHA ──────────────────────────────────────
 async function handleForgotPassword() {
   const emailEl = document.getElementById("authEmail");
   const email = emailEl?.value.trim();
@@ -419,7 +439,7 @@ async function handleForgotPassword() {
   showAuthError("");
   try {
     await auth.sendPasswordResetEmail(email);
-    showAuthError(""); // limpa erros
+    showAuthError("");
     const box = document.getElementById("authStatusBox");
     if (box) box.innerHTML = `📧 E-mail de redefinição enviado para <strong>${email}</strong>. Verifique sua caixa de entrada (e o spam).`;
   } catch (err) {
@@ -431,7 +451,6 @@ async function handleForgotPassword() {
   }
 }
 
-// ─── CONFIGURA TODOS OS EVENTOS DO MODAL ─────────────────────
 function setupAuthUI() {
   const modal   = document.getElementById("authModal");
   const form    = document.getElementById("authForm");
@@ -441,7 +460,6 @@ function setupAuthUI() {
   const forgotBtn  = document.getElementById("authForgotBtn");
   const profileSaveBtn = document.getElementById("profileSaveBtn");
 
-  // Abre o modal pelo avatar no header OU pelo item do menu
   ["headerAvatar", "menuAccountBtn"].forEach(id => {
     document.getElementById(id)?.addEventListener("click", () => {
       document.getElementById("ddMenu")?.classList.remove("open");
@@ -481,7 +499,6 @@ function setupAuthUI() {
     renderAuthStatus();
   });
 
-  // Avatar picker
   document.getElementById("avatarGrid")?.addEventListener("click", e => {
     const btn = e.target.closest(".avatar-opt");
     if (!btn) return;
@@ -491,7 +508,6 @@ function setupAuthUI() {
     updateHeaderGreeting();
   });
 
-  // Salvar perfil
   if (profileSaveBtn) profileSaveBtn.addEventListener("click", async () => {
     const nameEl = document.getElementById("profileName");
     const currEl = document.getElementById("profileCurrency");
@@ -508,6 +524,445 @@ function setupAuthUI() {
       } catch (e) { alert("Erro ao salvar perfil. Tente novamente."); }
       finally { profileSaveBtn.disabled = false; profileSaveBtn.textContent = "💾 Salvar perfil"; }
     }
+  });
+}
+
+// ============================================================
+// BIOMETRIA DE ACESSO (WebAuthn — impressão digital / rosto)
+// ============================================================
+// Guarda credenciais de biometria localmente neste aparelho (não vai pra
+// nuvem, pois biometria é sempre local ao dispositivo). Permite cadastrar
+// até BIO_MAX_CREDENTIALS biometrias diferentes (ex: dois dedos, ou
+// dedo + rosto, ou biometrias de mais de uma pessoa no mesmo aparelho).
+
+function bioBufToBase64Url(buf) {
+  const bytes = new Uint8Array(buf);
+  let str = "";
+  for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function bioBase64UrlToBuf(b64url) {
+  let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  const str = atob(b64);
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i);
+  return bytes.buffer;
+}
+function bioRandomBytes(len) {
+  return crypto.getRandomValues(new Uint8Array(len));
+}
+
+function biometricDiagnosis() {
+  const hasCapacitor = !!window.Capacitor;
+  const isNative = hasCapacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform();
+  if (isNative) {
+    const hasPlugin = !!(window.Capacitor.Plugins && window.Capacitor.Plugins.NativeBiometric);
+    if (!hasPlugin) {
+      return "⚠️ Plugin de biometria nativa não encontrado neste APK. No projeto, rode: npm install @capgo/capacitor-native-biometric && npx cap sync android, depois gere o APK de novo.";
+    }
+    return null; // plugin presente, disponibilidade real é checada no cadastro/verificação
+  }
+  if (!isWebAuthnAvailable()) {
+    return "⚠️ Seu navegador/dispositivo não parece suportar biometria. Essa função pode não funcionar aqui.";
+  }
+  return null;
+}
+function isWebAuthnAvailable() {
+  return typeof window !== "undefined" && !!window.PublicKeyCredential && !!navigator.credentials;
+}
+async function isPlatformBiometricAvailable() {
+  if (!isWebAuthnAvailable()) return false;
+  try {
+    if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== "function") return false;
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch { return false; }
+}
+
+// --- Biometria nativa (app empacotado em APK via Capacitor) ---
+// A WebView do Android não implementa WebAuthn (navigator.credentials), então
+// dentro do APK usamos o plugin nativo @capgo/capacitor-native-biometric, que
+// fala direto com a impressão digital/rosto do aparelho. No navegador comum
+// (testes no PC/celular fora do app) continuamos usando WebAuthn normalmente.
+function getNativeBiometricPlugin() {
+  const isNative = typeof isCapacitorNativeApp === "function" && isCapacitorNativeApp();
+  if (!isNative) return null;
+  return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativeBiometric) || null;
+}
+async function isNativeBiometricAvailable() {
+  const plugin = getNativeBiometricPlugin();
+  if (!plugin) return { available: false, detail: "plugin-ausente" };
+  try {
+    const result = await plugin.isAvailable();
+    if (result?.isAvailable) return { available: true, detail: null, raw: result };
+    const parts = [];
+    if (result?.errorCode !== undefined) parts.push(`errorCode=${result.errorCode}`);
+    if (result?.deviceIsSecure === false) parts.push("deviceIsSecure=false");
+    if (result?.strongBiometryIsAvailable === false) parts.push("strongBiometryIsAvailable=false");
+    return { available: false, detail: parts.join(", ") || "isAvailable=false", raw: result };
+  } catch (err) {
+    return { available: false, detail: `exceção: ${err?.message || err}` };
+  }
+}
+function isBiometricSupported() {
+  // síncrono e "otimista": no app nativo assumimos suportado se o plugin existir
+  // (a checagem real de hardware/cadastro acontece em isNativeBiometricAvailable,
+  // chamada dentro de registerBiometric/verifyBiometric).
+  return !!getNativeBiometricPlugin() || isWebAuthnAvailable();
+}
+
+function loadBioCreds() {
+  try {
+    const list = JSON.parse(localStorage.getItem(BIO_CREDS_KEY) || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch { return []; }
+}
+function saveBioCreds(list) {
+  localStorage.setItem(BIO_CREDS_KEY, JSON.stringify(list));
+}
+function isBioLockEnabled() {
+  return localStorage.getItem(BIO_LOCK_KEY) === "1" && loadBioCreds().length > 0;
+}
+function setBioLockEnabled(enabled) {
+  localStorage.setItem(BIO_LOCK_KEY, enabled ? "1" : "0");
+}
+function isBioUnlockedThisSession() {
+  try { return sessionStorage.getItem(BIO_UNLOCKED_SESSION_KEY) === "1"; }
+  catch { return false; }
+}
+function markBioUnlockedThisSession() {
+  try { sessionStorage.setItem(BIO_UNLOCKED_SESSION_KEY, "1"); } catch {}
+}
+
+// --- Tela de bloqueio (mostrada ao abrir o app, se o bloqueio estiver ativo) ---
+function applyBioLockOnLoad() {
+  document.addEventListener("DOMContentLoaded", () => {
+    const screen = document.getElementById("bioLockScreen");
+    if (!screen) return;
+    if (isBioLockEnabled() && !isBioUnlockedThisSession()) {
+      screen.classList.remove("hidden");
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      screen.classList.add("hidden");
+      document.documentElement.style.overflow = "";
+    }
+    attachBioLockScreenEvents();
+  });
+}
+
+function hideBioLockScreen() {
+  const screen = document.getElementById("bioLockScreen");
+  if (screen) screen.classList.add("hidden");
+  document.documentElement.style.overflow = "";
+}
+
+let bioLockScreenEventsAttached = false;
+function attachBioLockScreenEvents() {
+  if (bioLockScreenEventsAttached) return;
+  bioLockScreenEventsAttached = true;
+
+  const unlockBtn  = document.getElementById("bioUnlockBtn");
+  const forgotBtn  = document.getElementById("bioLockForgotBtn");
+  const errBox     = document.getElementById("bioLockError");
+
+  function showLockErr(msg) {
+    if (!errBox) return;
+    errBox.textContent = msg;
+    errBox.style.display = msg ? "block" : "none";
+  }
+
+  if (unlockBtn) unlockBtn.addEventListener("click", async () => {
+    showLockErr("");
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = "Aguardando biometria...";
+    const result = await verifyBiometric();
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = "🔓 Desbloquear com biometria";
+    if (result.ok) {
+      markBioUnlockedThisSession();
+      hideBioLockScreen();
+    } else {
+      showLockErr(bioErrorMessage(result));
+    }
+  });
+
+  if (forgotBtn) forgotBtn.addEventListener("click", () => {
+    if (!confirm("Isso vai remover TODAS as biometrias cadastradas neste aparelho e desativar o bloqueio, liberando o acesso ao app. Deseja continuar?")) return;
+    saveBioCreds([]);
+    setBioLockEnabled(false);
+    markBioUnlockedThisSession();
+    hideBioLockScreen();
+    renderBioUI();
+  });
+}
+
+function bioErrorMessage(result) {
+  if (result?.reason === "no-creds") return "Nenhuma biometria cadastrada neste aparelho.";
+  if (result?.reason === "unsupported") {
+    const base = "Seu dispositivo ou navegador não suporta biometria, ou nenhuma digital/rosto está cadastrado no aparelho.";
+    return result.detail ? `${base} (detalhe: ${result.detail})` : base;
+  }
+  const name = result?.error?.name;
+  const code = result?.error?.code;
+  if (name === "NotAllowedError") return "Biometria cancelada ou não reconhecida. Tente novamente.";
+  if (code === "authenticationFailed") return "Biometria não reconhecida. Tente novamente.";
+  if (code === "userCancel" || code === "systemCancel") return "Biometria cancelada. Tente novamente.";
+  return "Não foi possível validar a biometria. Tente novamente.";
+}
+
+// --- Cadastro e verificação ---
+async function registerBiometric() {
+  const nativePlugin = getNativeBiometricPlugin();
+
+  // --- Caminho nativo (dentro do APK gerado pelo Capacitor) ---
+  if (nativePlugin) {
+    const creds = loadBioCreds();
+    if (creds.length >= BIO_MAX_CREDENTIALS) {
+      return { ok: false, reason: "max-reached" };
+    }
+    const check = await isNativeBiometricAvailable();
+    if (!check.available) return { ok: false, reason: "unsupported", detail: check.detail };
+    const name = (prompt(`Dê um nome para esta biometria (ex: "Meu dedo", "Rosto"):`, suggestion) || "").trim();
+    if (!name) return { ok: false, reason: "cancelled" };
+
+    try {
+      // Pede a digital/rosto uma vez para confirmar que o sensor funciona e
+      // que o usuário concorda em usá-lo para desbloquear o app.
+      await nativePlugin.verifyIdentity({
+        reason: "Confirme sua biometria para cadastrar",
+        title: "Cadastrar biometria",
+        subtitle: name
+      });
+      const id = bioBufToBase64Url(bioRandomBytes(16));
+      const updated = [...creds, { id, name, createdAt: new Date().toISOString() }];
+      saveBioCreds(updated);
+      return { ok: true, name };
+    } catch (err) {
+      if (err?.code === "userCancel" || err?.code === "systemCancel") {
+        return { ok: false, reason: "cancelled" };
+      }
+      console.warn("Erro ao cadastrar biometria (nativo):", err);
+      return { ok: false, error: err };
+    }
+  }
+
+  // --- Caminho WebAuthn (navegador comum, fora do APK) ---
+  if (!isWebAuthnAvailable()) {
+    return { ok: false, reason: "unsupported" };
+  }
+  const creds = loadBioCreds();
+  if (creds.length >= BIO_MAX_CREDENTIALS) {
+    return { ok: false, reason: "max-reached" };
+  }
+
+  const suggestion = `Biometria ${creds.length + 1}`;
+  const name = (prompt(`Dê um nome para esta biometria (ex: "Meu dedo", "Rosto", "Dedo do trabalho"):`, suggestion) || "").trim();
+  if (!name) return { ok: false, reason: "cancelled" };
+
+  const challenge = bioRandomBytes(32);
+  const userId = bioRandomBytes(16);
+
+  const publicKey = {
+    challenge,
+    rp: { name: "Controle sua Fortuna" },
+    user: { id: userId, name: name, displayName: name },
+    pubKeyCredParams: [
+      { type: "public-key", alg: -7 },   // ES256
+      { type: "public-key", alg: -257 }  // RS256
+    ],
+    authenticatorSelection: {
+      authenticatorAttachment: "platform",
+      userVerification: "required",
+      requireResidentKey: false
+    },
+    excludeCredentials: creds.map(c => ({ id: bioBase64UrlToBuf(c.id), type: "public-key" })),
+    attestation: "none",
+    timeout: 60000
+  };
+
+  try {
+    const credential = await navigator.credentials.create({ publicKey });
+    if (!credential) return { ok: false, reason: "cancelled" };
+    const id = bioBufToBase64Url(credential.rawId);
+    const updated = [...creds, { id, name, createdAt: new Date().toISOString() }];
+    saveBioCreds(updated);
+    return { ok: true, name };
+  } catch (err) {
+    console.warn("Erro ao cadastrar biometria:", err);
+    return { ok: false, error: err };
+  }
+}
+
+async function verifyBiometric() {
+  const nativePlugin = getNativeBiometricPlugin();
+
+  // --- Caminho nativo (dentro do APK gerado pelo Capacitor) ---
+  if (nativePlugin) {
+    const creds = loadBioCreds();
+    if (!creds.length) return { ok: false, reason: "no-creds" };
+    const check = await isNativeBiometricAvailable();
+    if (!check.available) return { ok: false, reason: "unsupported", detail: check.detail };
+    try {
+      await nativePlugin.verifyIdentity({
+        reason: "Confirme sua biometria para desbloquear",
+        title: "Controle sua Fortuna"
+      });
+      return { ok: true };
+    } catch (err) {
+      if (err?.code === "userCancel" || err?.code === "systemCancel") {
+        return { ok: false, reason: "cancelled" };
+      }
+      console.warn("Erro ao verificar biometria (nativo):", err);
+      return { ok: false, error: err };
+    }
+  }
+
+  // --- Caminho WebAuthn (navegador comum, fora do APK) ---
+  if (!isWebAuthnAvailable()) return { ok: false, reason: "unsupported" };
+  const creds = loadBioCreds();
+  if (!creds.length) return { ok: false, reason: "no-creds" };
+
+  const publicKey = {
+    challenge: bioRandomBytes(32),
+    allowCredentials: creds.map(c => ({ id: bioBase64UrlToBuf(c.id), type: "public-key" })),
+    userVerification: "required",
+    timeout: 60000
+  };
+
+  try {
+    const assertion = await navigator.credentials.get({ publicKey });
+    if (!assertion) return { ok: false, reason: "cancelled" };
+    return { ok: true };
+  } catch (err) {
+    console.warn("Erro ao verificar biometria:", err);
+    return { ok: false, error: err };
+  }
+}
+
+function removeBioCred(id) {
+  const updated = loadBioCreds().filter(c => c.id !== id);
+  saveBioCreds(updated);
+  if (!updated.length) setBioLockEnabled(false);
+}
+
+// --- UI (dentro do modal "Minha Conta") ---
+function renderBioUI() {
+  const statusBox = document.getElementById("bioStatusBox");
+  const toggle    = document.getElementById("bioLockToggle");
+  const list      = document.getElementById("bioList");
+  const addBtn    = document.getElementById("bioAddBtn");
+  if (!list) return;
+
+  const creds = loadBioCreds();
+
+  if (toggle) toggle.checked = isBioLockEnabled();
+
+  if (!creds.length) {
+    list.innerHTML = `<div class="bio-empty">Nenhuma biometria cadastrada neste aparelho.</div>`;
+  } else {
+    list.innerHTML = creds.map(c => `
+      <div class="bio-item" data-id="${c.id}">
+        <span class="bio-item-name">👆 <strong>${escapeHtmlBio(c.name)}</strong></span>
+        <button type="button" class="bio-del-btn" data-id="${c.id}" title="Remover" aria-label="Remover biometria">🗑️</button>
+      </div>
+    `).join("");
+  }
+
+  if (addBtn) {
+    const reachedMax = creds.length >= BIO_MAX_CREDENTIALS;
+    addBtn.disabled = reachedMax;
+    addBtn.textContent = reachedMax ? `Máximo de ${BIO_MAX_CREDENTIALS} biometrias cadastradas` : "👆 Adicionar biometria";
+  }
+
+  if (statusBox) {
+    const diag = biometricDiagnosis();
+    if (diag) {
+      statusBox.innerHTML = diag;
+    } else {
+      statusBox.innerHTML = `Cadastre até ${BIO_MAX_CREDENTIALS} biometrias (ex: dois dedos, rosto, ou de mais de uma pessoa) para desbloquear o app neste aparelho.`;
+    }
+  }
+}
+
+function escapeHtmlBio(str) {
+  const div = document.createElement("div");
+  div.textContent = String(str ?? "");
+  return div.innerHTML;
+}
+
+function setupBiometricUI() {
+  const toggle   = document.getElementById("bioLockToggle");
+  const addBtn   = document.getElementById("bioAddBtn");
+  const list     = document.getElementById("bioList");
+  const forgotBtn = document.getElementById("bioForgotBtn");
+  const errBox   = document.getElementById("bioError");
+
+  function showErr(msg) {
+    if (!errBox) return;
+    errBox.textContent = msg;
+    errBox.style.display = msg ? "block" : "none";
+  }
+
+  // Renderiza sempre que o modal "Minha Conta" for aberto
+  ["headerAvatar", "menuAccountBtn"].forEach(id => {
+    document.getElementById(id)?.addEventListener("click", () => renderBioUI());
+  });
+  renderBioUI();
+
+  if (addBtn) addBtn.addEventListener("click", async () => {
+    showErr("");
+    const diag = biometricDiagnosis();
+    if (diag) {
+      showErr(diag);
+      return;
+    }
+    addBtn.disabled = true;
+    const prevText = addBtn.textContent;
+    addBtn.textContent = "Aguardando biometria...";
+    const result = await registerBiometric();
+    addBtn.disabled = false;
+    addBtn.textContent = prevText;
+
+    if (result.ok) {
+      // Se for a primeira biometria cadastrada, ativa o bloqueio automaticamente
+      if (loadBioCreds().length === 1) setBioLockEnabled(true);
+      renderBioUI();
+    } else if (result.reason === "max-reached") {
+      showErr(`Você já cadastrou o máximo de ${BIO_MAX_CREDENTIALS} biometrias. Remova uma para adicionar outra.`);
+    } else if (result.reason === "cancelled") {
+      // usuário cancelou o prompt de nome ou o cadastro nativo — sem erro
+    } else if (result.reason === "unsupported") {
+      showErr(bioErrorMessage(result));
+    } else {
+      showErr(bioErrorMessage(result));
+    }
+  });
+
+  if (list) list.addEventListener("click", (e) => {
+    const btn = e.target.closest(".bio-del-btn");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const cred = loadBioCreds().find(c => c.id === id);
+    if (!confirm(`Remover a biometria "${cred?.name || ""}"?`)) return;
+    removeBioCred(id);
+    renderBioUI();
+  });
+
+  if (toggle) toggle.addEventListener("change", () => {
+    if (toggle.checked && !loadBioCreds().length) {
+      alert("Cadastre pelo menos uma biometria antes de ativar o bloqueio.");
+      toggle.checked = false;
+      return;
+    }
+    setBioLockEnabled(toggle.checked);
+  });
+
+  if (forgotBtn) forgotBtn.addEventListener("click", () => {
+    if (!loadBioCreds().length) { showErr("Não há biometrias cadastradas."); return; }
+    if (!confirm("Remover TODAS as biometrias cadastradas neste aparelho e desativar o bloqueio?")) return;
+    saveBioCreds([]);
+    setBioLockEnabled(false);
+    renderBioUI();
   });
 }
 
@@ -535,11 +990,11 @@ function renderFavTags(container, catSelect, currentType, currentCat) {
   }
   const section = container.closest ? container.closest("#favTagsSection,#editFavTagsSection") : null;
   if (section) section.style.display = "";
-  
+
   container.innerHTML = favs.map(c =>
     `<button type="button" class="fav-tag${currentCat === c.name ? " selected" : ""}" data-catname="${c.name}">${c.name}</button>`
   ).join("");
-  
+
   container.querySelectorAll(".fav-tag").forEach(btn => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.catname;
@@ -563,13 +1018,12 @@ function updateFormMode() {
   const isTransfer = type === "transfer";
   el.toWrap.classList.toggle("hidden", !isTransfer);
   el.catWrap.classList.toggle("hidden", isTransfer);
+  document.getElementById("kindWrap")?.classList.toggle("hidden", type !== "expense");
   el.toAcc.required = isTransfer;
   fillCatSelect(el.cat, type);
   renderFavTags(el.favTags, el.cat, type, el.cat.value);
-  // Ocultar favs em transferência
   const sec = document.getElementById("favTagsSection");
   if (sec) sec.style.display = isTransfer ? "none" : "";
-  // Limpar seleção fav ao trocar tipo
   if (!isTransfer) el.cat.value = "";
 }
 
@@ -592,7 +1046,6 @@ function onSubmit(e) {
   const toAcc = fd.get("toAccount");
   if (type === "transfer" && fromAcc === toAcc) { alert("Escolha contas diferentes."); return; }
 
-  // Validar categoria pelo tipo
   const catVal = String(fd.get("category") || "").trim();
   if (catVal && type !== "transfer") {
     const found = cats.find(c => c.name === catVal);
@@ -610,7 +1063,8 @@ function onSubmit(e) {
     date: fd.get("date"),
     fromAccount: fromAcc,
     toAccount: type === "transfer" ? toAcc : "",
-    category: catVal
+    category: catVal,
+    expenseKind: type === "expense" ? String(fd.get("expenseKind") || "") : ""
   };
   if (editId) {
     state.transactions = state.transactions.map(t => t.id === editId ? tx : t);
@@ -665,6 +1119,7 @@ function updateEditFormMode() {
   const isTransfer = type === "transfer";
   editToWrap.classList.toggle("hidden", !isTransfer);
   editCatWrap.classList.toggle("hidden", isTransfer);
+  document.getElementById("editKindWrap")?.classList.toggle("hidden", type !== "expense");
   editToAcc.required = isTransfer;
   fillCatSelect(editCat, type);
   renderFavTags(editFavTags, editCat, type, editCat.value);
@@ -685,6 +1140,8 @@ function openEditModal(tx) {
   editToAcc.value   = tx.toAccount || state.accounts[0]?.id;
   updateEditFormMode();
   editCat.value     = tx.category || "";
+  const editKindEl  = document.getElementById("editExpKind");
+  if (editKindEl) editKindEl.value = tx.expenseKind || "";
   renderFavTags(editFavTags, editCat, tx.type, tx.category || "");
   editModal.classList.add("open");
   document.body.style.overflow = "hidden";
@@ -727,7 +1184,8 @@ editForm.addEventListener("submit", function(e) {
     date: fd.get("date"),
     fromAccount: fromAcc,
     toAccount: type === "transfer" ? toAcc : "",
-    category: catVal
+    category: catVal,
+    expenseKind: type === "expense" ? String(fd.get("expenseKind") || "") : ""
   };
   state.transactions = state.transactions.map(t => t.id === editingId ? tx : t);
   saveState();
@@ -762,7 +1220,6 @@ function openAccModal(accId) {
   accModalIcon.textContent = acc.kind === "investment" ? "I" : "C";
   accModalIcon.className   = "acc-modal-icon " + (acc.kind === "investment" ? "investment" : "checking");
 
-  // Filtra transações desta conta
   const txs = state.transactions.filter(t =>
     t.fromAccount === accId || (t.type === "transfer" && t.toAccount === accId)
   );
@@ -770,7 +1227,6 @@ function openAccModal(accId) {
   if (!txs.length) {
     accModalBody.innerHTML = '<div class="empty">Nenhum lancamento nesta conta.</div>';
   } else {
-    // Agrupa por dia
     const groups = {};
     txs.forEach(t => {
       const d = t.date;
@@ -784,7 +1240,6 @@ function openAccModal(accId) {
 
     accModalBody.innerHTML = sorted.map(([date, items]) => {
       const dayLabel = fmt.format(new Date(date + "T12:00:00"));
-      // subtotal do dia para esta conta
       let sub = 0;
       items.forEach(t => {
         const v = Number(t.amount);
@@ -812,7 +1267,7 @@ function openAccModal(accId) {
             <div class="tx-meta">${meta}</div>
           </div>
           <div class="tx-right">
-            <div class="tx-amt ${cls}">${prefix}${money.format(Number(t.amount))}</div>
+            <div class="tx-amt ${cls} money-value">${prefix}${money.format(Number(t.amount))}</div>
             <div class="tx-date">${fmtDate(t.date)}</div>
           </div>
         </div>`;
@@ -822,7 +1277,7 @@ function openAccModal(accId) {
         <div class="day-group">
           <div class="day-label">
             ${dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1)}
-            <span class="day-subtotal ${subClass}">${subStr}</span>
+            <span class="day-subtotal ${subClass} money-value">${subStr}</span>
           </div>
           ${rows}
         </div>`;
@@ -847,19 +1302,18 @@ window.closeAccModal = function() {
 
 // ============================================================
 // GESTÃO DE CONTAS (criar / editar / excluir)
-// Exposto em window.* para a UI de formulário implementada no
-// index.html, seguindo o mesmo padrão usado por getCats()/setCats().
 // ============================================================
 window.getAccountsData = function() {
   return state.accounts;
 };
 
-window.addAccount = function(name, kind, openingBalance) {
+window.addAccount = function(name, kind, openingBalance, goal) {
   const acc = {
     id: "acc" + Date.now() + Math.random().toString(36).slice(2),
     name: (name || "").trim() || "Nova conta",
     kind: kind === "investment" ? "investment" : "checking",
-    openingBalance: parseFloat(openingBalance) || 0
+    openingBalance: parseFloat(openingBalance) || 0,
+    goal: parseFloat(goal) || 0
   };
   state.accounts.push(acc);
   saveState();
@@ -867,12 +1321,13 @@ window.addAccount = function(name, kind, openingBalance) {
   return acc.id;
 };
 
-window.updateAccount = function(id, name, kind, openingBalance) {
+window.updateAccount = function(id, name, kind, openingBalance, goal) {
   const acc = state.accounts.find(a => a.id === id);
   if (!acc) return false;
   acc.name = (name || "").trim() || acc.name;
   acc.kind = kind === "investment" ? "investment" : "checking";
   acc.openingBalance = parseFloat(openingBalance) || 0;
+  acc.goal = parseFloat(goal) || 0;
   saveState();
   render();
   return true;
@@ -893,14 +1348,6 @@ window.deleteAccount = function(id) {
   render();
   return true;
 };
-
-// ============================================================
-// MODAL CATEGORIAS
-// ============================================================
-// A UI do modal de categorias (abrir/fechar, adicionar, editar, excluir,
-// limites mensais) é implementada em index.html, usando window.getCats()/
-// window.setCats() (definidos acima) para ler e persistir os dados —
-// incluindo a sincronização com o Firebase feita por saveCats().
 
 // ============================================================
 // RENDER PRINCIPAL
@@ -953,21 +1400,46 @@ function renderSummary(s) {
 }
 
 function renderAccounts(balances) {
-  if (!state.accounts.length) { el.accountList.innerHTML = '<div class="empty">Nenhuma conta.</div>'; return; }
-  el.accountList.innerHTML = state.accounts.map(a => `
-    <div class="acc-card" data-accid="${a.id}" title="Ver lancamentos de ${a.name}">
-      <div class="acc-card-inner">
-        <div class="acc-info">
-          <small>${a.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
-          <strong>${a.name}</strong>
-          <em>${money.format(balances[a.id]||0)}</em>
+  if (!state.accounts.length) {
+    el.accountList.innerHTML = '<div class="empty">Nenhuma conta.</div>';
+    return;
+  }
+
+  el.accountList.innerHTML = state.accounts.map(a => {
+    const balance = balances[a.id] || 0;
+    let goalHtml = "";
+
+    // Só mostra barra de progresso se a conta tiver uma meta definida
+    if (a.goal && parseFloat(a.goal) > 0) {
+      const goal = parseFloat(a.goal);
+      const percent = Math.min((balance / goal) * 100, 100);
+      const done = balance >= goal;
+      goalHtml = `
+        <div class="acc-goal-bar-wrap">
+          <div class="acc-goal-bar">
+            <div class="acc-goal-fill ${done ? 'done' : ''}" style="width:${percent}%"></div>
+          </div>
+          <span class="acc-goal-label ${done ? 'done' : ''}">${done ? '🎉 ' : ''}${percent.toFixed(0)}%</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="acc-icon ${a.kind}">${a.kind === "investment" ? "I" : "C"}</div>
-          <span class="acc-arrow">›</span>
+        <span class="acc-goal-info">🎯 Objetivo: <span class="money-value">${money.format(goal)}</span>${done ? ' — Meta atingida! 🎉' : ''}</span>`;
+    }
+
+    return `
+      <div class="acc-card" data-accid="${a.id}" title="Ver lancamentos de ${a.name}">
+        <div class="acc-card-inner">
+          <div class="acc-info">
+            <small>${a.kind === "investment" ? "Investimento" : "Conta corrente"}</small>
+            <strong>${a.name}</strong>
+            <em class="money-value">${money.format(balance)}</em>
+            ${goalHtml}
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="acc-icon ${a.kind}">${a.kind === "investment" ? "I" : "C"}</div>
+            <span class="acc-arrow">›</span>
+          </div>
         </div>
-      </div>
-    </div>`).join("");
+      </div>`;
+  }).join("");
 
   el.accountList.querySelectorAll(".acc-card").forEach(card => {
     card.addEventListener("click", () => openAccModal(card.dataset.accid));
@@ -980,11 +1452,9 @@ function renderTransactions(m, y) {
   const yr = (y !== undefined) ? y : (window.economyYear  !== undefined ? window.economyYear  : now.getFullYear());
   const prefix = `${yr}-${String(mn+1).padStart(2,"0")}`;
 
-  // Mês formatado para exibir no cabeçalho
   const monthLabel = new Date(yr, mn, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const monthCap = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
-  // Atualiza rótulo dos cabeçalhos dos cards
   const expTitle  = document.querySelector("#expList")?.closest(".card")?.querySelector(".card-title h2");
   const incTitle  = document.querySelector("#incList")?.closest(".card")?.querySelector(".card-title h2");
   const trfTitle  = document.querySelector("#trfList")?.closest(".card")?.querySelector(".card-title h2");
@@ -1007,7 +1477,6 @@ function renderTransactions(m, y) {
   el.trfList.innerHTML = txHTML(trf, "Nenhuma transferência neste mês.");
 }
 
-// Expor para sincronização global de mês
 window.renderTransactions = renderTransactions;
 
 function txHTML(list, empty) {
@@ -1019,11 +1488,13 @@ function txHTML(list, empty) {
     const meta = t.type === "transfer" ? `${acc} → ${dest}` : `${acc}${t.category ? " · " + t.category : ""}`;
     const prefix = t.type === "income" ? "+" : t.type === "expense" ? "-" : "";
     const cls = t.type === "income" ? "income-text" : t.type === "expense" ? "expense-text" : "transfer-text";
+    const kindMeta = t.type === "expense" ? EXPENSE_KIND_META[t.expenseKind] : null;
+    const kindTag = kindMeta ? `<span class="exp-kind-tag ${kindMeta.cls}">${kindMeta.label}</span>` : "";
     return `
     <div class="tx-item">
       <div class="tx-ico ${t.type}">${icons[t.type]}</div>
       <div class="tx-body">
-        <div class="tx-desc">${t.description}</div>
+        <div class="tx-desc">${t.description}${kindTag}</div>
         <div class="tx-meta">${meta}</div>
         <div class="tx-actions">
           <button class="abtn" data-action="edit" data-id="${t.id}">✏️ Editar</button>
@@ -1031,7 +1502,7 @@ function txHTML(list, empty) {
         </div>
       </div>
       <div class="tx-right">
-        <div class="tx-amt ${cls}">${prefix}${money.format(Number(t.amount))}</div>
+        <div class="tx-amt ${cls} money-value">${prefix}${money.format(Number(t.amount))}</div>
         <div class="tx-date">${fmtDate(t.date)}</div>
       </div>
     </div>`;
@@ -1103,7 +1574,6 @@ function drawEconomyChart(m, y) {
   const inc  = txs.filter(t=>t.type==="income").reduce((s,t)=>s+Number(t.amount),0);
   const exp  = txs.filter(t=>t.type==="expense").reduce((s,t)=>s+Number(t.amount),0);
   const saved = inc - exp;
-  // Permite negativo: sem Math.max(0,...) para refletir real
   const pct  = inc > 0 ? Math.min(100, Math.round(saved/inc*100)) : (exp > 0 ? -100 : 0);
 
   el.ecoInc.textContent    = money.format(inc);
@@ -1113,8 +1583,6 @@ function drawEconomyChart(m, y) {
   el.ecoPercent.textContent = pct + "%";
   el.ecoPercent.style.color = pct>=20 ? "var(--income)" : pct>=10 ? "var(--primary)" : "var(--expense)";
 
-  // Mantém as variáveis globais sincronizadas para que os botões de navegação
-  // sempre leiam o mês/ano atual corretamente
   window.economyMonth = economyMonth;
   window.economyYear  = economyYear;
 
@@ -1130,21 +1598,17 @@ function drawEconomyChart(m, y) {
   const cx=sz/2, cy=sz/2, r=50, lw=13;
   const start = -Math.PI/2;
   ctx.clearRect(0,0,sz,sz);
-  // Trilha de fundo
   ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.strokeStyle="#e5e7eb"; ctx.lineWidth=lw; ctx.stroke();
 
   if (pct > 0) {
-    // Positivo: arco verde/teal/amarelo proporcional
     ctx.beginPath(); ctx.arc(cx,cy,r,start,start+2*Math.PI*pct/100);
     ctx.strokeStyle = pct>=20?"#16a34a":pct>=10?"#0f766e":"#f59e0b";
     ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
-    // Restante em vermelho claro
     if (pct<100 && exp>0) {
       ctx.beginPath(); ctx.arc(cx,cy,r,start+2*Math.PI*pct/100,start+2*Math.PI);
       ctx.strokeStyle="#fca5a5"; ctx.lineWidth=lw; ctx.lineCap="round"; ctx.stroke();
     }
   } else if (exp > 0) {
-    // Negativo: anel inteiro vermelho para indicar estouro
     ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI);
     ctx.strokeStyle="#ef4444"; ctx.lineWidth=lw; ctx.stroke();
   }
@@ -1195,14 +1659,14 @@ function drawBar(canvas, rows) {
 // ============================================================
 // FILTROS
 // ============================================================
-
 function setupFilters() {
-  const fType = document.getElementById("filterType");
-  const fCat  = document.getElementById("filterCat");
-  const fAcc  = document.getElementById("filterAcc");
-  const fClear = document.getElementById("filterClearBtn");
+  const fType   = document.getElementById("filterType");
+  const fCat    = document.getElementById("filterCat");
+  const fAcc    = document.getElementById("filterAcc");
+  const fKind   = document.getElementById("filterExpKind");
+  const fSearch = document.getElementById("filterSearch");
+  const fClear  = document.getElementById("filterClearBtn");
 
-  // Preenche selects de categoria e conta com os dados atuais
   function populateFilterSelects() {
     if (fCat) {
       const catOpts = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join("");
@@ -1222,29 +1686,49 @@ function setupFilters() {
     filters.type = fType?.value || "";
     filters.cat  = fCat?.value  || "";
     filters.acc  = fAcc?.value  || "";
+    filters.expenseKind = fKind?.value || "";
     renderTransactions();
     renderCatPills();
+  };
+
+  let searchDebounce = null;
+  const onSearch = () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      filters.search = (fSearch?.value || "").trim().toLowerCase();
+      renderTransactions();
+      renderCatPills();
+    }, 200);
   };
 
   fType?.addEventListener("change", onChange);
   fCat?.addEventListener("change",  onChange);
   fAcc?.addEventListener("change",  onChange);
+  fKind?.addEventListener("change", onChange);
+  fSearch?.addEventListener("input", onSearch);
   fClear?.addEventListener("click", () => {
-    filters = { type: "", cat: "", acc: "" };
-    if (fType) fType.value = "";
-    if (fCat)  fCat.value  = "";
-    if (fAcc)  fAcc.value  = "";
+    filters = { type: "", cat: "", acc: "", search: "", expenseKind: "" };
+    if (fType)   fType.value   = "";
+    if (fCat)    fCat.value    = "";
+    if (fAcc)    fAcc.value    = "";
+    if (fKind)   fKind.value   = "";
+    if (fSearch) fSearch.value = "";
     renderTransactions();
     renderCatPills();
   });
 }
 
-// Filtro aplicado sobre uma lista de transações
 function applyFilters(txs) {
   return txs.filter(t => {
     if (filters.type && t.type !== filters.type) return false;
     if (filters.cat  && t.category !== filters.cat) return false;
     if (filters.acc  && t.fromAccount !== filters.acc && t.toAccount !== filters.acc) return false;
+    if (filters.expenseKind && (t.type !== "expense" || t.expenseKind !== filters.expenseKind)) return false;
+    if (filters.search) {
+      const kindLabel = expenseKindLabel(t.expenseKind);
+      const haystack = `${t.description || ""} ${t.category || ""} ${kindLabel}`.toLowerCase();
+      if (!haystack.includes(filters.search)) return false;
+    }
     return true;
   });
 }
@@ -1272,14 +1756,22 @@ function markLaunched(rec) {
   rec.lastLaunched = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
 }
 
+function isRecorrenteConcluida(rec) {
+  return !!rec.installments && (rec.installmentsDone || 0) >= rec.installments;
+}
+
 function launchRecorrente(rec) {
   const today = getBrazilDate();
   const [yr, mo] = today.split("-");
   const day = String(Math.min(rec.day, new Date(+yr, +mo, 0).getDate())).padStart(2,"0");
+  const parcelaAtual = (rec.installmentsDone || 0) + 1;
+  const descComParcela = rec.installments
+    ? `${rec.description} (${parcelaAtual}/${rec.installments})`
+    : rec.description;
   const tx = {
     id: crypto.randomUUID(),
     type: rec.type,
-    description: rec.description,
+    description: descComParcela,
     amount: rec.amount,
     date: `${yr}-${mo}-${day}`,
     fromAccount: rec.fromAccount,
@@ -1288,6 +1780,8 @@ function launchRecorrente(rec) {
   };
   state.transactions.unshift(tx);
   markLaunched(rec);
+  rec.installmentsDone = parcelaAtual;
+  if (isRecorrenteConcluida(rec)) rec.active = false;
   saveState();
   saveRecorrentes();
   render();
@@ -1303,24 +1797,28 @@ function renderRecorrentes() {
   el.innerHTML = recorrentes.map(rec => {
     const daysLeft = getDaysUntilDue(rec.day);
     const launched = wasLaunchedThisMonth(rec);
+    const concluida = isRecorrenteConcluida(rec);
     let dueTag = "";
-    if (!launched) {
+    if (!launched && !concluida) {
       if (daysLeft <= 0)       dueTag = `<span class="recorr-due overdue">Vencida</span>`;
       else if (daysLeft <= 3)  dueTag = `<span class="recorr-due due-soon">em ${daysLeft}d</span>`;
     }
-    const inactiveClass = rec.active === false ? " recorr-inactive" : "";
+    const parcelasTag = rec.installments
+      ? `<span class="recorr-parcelas${concluida ? " done" : ""}">${Math.min(rec.installmentsDone || 0, rec.installments)}/${rec.installments}${concluida ? " ✓" : ""}</span>`
+      : "";
+    const inactiveClass = (rec.active === false) ? " recorr-inactive" : "";
     return `
     <div class="recorr-item${inactiveClass}" data-id="${rec.id}">
       <div class="recorr-badge ${rec.type}">${rec.day}</div>
       <div class="recorr-info">
-        <strong>${rec.description}${dueTag}</strong>
-        <small>${rec.category || "Sem categoria"} · Dia ${rec.day} · ${rec.type === "expense" ? "Despesa" : "Receita"}</small>
+        <strong>${rec.description}${dueTag}${parcelasTag}</strong>
+        <small>${rec.category || "Sem categoria"} · Dia ${rec.day} · ${rec.type === "expense" ? "Despesa" : "Receita"}${concluida ? " · Concluída" : ""}</small>
       </div>
-      <span class="recorr-amount ${rec.type}">${rec.type === "expense" ? "−" : "+"}${money.format(rec.amount)}</span>
+      <span class="recorr-amount ${rec.type} money-value">${rec.type === "expense" ? "−" : "+"}${money.format(rec.amount)}</span>
       <div class="recorr-actions">
-        ${!launched && rec.active !== false ? `<button class="recorr-btn" data-action="launch" data-id="${rec.id}" title="Lançar agora">▶</button>` : ""}
+        ${!launched && !concluida && rec.active !== false ? `<button class="recorr-btn" data-action="launch" data-id="${rec.id}" title="Lançar agora">▶</button>` : ""}
         <button class="recorr-btn" data-action="edit"   data-id="${rec.id}" title="Editar">✏️</button>
-        <button class="recorr-btn" data-action="toggle" data-id="${rec.id}" title="${rec.active === false ? "Ativar" : "Pausar"}">${rec.active === false ? "▶" : "⏸"}</button>
+        ${!concluida ? `<button class="recorr-btn" data-action="toggle" data-id="${rec.id}" title="${rec.active === false ? "Ativar" : "Pausar"}">${rec.active === false ? "▶" : "⏸"}</button>` : ""}
         <button class="recorr-btn" data-action="del"    data-id="${rec.id}" title="Excluir">🗑</button>
       </div>
     </div>`;
@@ -1355,7 +1853,6 @@ function openRecorrModal(rec) {
   const modal = document.getElementById("recorrModal");
   document.getElementById("recorrModalTitle").textContent = rec ? "✏️ Editar recorrente" : "🔁 Nova recorrente";
 
-  // Preenche selects
   const accEl = document.getElementById("recorrAcc");
   accEl.innerHTML = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
   const catEl = document.getElementById("recorrCat");
@@ -1366,6 +1863,7 @@ function openRecorrModal(rec) {
     document.getElementById("recorrDesc").value = rec.description;
     document.getElementById("recorrAmt").value  = rec.amount;
     document.getElementById("recorrDay").value  = rec.day;
+    document.getElementById("recorrParcelas").value = rec.installments || "";
     accEl.value = rec.fromAccount;
     catEl.value = rec.category || "";
   } else {
@@ -1373,6 +1871,7 @@ function openRecorrModal(rec) {
     document.getElementById("recorrDesc").value = "";
     document.getElementById("recorrAmt").value  = "";
     document.getElementById("recorrDay").value  = "";
+    document.getElementById("recorrParcelas").value = "";
     accEl.value = state.accounts[0]?.id || "";
     catEl.value = "";
   }
@@ -1387,6 +1886,11 @@ function setupRecorrentesUI() {
   document.getElementById("recorrForm")?.addEventListener("submit", e => {
     e.preventDefault();
     const type = document.querySelector('input[name="rtype"]:checked')?.value || "expense";
+    const existing = editRecorrId ? recorrentes.find(r => r.id === editRecorrId) : null;
+    const parcelasRaw = document.getElementById("recorrParcelas").value;
+    const installments = parcelasRaw ? Math.max(1, Number(parcelasRaw)) : null;
+    let installmentsDone = existing?.installmentsDone || 0;
+    if (installments && installmentsDone > installments) installmentsDone = installments;
     const rec = {
       id:          editRecorrId || crypto.randomUUID(),
       type,
@@ -1395,9 +1899,12 @@ function setupRecorrentesUI() {
       day:         Number(document.getElementById("recorrDay").value),
       fromAccount: document.getElementById("recorrAcc").value,
       category:    document.getElementById("recorrCat").value,
-      active:      true,
-      lastLaunched: editRecorrId ? (recorrentes.find(r=>r.id===editRecorrId)?.lastLaunched || "") : ""
+      installments,
+      installmentsDone,
+      active:      existing ? (existing.active !== false) : true,
+      lastLaunched: existing?.lastLaunched || ""
     };
+    if (installments && installmentsDone < installments) rec.active = true;
     if (editRecorrId) {
       recorrentes = recorrentes.map(r => r.id === editRecorrId ? rec : r);
     } else {
@@ -1417,10 +1924,9 @@ function setupRecorrentesUI() {
 function renderProjecao() {
   const el = document.getElementById("projecaoList");
   if (!el) return;
-  const ativos = recorrentes.filter(r => r.active !== false);
+  const ativos = recorrentes.filter(r => r.active !== false && !isRecorrenteConcluida(r));
   if (!ativos.length) { el.innerHTML = '<div class="empty">Cadastre recorrentes para ver a projeção.</div>'; return; }
 
-  // Saldo atual
   const balances = Object.fromEntries(state.accounts.map(a => [a.id, a.openingBalance || 0]));
   state.transactions.forEach(t => {
     const v = Number(t.amount) || 0;
@@ -1430,7 +1936,6 @@ function renderProjecao() {
   });
   let saldo = Object.values(balances).reduce((s,v)=>s+v,0);
 
-  // Monta eventos dos próximos 30 dias
   const today = new Date(); today.setHours(0,0,0,0);
   const events = [];
   for (let d = 0; d <= 30; d++) {
@@ -1447,7 +1952,6 @@ function renderProjecao() {
 
   if (!events.length) { el.innerHTML = '<div class="empty">Sem eventos recorrentes nos próximos 30 dias.</div>'; return; }
 
-  // Agrupa por data e calcula saldo projetado
   const grouped = [];
   events.sort((a,b) => a.date - b.date);
   let currentDate = null;
@@ -1471,7 +1975,7 @@ function renderProjecao() {
       groupHtml += `<div class="proj-row${isToday ? " proj-today" : ""}">
         <span class="proj-date">${dateLabel}</span>
         <span class="proj-event">${rec.description}</span>
-        <span class="proj-balance ${runSaldo < 0 ? "neg" : "pos"}">${signal}${money.format(rec.amount)} → ${money.format(runSaldo)}</span>
+        <span class="proj-balance ${runSaldo < 0 ? "neg" : "pos"} money-value">${signal}${money.format(rec.amount)} → ${money.format(runSaldo)}</span>
       </div>`;
     });
     return groupHtml;
@@ -1483,28 +1987,26 @@ function renderProjecao() {
 // ============================================================
 async function scheduleRecorrentesNotifications() {
   try {
-    const { LocalNotifications } = Capacitor?.Plugins || {};
-    if (!LocalNotifications) return; // plugin não disponível (web ou não instalado)
+    const { LocalNotifications } = (typeof Capacitor !== "undefined" && Capacitor?.Plugins) || {};
+    if (!LocalNotifications) return;
 
-    // Cancela notificações de recorrentes anteriores (IDs 9000-9099)
     const ids = Array.from({length:100}, (_,i) => ({ id: 9000+i }));
     await LocalNotifications.cancel({ notifications: ids }).catch(()=>{});
 
-    // Pede permissão
     const perm = await LocalNotifications.requestPermissions();
     if (perm.display !== "granted") return;
 
     const notifications = [];
-    recorrentes.filter(r => r.active !== false && !wasLaunchedThisMonth(r)).forEach((rec, i) => {
+    recorrentes.filter(r => r.active !== false && !wasLaunchedThisMonth(r) && !isRecorrenteConcluida(r)).forEach((rec, i) => {
       const today = new Date(); today.setHours(9, 0, 0, 0);
       const due = new Date(today.getFullYear(), today.getMonth(), rec.day, 9, 0, 0);
       if (due < today) due.setMonth(due.getMonth() + 1);
 
       const daysLeft = Math.round((due - new Date()) / 86400000);
-      if (daysLeft > 7) return; // só notifica com até 7 dias de antecedência
+      if (daysLeft > 7) return;
 
       const alertDate = new Date(due); alertDate.setDate(due.getDate() - 2); alertDate.setHours(9,0,0,0);
-      if (alertDate < new Date()) return; // já passou a data de alerta
+      if (alertDate < new Date()) return;
 
       notifications.push({
         id: 9000 + i,
@@ -1525,7 +2027,6 @@ async function scheduleRecorrentesNotifications() {
 function accName(id) { return state.accounts.find(a=>a.id===id)?.name||"Conta"; }
 function fmtDate(v)  { return dateFmt.format(new Date(v+"T12:00:00")); }
 
-// Expor para uso externo
 window.drawCharts = drawCharts;
 window.drawEconomyChart = drawEconomyChart;
 window.calculateSummary = calcSummary;
