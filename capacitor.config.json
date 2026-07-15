@@ -1,6 +1,6 @@
 {
   "appId": "com.gilvanez.financas",
-  "appName": "Controle sua Fortuna",
+  "appName": "Minha Fortuna",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {

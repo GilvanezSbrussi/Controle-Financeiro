@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Extrato — Controle sua Fortuna</title>
+  <title>Extrato — Minha Fortuna</title>
   <style>
     :root{
       --primary:#0f766e;--income:#15803d;--expense:#b42318;--transfer:#1d4ed8;
@@ -186,6 +186,14 @@
   <script>
   'use strict';
 
+  // Escapa texto do usuário antes de inserir em innerHTML (previne XSS
+  // armazenado vindo de descrição/categoria digitada ou importada via backup)
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str === null || str === undefined ? '' : String(str);
+    return div.innerHTML;
+  }
+
   /* ─────────────────────────────────────────────
      AMBIENTE
   ───────────────────────────────────────────── */
@@ -315,10 +323,10 @@
         else { cls='amount-transfer'; sign=amt>=0?'+':'-'; }
         let desc = t.description||'Sem descrição';
         if (t.type==='transfer') desc+=` (${accName(t.fromAccount)} → ${accName(t.toAccount)})`;
-        const cat = (t.category && t.type!=='transfer') ? ` • ${t.category}` : '';
+        const cat = (t.category && t.type!=='transfer') ? ` • ${escapeHtml(t.category)}` : '';
         el.innerHTML = `
           <div class="transaction-info">
-            <span class="transaction-category">${desc}${cat}</span>
+            <span class="transaction-category">${escapeHtml(desc)}${cat}</span>
             <span class="transaction-date">${fmtD(t.date)}</span>
           </div>
           <span class="transaction-amount ${cls}">${sign}${BRL(Math.abs(amt))}</span>`;
@@ -367,7 +375,7 @@
     doc.setFontSize(17); doc.setFont('helvetica','bold');
     doc.text('Extrato de Transações', PW/2, 12, {align:'center'});
     doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('Controle sua Fortuna', PW/2, 18, {align:'center'});
+    doc.text('Minha Fortuna', PW/2, 18, {align:'center'});
     doc.text(period, PW/2, 24, {align:'center'});
     y=36;
 
@@ -437,7 +445,7 @@
     if(y>275){ doc.addPage(); y=M+6; }
     doc.setDrawColor(200); doc.setLineWidth(0.3); doc.line(M,y,M+CW,y); y+=4;
     doc.setFontSize(7); doc.setTextColor(150); doc.setFont('helvetica','normal');
-    doc.text('© Controle sua Fortuna — Documento confidencial', PW/2, y, {align:'center'});
+    doc.text('© Minha Fortuna — Documento confidencial', PW/2, y, {align:'center'});
 
     // Número de páginas
     const np=doc.internal.getNumberOfPages();

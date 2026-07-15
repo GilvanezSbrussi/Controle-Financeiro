@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Backup — Controle sua Fortuna</title>
+  <title>Backup — Minha Fortuna</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
 
@@ -436,6 +436,14 @@
   </div>
 
   <script>
+    // Escapa texto antes de inserir em innerHTML (defesa extra; aqui protege
+    // o nome do arquivo selecionado pelo usuário na importação)
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str === null || str === undefined ? "" : String(str);
+      return div.innerHTML;
+    }
+
     // ── TEMA ──
     (function() {
       var html = document.documentElement;
@@ -517,7 +525,7 @@
       try {
         const state = loadState();
         const backup = {
-          app: "Controle sua Fortuna",
+          app: "Minha Fortuna",
           version: 1,
           exportedAt: new Date().toISOString(),
           deviceInfo: {
@@ -584,10 +592,10 @@
       
       // Mostrar informações do arquivo selecionado
       document.querySelector("#importPath").innerHTML = `
-        <strong>📁 Arquivo selecionado:</strong> ${file.name}<br>
+        <strong>📁 Arquivo selecionado:</strong> ${escapeHtml(file.name)}<br>
         <strong>📦 Tamanho:</strong> ${formatBytes(file.size)}<br>
         <strong>🕒 Modificado:</strong> ${new Date(file.lastModified).toLocaleString("pt-BR")}<br>
-        <strong>📍 Caminho:</strong> ${file.webkitRelativePath || 'Arquivo local'}
+        <strong>📍 Caminho:</strong> ${escapeHtml(file.webkitRelativePath || 'Arquivo local')}
       `;
       document.querySelector("#importPath").classList.add("show");
       
@@ -603,12 +611,12 @@
           }
           
           if (!Array.isArray(data.accounts) || !Array.isArray(data.transactions)) {
-            throw new Error("Formato de backup inválido - não é um backup do Controle sua Fortuna");
+            throw new Error("Formato de backup inválido - não é um backup do Minha Fortuna");
           }
           
           // Verificar se é realmente um backup do app
-          if (parsed.app && parsed.app !== "Controle sua Fortuna") {
-            throw new Error("Este não é um backup do Controle sua Fortuna");
+          if (parsed.app && parsed.app !== "Minha Fortuna") {
+            throw new Error("Este não é um backup do Minha Fortuna");
           }
           
           // Fazer backup dos dados atuais antes de importar
@@ -645,7 +653,7 @@
           console.error("Erro ao importar backup:", error);
           setMsg("importMsg", 
             `❌ Erro ao importar backup: ${error.message}<br>
-            Verifique se o arquivo é um backup válido do Controle sua Fortuna.`, 
+            Verifique se o arquivo é um backup válido do Minha Fortuna.`, 
             "error");
         } finally {
           // Esconder informações do arquivo após um tempo se houver erro

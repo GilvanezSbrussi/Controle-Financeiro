@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0f766e"/>
-<title>Controle sua Fortuna</title>
+<title>Minha Fortuna</title>
 <link rel="manifest" href="manifest.json"/>
 <link rel="stylesheet" href="styles.css"/>
 <style>
@@ -236,7 +236,7 @@ canvas{width:100%!important;display:block}
 .lic-block-btn:hover{opacity:.9}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,0px));max-height:calc(97dvh - env(safe-area-inset-top,0px));overflow-y:auto}
+.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(-30%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,20px));max-height:calc(97dvh - env(safe-area-inset-top,20px));overflow-y:auto}
 .modal-overlay.open .modal-sheet{transform:translateY(0)}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem}
 .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
@@ -666,7 +666,7 @@ canvas{width:100%!important;display:block}
 <!-- Tela de bloqueio por biometria (fica na frente de tudo enquanto o app não é desbloqueado) -->
 <div id="bioLockScreen" class="hidden">
 <div class="bio-lock-icon">🔒</div>
-<h2>Controle sua Fortuna</h2>
+<h2>Minha Fortuna</h2>
 <p>Use sua biometria para desbloquear e acessar seus dados financeiros.</p>
 <button class="pbtn" id="bioUnlockBtn">🔓 Desbloquear com biometria</button>
 <div id="bioLockError" style="color:#e5484d;font-size:.82rem;display:none"></div>
@@ -702,7 +702,7 @@ canvas{width:100%!important;display:block}
 
 <div>
 <p class="eyebrow" id="headerGreeting"> </p>
-<h1 id="appTitle">Controle sua Fortuna</h1>
+<h1 id="appTitle">Minha Fortuna</h1>
 </div>
 <div class="topbar-right">
 <button class="tbtn" id="toggleValuesBtn" title="Mostrar/ocultar valores" aria-label="Mostrar/ocultar valores">👁️</button>
@@ -711,6 +711,7 @@ canvas{width:100%!important;display:block}
 <div class="ddmenu" id="ddMenu">
 <!-- ITENS REMOVIDOS: 📊 Extrato e 🏷️ Categorias foram movidos para o leftDdMenu -->
 <button class="dditem" id="openPlansModal" type="button" style="text-align:left">💎 Planos</button>
+<button class="dditem" onclick="window.location.href='manual.html'">📖 Manual do Usuário</button>
 <a class="dditem" href="licenca.html">🔑 Licença</a>
 <a class="dditem" href="backup.html">💾 Backup</a>
 <button class="dditem" id="menuAccountBtn" type="button" style="text-align:left">👤 Minha Conta</button>
@@ -881,7 +882,7 @@ canvas{width:100%!important;display:block}
   <div class="lic-block-card">
     <div class="lic-block-icon">🔒</div>
     <h2 id="licBlockTitle">Licença não ativada</h2>
-    <p id="licBlockMessage">Para continuar usando o Controle sua Fortuna, você precisa ativar uma licença válida.</p>
+    <p id="licBlockMessage">Para continuar usando o Minha Fortuna, você precisa ativar uma licença válida.</p>
     <div class="lic-block-info" id="licBlockInfo" style="display:none">
       <strong id="licBlockInfoLabel">Informação:</strong>
       <span id="licBlockInfoValue">-</span>
@@ -1105,7 +1106,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <ol>
 <li>Toque em <strong>"Configurações"</strong></li>
 <li>Vá em <strong>"Aplicativos"</strong></li>
-<li>Encontre o app <strong>"Controle sua Fortuna"</strong></li>
+<li>Encontre o app <strong>"Minha Fortuna"</strong></li>
 <li>Toque em <strong>"Permissões"</strong></li>
 <li>Ative a permissão de <strong>"Microfone"</strong></li>
 </ol>
@@ -1608,7 +1609,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
         valid: false,
         reason: "no-license",
         title: "Licença não ativada",
-        message: "Para continuar usando o Controle sua Fortuna, você precisa ativar uma licença válida.",
+        message: "Para continuar usando o Minha Fortuna, você precisa ativar uma licença válida.",
         info: null
       };
     }
@@ -1926,7 +1927,7 @@ return false;
 
 function populateModalAccounts() {
 const accs = getAccounts();
-const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+const opts = accs.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
 const from = document.getElementById('modalFromAcc');
 const to = document.getElementById('modalToAcc');
 if (from) from.innerHTML = opts;
@@ -1935,7 +1936,7 @@ if (to) to.innerHTML = opts;
 
 function populateAccounts() {
 const accs = getAccounts();
-const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+const opts = accs.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
 const from = document.getElementById('fromAcc');
 const to = document.getElementById('toAcc');
 if (from) from.innerHTML = opts;
@@ -2036,7 +2037,7 @@ let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type ||
 let html = '<option value="">Sem categoria</option>';
 filtered.forEach(c => {
 const star = c.isFavorite ? '⭐ ' : '';
-html += `<option value="${c.name}">${star}${c.name}</option>`;
+html += `<option value="${escapeHtml(c.name)}">${star}${escapeHtml(c.name)}</option>`;
 });
 catSel.innerHTML = html;
 }
@@ -2049,7 +2050,7 @@ let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type ||
 let html = '<option value="">Sem categoria</option>';
 filtered.forEach(c => {
 const star = c.isFavorite ? '⭐ ' : '';
-html += `<option value="${c.name}">${star}${c.name}</option>`;
+html += `<option value="${escapeHtml(c.name)}">${star}${escapeHtml(c.name)}</option>`;
 });
 catSel.innerHTML = html;
 }
@@ -2063,7 +2064,7 @@ let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type ||
 let html = '<option value="">Sem categoria</option>';
 filtered.forEach(c => {
 const star = c.isFavorite ? '⭐ ' : '';
-html += `<option value="${c.name}">${star}${c.name}</option>`;
+html += `<option value="${escapeHtml(c.name)}">${star}${escapeHtml(c.name)}</option>`;
 });
 catSel.innerHTML = html;
 if (prevValue) {
@@ -2558,9 +2559,9 @@ function openAndroidAppSettings() {
     } else if (typeof cordova !== 'undefined' && cordova.plugins && cordova.plugins.settings) {
         cordova.plugins.settings.open();
     } else {
-        showSuccessAlert('📱 Vá em: Configurações > Aplicativos > Controle sua Fortuna > Permissões > Microfone');
+        showSuccessAlert('📱 Vá em: Configurações > Aplicativos > Minha Fortuna > Permissões > Microfone');
         setTimeout(() => {
-            alert('Para ativar o microfone no Android:\n\n1. Abra Configurações do Android\n2. Vá em "Aplicativos"\n3. Encontre "Controle sua Fortuna"\n4. Toque em "Permissões"\n5. Ative "Microfone"');
+            alert('Para ativar o microfone no Android:\n\n1. Abra Configurações do Android\n2. Vá em "Aplicativos"\n3. Encontre "Minha Fortuna"\n4. Toque em "Permissões"\n5. Ative "Microfone"');
         }, 500);
     }
     closeAndroidPermissionScreen();
@@ -2915,7 +2916,7 @@ function renderCategoryPillsFromTransactions(m, y) {
             const bText = lim.percent >= 100 ? "LIMITE EXCEDIDO" : `${lim.percent}% USADO`;
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
-<div class="cat-pill-name"><strong>${item.name}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
+<div class="cat-pill-name"><strong>${escapeHtml(item.name)}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
 <div class="cat-pill-amount money-value">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
@@ -2928,7 +2929,7 @@ function renderCategoryPillsFromTransactions(m, y) {
         } else {
             return `<div class="cat-pill ${item.statusClass}">
 <div class="cat-pill-header">
-<div class="cat-pill-name"><strong>${item.name}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
+<div class="cat-pill-name"><strong>${escapeHtml(item.name)}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
 <div class="cat-pill-amount money-value">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do mês</div></div>
 </div>
 <div class="cat-limit-info">
@@ -2979,7 +2980,7 @@ function checkCategoryLimits(m, y) {
         return;
     }
     container.classList.add("show");
-    list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount money-value">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
+    list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${escapeHtml(a.message)}</div><div class="limit-alert-amount money-value">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
 }
 
 function refreshCategoryPills() {
@@ -3036,6 +3037,14 @@ function setupMonitoring() {
 
 var _lastSnap = "";
 
+// Escapa texto do usuário antes de inserir em innerHTML (previne XSS
+// armazenado vindo de nomes de categoria digitados ou importados via backup)
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str === null || str === undefined ? "" : String(str);
+    return div.innerHTML;
+}
+
 function renderCategoryModal() {
     const list = document.getElementById("catModalList");
     if (!list) return;
@@ -3059,10 +3068,10 @@ function renderCategoryModal() {
             const st = pct>=100?"danger":pct>=cat.warningPercent?"warning":"normal";
             const sc = pct>=100?"over-limit":pct>=cat.warningPercent?"near-limit":"";
             const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text money-value">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
-            return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: <span class="money-value">${money.format(cat.monthlyLimit)}</span>/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+            return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${escapeHtml(cat.name)}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: <span class="money-value">${money.format(cat.monthlyLimit)}</span>/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
         }
 
-        return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+        return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${escapeHtml(cat.name)}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
     }).join("");
 }
 

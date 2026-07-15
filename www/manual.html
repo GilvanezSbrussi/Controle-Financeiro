@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f766e"/>
+  <title>Manual do Usuário — Minha Fortuna</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      --bg:        #f0f7f5;
+      --bg2:       #ffffff;
+      --bg3:       #e8f2ef;
+      --bg4:       #d4ebe5;
+      --text:      #0d1f1c;
+      --text2:     #4a6660;
+      --text3:     #8aa9a2;
+      --border:    #d0e4df;
+      --primary:   #0f766e;
+      --primary-d: #0a5c56;
+      --primary-l: #e0f2ef;
+      --accent:    #14b8a6;
+      --shadow-sm: 0 1px 4px rgba(15,118,110,.08);
+      --shadow:    0 4px 24px rgba(15,118,110,.10);
+      --radius:    18px;
+      --radius-sm: 10px;
+    }
+
+    [data-theme="dark"] {
+      --bg:        #0a0f0e;
+      --bg2:       #111918;
+      --bg3:       #182221;
+      --bg4:       #1e2d2b;
+      --text:      #e8f5f2;
+      --text2:     #7db5ac;
+      --text3:     #4a7a72;
+      --border:    #1e3330;
+      --primary:   #14b8a6;
+      --primary-d: #0d9488;
+      --primary-l: #0a2421;
+      --accent:    #2dd4bf;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.3);
+      --shadow:    0 4px 24px rgba(0,0,0,.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Sora', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background .3s, color .3s;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--primary);
+      color: #fff;
+      padding: .9rem 1.25rem;
+      padding-top: calc(.9rem + env(safe-area-inset-top,0px) + 18px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,.18);
+    }
+    .topbar-left { display: flex; align-items: center; gap: .85rem; }
+    .back-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.18);
+      border: none; border-radius: 50%;
+      color: #fff; font-size: 1.1rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.3); }
+    .topbar h1 { font-size: 1rem; font-weight: 700; }
+
+    .theme-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.18);
+      border: none; border-radius: 50%;
+      color: #fff; font-size: 1rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .theme-btn:hover { background: rgba(255,255,255,.3); }
+
+    /* ── CONTEÚDO ── */
+    .content {
+      padding: 1.25rem 1rem 3rem;
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg2);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.3rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: background .3s, border-color .3s, box-shadow .3s;
+      animation: fadeUp .35s ease both;
+    }
+    .card:nth-child(1) { animation-delay: .04s; }
+    .card:nth-child(2) { animation-delay: .10s; }
+    .card:nth-child(3) { animation-delay: .16s; }
+    .card:nth-child(4) { animation-delay: .22s; }
+    .card:nth-child(5) { animation-delay: .28s; }
+    .card:nth-child(6) { animation-delay: .34s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    .card-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--primary-l);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .card-head h2 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .card p, .card li {
+      font-size: .85rem;
+      color: var(--text2);
+      line-height: 1.6;
+      margin-bottom: .6rem;
+    }
+
+    .card ul, .card ol {
+      padding-left: 1.2rem;
+      margin-bottom: .6rem;
+    }
+
+    .card li {
+      margin-bottom: .3rem;
+    }
+
+    .card strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .card .highlight {
+      background: var(--primary-l);
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      margin: .75rem 0;
+      border-left: 3px solid var(--primary);
+      font-size: .82rem;
+    }
+
+    .card .highlight strong {
+      color: var(--primary);
+    }
+
+    .step {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: .8rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body {
+      flex: 1;
+    }
+    .step-body strong {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .step-body p {
+      margin-bottom: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: .7rem;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .tag.income { background: rgba(22,163,74,.15); color: #16a34a; }
+    .tag.expense { background: rgba(220,38,38,.12); color: #dc2626; }
+    .tag.transfer { background: rgba(37,99,235,.12); color: #2563eb; }
+    .tag.info { background: rgba(15,118,110,.15); color: #0f766e; }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem;
+      margin-top: .5rem;
+    }
+    .shortcut-item {
+      background: var(--bg3);
+      border-radius: 10px;
+      padding: .7rem .8rem;
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .shortcut-item emoji {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 400px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+      .content { padding: 1rem .75rem 3rem; }
+      .card { padding: 1.1rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn">&#8592;</a>
+      <h1>📖 Manual do Usuário</h1>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">🌙</button>
+  </div>
+
+  <div class="content">
+
+    <!-- INTRODUÇÃO -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">👋</div>
+        <h2>Bem-vindo ao Minha Fortuna!</h2>
+      </div>
+      <p>
+        Este aplicativo ajuda você a <strong>controlar suas finanças pessoais</strong> de forma simples e intuitiva.
+        Aqui você pode registrar receitas, despesas e transferências, acompanhar seus saldos, 
+        definir metas financeiras e muito mais.
+      </p>
+      <div class="highlight">
+        <strong>💡 Dica:</strong> Comece cadastrando suas contas (corrente, investimentos) 
+        e depois registre seus lançamentos. Quanto mais detalhado, melhor!
+      </div>
+    </div>
+
+    <!-- PRIMEIROS PASSOS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🚀</div>
+        <h2>Primeiros Passos</h2>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>🔥 Cadastre seu perfil</strong>
+          <p>Ao acessar o app pela primeira vez, você será convidado a criar um perfil com seu nome, e-mail e CPF. Isso é importante para vincular sua licença de uso.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>💳 Configure suas contas</strong>
+          <p>Na tela inicial, toque em "Gerenciar contas" para adicionar suas contas bancárias, carteiras ou investimentos. Defina um saldo inicial e uma meta financeira, se desejar.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>📝 Registre seus lançamentos</strong>
+          <p>Use o formulário na tela inicial para adicionar receitas (entradas), despesas (saídas) ou transferências entre contas. Escolha a categoria correta para organizar melhor.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>🔒 Ative a biometria (opcional)</strong>
+          <p>No menu "Minha Conta" você pode ativar o bloqueio biométrico. Assim, sempre que abrir o app, precisará autenticar com digital ou facial.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIPOS DE LANÇAMENTO -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📊</div>
+        <h2>Tipos de Lançamento</h2>
+      </div>
+      <p>Você pode registrar três tipos de movimentação financeira:</p>
+
+      <div style="margin: .8rem 0;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:.6rem;">
+          <span class="tag income">💰 Receita</span>
+          <span class="tag expense">💸 Despesa</span>
+          <span class="tag transfer">🔄 Transferência</span>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>💰 Receita (Entrada):</strong> Salário, rendimentos, dividendos, vendas, etc. Aumenta o saldo da conta selecionada.</li>
+        <li><strong>💸 Despesa (Saída):</strong> Alimentação, transporte, moradia, lazer, etc. Diminui o saldo da conta selecionada.</li>
+        <li><strong>🔄 Transferência:</strong> Movimentação entre duas contas (ex: da conta corrente para investimentos). Não altera o total geral.</li>
+      </ul>
+
+      <div class="highlight">
+        <strong>✏️ Dica:</strong> Use a classificação de despesas como <strong>Fixa</strong>, <strong>Variável</strong> ou <strong>Emocional</strong> para entender melhor seus gastos.
+      </div>
+    </div>
+
+    <!-- CATEGORIAS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🏷️</div>
+        <h2>Gerenciando Categorias</h2>
+      </div>
+      <p>
+        As categorias ajudam a organizar seus lançamentos. Você pode criar, editar e excluir categorias 
+        pelo botão <strong>🏷️ Categorias</strong> na tela principal.
+      </p>
+      <p><strong>Recursos avançados:</strong></p>
+      <ul>
+        <li><strong>⭐ Favoritas:</strong> Marque categorias como favoritas para acesso rápido no formulário.</li>
+        <li><strong>📏 Limite mensal:</strong> Defina um orçamento máximo para a categoria. O app exibirá um alerta quando você se aproximar do limite.</li>
+        <li><strong>⚠️ Aviso de limite:</strong> Configure em qual percentual do limite você deseja ser avisado.</li>
+      </ul>
+    </div>
+
+    <!-- RELATÓRIOS E GRÁFICOS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📈</div>
+        <h2>Relatórios e Gráficos</h2>
+      </div>
+      <p>
+        Na tela principal, role para baixo para ver:
+      </p>
+      <ul>
+        <li><strong>📊 Gastos por categoria:</strong> Veja o percentual de cada categoria no total de despesas do mês.</li>
+        <li><strong>💰 Economia do mês:</strong> Acompanhe sua evolução financeira mensal com um gráfico de rosca interativo.</li>
+        <li><strong>🏆 Top despesas:</strong> Descubra suas maiores despesas do período.</li>
+        <li><strong>💡 Insights:</strong> Dicas inteligentes baseadas nos seus dados financeiros.</li>
+      </ul>
+      <div class="highlight">
+        <strong>📱 Toque nos cards</strong> para ver mais detalhes de cada conta ou categoria.
+      </div>
+    </div>
+
+    <!-- FUNCIONALIDADES EXTRAS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">⭐</div>
+        <h2>Funcionalidades Extras</h2>
+      </div>
+
+      <div class="shortcut-grid">
+        <div class="shortcut-item">
+          <emoji>🔔</emoji>
+          Lembretes
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Agende notificações</small>
+        </div>
+        <div class="shortcut-item">
+          <emoji>📄</emoji>
+          Extrato PDF
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Exporte relatórios</small>
+        </div>
+        <div class="shortcut-item">
+          <emoji>💾</emoji>
+          Backup
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Salve/restaure dados</small>
+        </div>
+        <div class="shortcut-item">
+          <emoji>🔑</emoji>
+          Licença
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Ative seu plano</small>
+        </div>
+        <div class="shortcut-item">
+          <emoji>🙈</emoji>
+          Ocultar valores
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Privacidade rápida</small>
+        </div>
+        <div class="shortcut-item">
+          <emoji>🌙</emoji>
+          Tema escuro
+          <small style="display:block;font-size:.68rem;color:var(--text3);font-weight:400">Para seus olhos</small>
+        </div>
+      </div>
+
+      <p style="margin-top:.8rem;">
+        🔹 <strong>Lembretes:</strong> Não esqueça de pagar contas. Configure lembretes com repetição diária, semanal ou mensal.<br>
+        🔹 <strong>Extrato:</strong> Filtre por período, visualize e compartilhe em PDF.<br>
+        🔹 <strong>Backup:</strong> Exporte seus dados para segurança ou migre para outro dispositivo.<br>
+        🔹 <strong>Ocultar valores:</strong> Toque no olho 👁️ para esconder saldos e valores ao mostrar a tela para alguém.<br>
+        🔹 <strong>Modo escuro:</strong> Ative nas configurações de tema em qualquer tela.
+      </p>
+    </div>
+
+    <!-- SUPORTE E LICENÇA -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🛟</div>
+        <h2>Suporte e Licenciamento</h2>
+      </div>
+      <p>
+        Este aplicativo requer uma <strong>licença de uso</strong> para funcionar. 
+        Acesse a tela de <strong>Planos & Licença</strong> pelo menu ou pelo botão na tela inicial para:
+      </p>
+      <ul>
+        <li>✅ Verificar o status da sua licença</li>
+        <li>🔑 Ativar sua chave de licença</li>
+        <li>💬 Solicitar nova licença via WhatsApp</li>
+        <li>📱 Ver seu ID de dispositivo</li>
+      </ul>
+      <div class="highlight">
+        <strong>📞 Precisa de ajuda?</strong> Entre em contato pelo WhatsApp: 
+        <strong>(49) 98814-1894</strong> ou envie um e-mail para o suporte.
+      </div>
+    </div>
+
+    <!-- DICAS RÁPIDAS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">💎</div>
+        <h2>Dicas Rápidas</h2>
+      </div>
+      <ul>
+        <li>✅ <strong>Mantenha os dados organizados:</strong> Registre os lançamentos assim que acontecerem.</li>
+        <li>✅ <strong>Use as categorias favoritas:</strong> Agiliza o preenchimento do formulário.</li>
+        <li>✅ <strong>Defina metas para suas contas:</strong> Acompanhe seu progresso visualmente.</li>
+        <li>✅ <strong>Faça backup regularmente:</strong> Seus dados são preciosos.</li>
+        <li>✅ <strong>Ative a biometria:</strong> Para segurança adicional.</li>
+        <li>✅ <strong>Explore os relatórios:</strong> Os insights podem te surpreender!</li>
+      </ul>
+      <div class="highlight" style="margin-top:.5rem;">
+        <strong>🌟 Lembre-se:</strong> O controle financeiro é uma jornada. Cada pequeno registro faz diferença!
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── TEMA ──
+    (function() {
+      var html = document.documentElement;
+      var btn  = document.getElementById("themeBtn");
+      var saved = localStorage.getItem("financas-theme") || "light";
+      html.setAttribute("data-theme", saved);
+      btn.textContent = saved === "dark" ? "☀️" : "🌙";
+      btn.addEventListener("click", function() {
+        var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", next);
+        localStorage.setItem("financas-theme", next);
+        btn.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+    })();
+  </script>
+</body>
+</html>
