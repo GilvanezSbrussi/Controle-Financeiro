@@ -310,12 +310,30 @@ canvas{width:100%!important;display:block}
 .cat-empty{text-align:center;color:var(--text3);font-size:.85rem;padding:2rem}
 .limit-alerts{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin-bottom:1rem;display:none}
 .limit-alerts.show{display:block}
-.limit-alerts h3{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
+.limit-alerts h3{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:0}
+.limit-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:.5rem}
+.limit-expand-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;flex-shrink:0;transition:background .2s,color .2s}
+.limit-expand-btn:hover{background:var(--border);color:var(--text)}
+.limit-expand-btn svg{width:16px;height:16px}
 .limit-alert{display:flex;align-items:center;gap:8px;padding:.5rem;background:var(--bg2);border-radius:6px;margin-bottom:.5rem;border-left:3px solid var(--expense)}
 .limit-alert.warning{border-left-color:var(--warning)}
 .limit-alert-text{font-size:.8rem;color:var(--text2);flex:1}
 .limit-alert-amount{font-size:.75rem;font-weight:700;color:var(--expense)}
 .limit-alert.warning .limit-alert-amount{color:var(--warning)}
+.limit-detail-item{background:var(--bg3);border-radius:10px;padding:.75rem;margin-bottom:.6rem}
+.limit-detail-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:.4rem}
+.limit-detail-name{font-size:.9rem;font-weight:700;color:var(--text)}
+.limit-detail-badge{font-size:.65rem;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;white-space:nowrap}
+.limit-detail-badge.normal{background:rgba(34,197,94,.15);color:var(--income)}
+.limit-detail-badge.warning{background:rgba(234,179,8,.15);color:var(--warning)}
+.limit-detail-badge.danger{background:rgba(220,38,38,.15);color:var(--expense)}
+.limit-detail-values{font-size:.78rem;color:var(--text2);margin-bottom:.5rem}
+.limit-detail-progress{height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
+.limit-detail-bar{height:100%;border-radius:4px}
+.limit-detail-bar.normal{background:var(--income)}
+.limit-detail-bar.warning{background:var(--warning)}
+.limit-detail-bar.danger{background:var(--expense)}
+.limit-detail-empty{text-align:center;color:var(--text2);font-size:.85rem;padding:2rem 0;line-height:1.5}
 .cat-edit-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .cat-edit-modal-overlay.open{opacity:1;pointer-events:all}
 .cat-edit-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:calc(90vh - env(safe-area-inset-top,0px));height:calc(90dvh - env(safe-area-inset-top,0px));display:flex;flex-direction:column}
@@ -722,8 +740,24 @@ canvas{width:100%!important;display:block}
 
 <div class="content">
 <div class="limit-alerts" id="limitAlerts">
+<div class="limit-card-header">
 <h3>⚠️ Alertas de Limite <span id="limitAlertsMonth" style="font-weight:400;font-size:.8rem;opacity:.75"></span></h3>
+<button class="limit-expand-btn" id="limitAlertsExpandBtn" type="button" title="Ver detalhes dos limites" aria-label="Ver detalhes dos limites">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+</button>
+</div>
 <div id="limitAlertsList"></div>
+</div>
+
+<div class="modal-overlay" id="limitAlertsModal">
+<div class="modal-sheet">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3>🎯 Detalhes dos Limites <span id="limitAlertsModalMonth" style="font-weight:400;font-size:.8rem;opacity:.75"></span></h3>
+<button class="modal-close" id="limitAlertsModalClose">✕</button>
+</div>
+<div id="limitAlertsModalBody"></div>
+</div>
 </div>
 
 <div class="summary">
@@ -2982,6 +3016,65 @@ function checkCategoryLimits(m, y) {
     container.classList.add("show");
     list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${escapeHtml(a.message)}</div><div class="limit-alert-amount money-value">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
 }
+
+// ============================================================
+// MODAL DE DETALHES DOS LIMITES (botão de expandir no card)
+// ============================================================
+function renderLimitAlertsDetail(m, y) {
+    const now = new Date();
+    const mn = (m !== undefined) ? m : (window.economyMonth !== undefined ? window.economyMonth : now.getMonth());
+    const yr = (y !== undefined) ? y : (window.economyYear  !== undefined ? window.economyYear  : now.getFullYear());
+    const prefix = `${yr}-${String(mn+1).padStart(2,"0")}`;
+
+    const categories = window.getCategoriesUnified();
+    const transactions = getTransactions();
+
+    const items = categories.filter(c => c.hasLimit && c.monthlyLimit > 0).map(cat => {
+        const spent = transactions
+            .filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix))
+            .reduce((s,t) => s+(parseFloat(t.amount)||0), 0);
+        const pct = cat.monthlyLimit > 0 ? (spent/cat.monthlyLimit)*100 : 0;
+        const status = pct >= 100 ? "danger" : pct >= (cat.warningPercent||80) ? "warning" : "normal";
+        return { name: cat.name, spent, limit: cat.monthlyLimit, pct, status };
+    }).sort((a,b) => b.pct - a.pct);
+
+    const monthLbl = document.getElementById("limitAlertsModalMonth");
+    if (monthLbl) {
+        const label = new Date(yr, mn, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+        monthLbl.textContent = "— " + label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    const body = document.getElementById("limitAlertsModalBody");
+    if (!body) return;
+
+    if (!items.length) {
+        body.innerHTML = `<div class="limit-detail-empty">Nenhuma categoria com limite mensal definido.<br>Configure limites nas categorias para acompanhar aqui.</div>`;
+        return;
+    }
+
+    const statusLabel = { normal: "Dentro do limite", warning: "Atenção", danger: "Limite excedido" };
+
+    body.innerHTML = items.map(it => `
+<div class="limit-detail-item">
+<div class="limit-detail-top">
+<span class="limit-detail-name">${escapeHtml(it.name)}</span>
+<span class="limit-detail-badge ${it.status}">${statusLabel[it.status]}</span>
+</div>
+<div class="limit-detail-values">${money.format(it.spent)} de ${money.format(it.limit)} <strong>(${Math.round(it.pct)}%)</strong></div>
+<div class="limit-detail-progress"><div class="limit-detail-bar ${it.status}" style="width:${Math.min(it.pct,100)}%"></div></div>
+</div>`).join("");
+}
+
+function openLimitAlertsModal() {
+    renderLimitAlertsDetail();
+    document.getElementById("limitAlertsModal")?.classList.add("open");
+}
+function closeLimitAlertsModal() {
+    document.getElementById("limitAlertsModal")?.classList.remove("open");
+}
+document.getElementById("limitAlertsExpandBtn")?.addEventListener("click", openLimitAlertsModal);
+document.getElementById("limitAlertsModalClose")?.addEventListener("click", closeLimitAlertsModal);
+document.getElementById("limitAlertsModal")?.addEventListener("click", e => { if (e.target.id === "limitAlertsModal") closeLimitAlertsModal(); });
 
 function refreshCategoryPills() {
     renderCategoryPillsFromTransactions();
