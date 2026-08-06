@@ -590,6 +590,7 @@ const el = {
   insights:      document.getElementById("insights"),
   flowChart:     document.getElementById("flowChart"),
   accChart:      document.getElementById("accChart"),
+  accChartLegend: document.getElementById("accChartLegend"),
   licWarn:       document.getElementById("licWarn"),
   favTags:       document.getElementById("favTags"),
   catName:              document.getElementById("catName"),
@@ -1723,11 +1724,71 @@ function drawCharts(s) {
     { label:"Receitas", value:s.income,  color:"#16a34a" },
     { label:"Despesas", value:s.expense, color:"#dc2626" }
   ]);
-  drawBar(el.accChart, state.accounts.map(a => ({
+  drawPie(el.accChart, el.accChartLegend, state.accounts.map((a,i) => ({
     label: a.name,
     value: s.balances[a.id]||0,
-    color: a.kind==="investment"?"#2563eb":"#0f766e"
+    color: PIE_COLORS[i % PIE_COLORS.length]
   })));
+}
+
+// Paleta de cores para o gráfico de pizza (cicla se houver mais contas que cores)
+const PIE_COLORS = ["#0f766e","#2563eb","#f59e0b","#dc2626","#7c3aed","#db2777","#059669","#ea580c","#4f46e5","#0891b2","#65a30d","#be123c"];
+
+function drawPie(canvas, legendEl, rows) {
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const size = 170;
+  canvas.width  = size*dpr;
+  canvas.height = size*dpr;
+  canvas.style.width  = size+"px";
+  canvas.style.height = size+"px";
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,size,size);
+
+  const cx = size/2, cy = size/2, r = size/2 - 6;
+  const total = rows.reduce((sum,row) => sum + Math.abs(row.value), 0);
+
+  if (!rows.length || total <= 0) {
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,2*Math.PI);
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "600 12px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Sem saldo", cx, cy+4);
+    ctx.textAlign = "left";
+    if (legendEl) legendEl.innerHTML = `<li class="acc-chart-empty">Cadastre uma conta para ver o gráfico</li>`;
+    return;
+  }
+
+  let start = -Math.PI/2;
+  rows.forEach(row => {
+    const frac = Math.abs(row.value)/total;
+    const end  = start + frac*2*Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle = row.color;
+    ctx.fill();
+    ctx.strokeStyle = "var(--bg2,#fff)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    start = end;
+  });
+
+  if (legendEl) {
+    legendEl.innerHTML = rows.map(row => `
+      <li>
+        <span class="acc-chart-dot" style="background:${row.color}"></span>
+        <span class="acc-chart-name">${escapeHtml(row.label)}</span>
+        <span class="acc-chart-val">${money.format(row.value)}</span>
+      </li>
+    `).join("");
+  }
 }
 
 function drawBar(canvas, rows) {

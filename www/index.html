@@ -238,6 +238,16 @@ canvas{width:100%!important;display:block}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(-30%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,20px));max-height:calc(97dvh - env(safe-area-inset-top,20px));overflow-y:auto}
 .modal-overlay.open .modal-sheet{transform:translateY(0)}
+#settingsModal .modal-sheet{margin-bottom:6vh}
+#recorrModal .modal-sheet,#editModal .modal-sheet{margin-bottom:6vh}
+.acc-chart-wrap{display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap}
+.acc-chart-wrap canvas{flex-shrink:0}
+.acc-chart-legend{list-style:none;margin:0;padding:0;flex:1;min-width:140px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:.5rem}
+.acc-chart-legend li{display:flex;align-items:center;gap:.5rem;font-size:.82rem}
+.acc-chart-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.acc-chart-name{color:var(--text);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-chart-val{color:var(--text2);font-weight:700;white-space:nowrap}
+.acc-chart-empty{color:var(--text2);font-size:.85rem}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem}
 .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
 .modal-title h3{font-size:1.05rem;font-weight:800}
@@ -369,7 +379,11 @@ canvas{width:100%!important;display:block}
 .plans-current{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--rsm);padding:.75rem .9rem;margin-bottom:1.25rem;font-size:.85rem;color:var(--text)}
 .plans-current strong{color:var(--primary)}
 .plans-list{display:flex;flex-direction:column;gap:.65rem}
-.plan-card{position:relative;display:flex;justify-content:space-between;align-items:center;gap:.75rem;background:var(--bg3);border:2px solid var(--border);border-radius:var(--rsm);padding:.85rem 1rem;transition:border-color .2s}
+.plan-card{position:relative;display:flex;justify-content:space-between;align-items:center;gap:.75rem;background:var(--bg3);border:2px solid var(--border);border-radius:var(--rsm);padding:.85rem 1rem;transition:border-color .2s,opacity .2s}
+.plan-card[data-plano]{cursor:pointer}
+.plan-card[data-plano]:hover{border-color:var(--primary)}
+.plan-card.loading{opacity:.55;pointer-events:none}
+.plan-buy-hint{font-size:.68rem;color:var(--primary);font-weight:700;margin-top:2px}
 .plan-card.highlight{border-color:var(--primary);background:var(--primary-light)}
 .plan-badge{position:absolute;top:-9px;right:12px;background:var(--primary);color:#fff;font-size:.65rem;font-weight:800;padding:2px 9px;border-radius:10px;letter-spacing:.02em}
 .plan-name{font-size:.92rem;font-weight:800;color:var(--text)}
@@ -592,6 +606,40 @@ canvas{width:100%!important;display:block}
   border:none;
   background:var(--bg2);
 }
+
+.admin-panel-tabs{
+  display:flex;
+  gap:6px;
+  padding:10px 1.25rem 0;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.admin-tab{
+  background:none;
+  border:none;
+  padding:10px 14px;
+  font-weight:700;
+  font-size:.88rem;
+  color:var(--text2);
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+}
+.admin-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+.licencas-view{flex:1;display:none;flex-direction:column;overflow:auto;background:var(--bg2);padding:1rem 1.25rem}
+.licencas-view.active{display:flex}
+.licencas-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.licencas-toolbar button{
+  background:var(--primary);color:#fff;border:none;padding:8px 14px;
+  border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;
+}
+#licencasStatus{font-size:.8rem;color:var(--text2)}
+.licencas-table-wrap{overflow:auto;flex:1}
+.licencas-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.licencas-table th, .licencas-table td{
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.licencas-table th{color:var(--text2);font-weight:700;position:sticky;top:0;background:var(--bg2)}
 
 .secret-hint{
   position:fixed;
@@ -907,7 +955,10 @@ canvas{width:100%!important;display:block}
 
 <div class="card">
 <div class="card-title"><h2>🏦 Saldo por conta</h2></div>
-<canvas id="accChart" height="180" class="money-value"></canvas>
+<div class="acc-chart-wrap">
+<canvas id="accChart" class="money-value"></canvas>
+<ul class="acc-chart-legend" id="accChartLegend"></ul>
+</div>
 </div>
 </div>
 
@@ -949,7 +1000,7 @@ canvas{width:100%!important;display:block}
         </div>
       </div>
 
-      <div class="plan-card">
+      <div class="plan-card" data-plano="mensal">
         <div>
           <div class="plan-name">Mensal</div>
           <div class="plan-duration">30 dias</div>
@@ -957,10 +1008,11 @@ canvas{width:100%!important;display:block}
         <div class="plan-price-wrap">
           <div class="plan-price">R$ 14,90</div>
           <div class="plan-price-month">R$ 14,90/mês</div>
+          <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
 
-      <div class="plan-card">
+      <div class="plan-card" data-plano="trimestral">
         <div>
           <div class="plan-name">Trimestral</div>
           <div class="plan-duration">90 dias</div>
@@ -968,10 +1020,11 @@ canvas{width:100%!important;display:block}
         <div class="plan-price-wrap">
           <div class="plan-price">R$ 34,90</div>
           <div class="plan-price-month">R$ 11,63/mês</div>
+          <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
 
-      <div class="plan-card">
+      <div class="plan-card" data-plano="semestral">
         <div>
           <div class="plan-name">Semestral</div>
           <div class="plan-duration">180 dias</div>
@@ -979,10 +1032,11 @@ canvas{width:100%!important;display:block}
         <div class="plan-price-wrap">
           <div class="plan-price">R$ 59,90</div>
           <div class="plan-price-month">R$ 9,98/mês</div>
+          <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
 
-      <div class="plan-card highlight">
+      <div class="plan-card highlight" data-plano="anual">
         <span class="plan-badge">MELHOR PREÇO</span>
         <div>
           <div class="plan-name">Anual</div>
@@ -991,12 +1045,13 @@ canvas{width:100%!important;display:block}
         <div class="plan-price-wrap">
           <div class="plan-price">R$ 99,90</div>
           <div class="plan-price-month">R$ 8,32/mês</div>
+          <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
     </div>
 
     <a href="licenca.html" class="plans-cta">🔑 Ativar ou renovar licença</a>
-    <p class="plans-note">Após escolher e pagar seu plano, você receberá uma chave de licença para ativar na tela de Licença.</p>
+    <p class="plans-note">Toque em um plano para pagar com o Mercado Pago. Sua licença é gerada e enviada por e-mail automaticamente assim que o pagamento é aprovado.</p>
   </div>
 </div>
 
@@ -1501,12 +1556,32 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="admin-panel-container" id="adminPanel">
   <div class="admin-panel-header">
     <div>
-      <h3>🔑 Gerador de Licenças</h3>
+      <h3>🔑 Painel Administrativo</h3>
       <div class="admin-info" id="adminInfo">Logado como: -</div>
     </div>
     <button id="btnCloseAdmin">✕ Sair</button>
   </div>
+  <div class="admin-panel-tabs">
+    <button id="tabGerador" class="admin-tab active">Gerador de licenças</button>
+    <button id="tabLicencas" class="admin-tab">Licenças emitidas</button>
+  </div>
   <iframe id="adminIframe" class="admin-panel-iframe" src=""></iframe>
+  <div id="licencasView" class="licencas-view" style="display:none">
+    <div class="licencas-toolbar">
+      <button id="btnRecarregarLicencas">🔄 Atualizar lista</button>
+      <span id="licencasStatus"></span>
+    </div>
+    <div class="licencas-table-wrap">
+      <table class="licencas-table" id="licencasTable">
+        <thead>
+          <tr>
+            <th>Cliente</th><th>Documento</th><th>Plano</th><th>Emitido</th><th>Expira</th><th>Origem</th>
+          </tr>
+        </thead>
+        <tbody id="licencasTbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div class="secret-hint" id="secretHint"></div>
@@ -3556,6 +3631,60 @@ leftDdMenu.addEventListener("click", e => e.stopPropagation()); // NOVO
   if (seePlansBtn) seePlansBtn.addEventListener("click", openPlansModal);
   if (closeBtn) closeBtn.addEventListener("click", closePlansModal);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closePlansModal(); });
+
+  // ── CHECKOUT (Mercado Pago) ──
+  // Ao tocar num card de plano com data-plano, cria o pagamento no backend
+  // e redireciona pro checkout. A licença chega automaticamente por e-mail
+  // quando o pagamento é aprovado (veja backend/api/webhook.js).
+  function getStoredDeviceId() {
+    return localStorage.getItem("financas-device-id") || null;
+  }
+  function getStoredProfile() {
+    try { return JSON.parse(localStorage.getItem("financas-user-profile")) || {}; }
+    catch { return {}; }
+  }
+
+  document.querySelectorAll(".plan-card[data-plano]").forEach(card => {
+    card.addEventListener("click", async () => {
+      if (card.classList.contains("loading")) return;
+
+      const plano = card.dataset.plano;
+      const deviceId = getStoredDeviceId();
+      const profile = getStoredProfile();
+      const holder = profile.fullname || "Cliente";
+      const docNumber = profile.cpf || "";
+
+      let email = profile.email || "";
+      if (!email) {
+        email = (window.prompt("Digite seu e-mail para receber a licença automaticamente:") || "").trim();
+        if (!email) return;
+      }
+
+      card.classList.add("loading");
+      const hint = card.querySelector(".plan-buy-hint");
+      const hintOriginal = hint ? hint.textContent : "";
+      if (hint) hint.textContent = "Aguarde...";
+
+      try {
+        // URL absoluta: dentro do APK (Capacitor) o app roda em https://localhost,
+        // então um caminho relativo "/api/..." nunca chegaria ao Firebase de verdade.
+        const resp = await fetch("https://controle-financeiro-d6fd5.web.app/api/criar-pagamento", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plano, deviceId, holder, document: docNumber, email })
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.checkoutUrl) {
+          throw new Error(data.error || "Não foi possível iniciar o pagamento.");
+        }
+        window.location.href = data.checkoutUrl;
+      } catch (err) {
+        alert("Não foi possível iniciar o pagamento agora. Tente novamente em instantes.\n\n" + err.message);
+        card.classList.remove("loading");
+        if (hint) hint.textContent = hintOriginal;
+      }
+    });
+  });
 })();
 
 // ============================================================
@@ -3828,8 +3957,10 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
   const SECRET_TAPS_REQUIRED = 7;
   const SECRET_TAPS_TIMEOUT = 2000;
   
-  // URL do backend (ajuste conforme seu servidor)
-  const API_BASE_URL = '';
+  // URL do backend — precisa ser absoluta porque, dentro do APK (Capacitor),
+  // o app roda em https://localhost e um caminho relativo (ex: "/api/...")
+  // nunca chegaria ao Firebase Hosting/Functions de verdade.
+  const API_BASE_URL = 'https://controle-financeiro-d6fd5.web.app';
   
   // Chave usada por clientes.js para salvar clientes localmente quando o
   // backend não está disponível. Precisa ser a MESMA chave usada lá.
@@ -4020,6 +4151,7 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
     
     // Monta URL do gerador protegido
     iframe.src = 'license-admin/Gerador.html';
+    switchAdminTab('gerador');
     
     if (info) {
       info.textContent = `Logado como: ${name}`;
@@ -4076,20 +4208,109 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
     const btnCancel = document.getElementById('btnAdminCancel');
     const btnClose = document.getElementById('btnCloseAdmin');
     const input = document.getElementById('adminCpf');
-    
+    const tabGerador = document.getElementById('tabGerador');
+    const tabLicencas = document.getElementById('tabLicencas');
+    const btnRecarregar = document.getElementById('btnRecarregarLicencas');
+
     if (btnLogin) btnLogin.addEventListener('click', handleAdminLogin);
     if (btnCancel) btnCancel.addEventListener('click', closeAdminOverlay);
     if (btnClose) btnClose.addEventListener('click', closeAdminPanel);
-    
+    if (tabGerador) tabGerador.addEventListener('click', () => switchAdminTab('gerador'));
+    if (tabLicencas) tabLicencas.addEventListener('click', () => switchAdminTab('licencas'));
+    if (btnRecarregar) btnRecarregar.addEventListener('click', () => carregarLicencas(true));
+
     if (input) {
       input.addEventListener('input', function(e) {
         e.target.value = formatDocument(e.target.value);
       });
-      
+
       input.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') handleAdminLogin();
       });
     }
+  }
+
+  // ==========================================
+  // ABA "LICENÇAS EMITIDAS"
+  // ==========================================
+
+  const ADMIN_KEY_STORAGE = 'financas-admin-panel-key'; // guardado só nesta sessão do app
+
+  function switchAdminTab(tab) {
+    const iframe = document.getElementById('adminIframe');
+    const view = document.getElementById('licencasView');
+    const tabGerador = document.getElementById('tabGerador');
+    const tabLicencas = document.getElementById('tabLicencas');
+
+    if (tab === 'licencas') {
+      if (iframe) iframe.style.display = 'none';
+      if (view) view.classList.add('active');
+      if (tabGerador) tabGerador.classList.remove('active');
+      if (tabLicencas) tabLicencas.classList.add('active');
+      carregarLicencas(false);
+    } else {
+      if (iframe) iframe.style.display = '';
+      if (view) view.classList.remove('active');
+      if (tabGerador) tabGerador.classList.add('active');
+      if (tabLicencas) tabLicencas.classList.remove('active');
+    }
+  }
+
+  function getAdminPanelKey(forcePrompt) {
+    let key = sessionStorage.getItem(ADMIN_KEY_STORAGE) || '';
+    if (!key || forcePrompt) {
+      key = (window.prompt('Senha do painel administrativo (ADMIN_PANEL_KEY):', key) || '').trim();
+      if (key) sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+    }
+    return key;
+  }
+
+  async function carregarLicencas(forcePrompt) {
+    const status = document.getElementById('licencasStatus');
+    const tbody = document.getElementById('licencasTbody');
+    const key = getAdminPanelKey(forcePrompt);
+    if (!key) return;
+
+    if (status) status.textContent = 'Carregando...';
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/licencas`, {
+        headers: { 'x-admin-key': key }
+      });
+      const data = await resp.json();
+
+      if (resp.status === 401) {
+        sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+        if (status) status.textContent = 'Senha incorreta.';
+        return;
+      }
+      if (!resp.ok) throw new Error(data.error || 'Erro ao carregar.');
+
+      if (tbody) {
+        tbody.innerHTML = (data.licencas || []).map(function(l) {
+          const emitido = l.issuedAt ? new Date(l.issuedAt).toLocaleDateString('pt-BR') : '-';
+          const expira = l.expiresAt ? new Date(l.expiresAt).toLocaleDateString('pt-BR') : '-';
+          const origem = l.issuer === 'admin-manual' ? 'Manual' : (l.issuer === 'mercadopago-auto' ? 'Mercado Pago' : (l.issuer || '-'));
+          return `<tr>
+            <td>${escapeHtmlAdmin(l.holder || '-')}</td>
+            <td>${escapeHtmlAdmin(l.document || '-')}</td>
+            <td>${escapeHtmlAdmin(l.plano || '-')}</td>
+            <td>${emitido}</td>
+            <td>${expira}</td>
+            <td>${origem}</td>
+          </tr>`;
+        }).join('');
+      }
+      if (status) status.textContent = `${(data.licencas || []).length} licença(s).`;
+    } catch (err) {
+      if (status) status.textContent = 'Erro: ' + err.message;
+    }
+  }
+
+  function escapeHtmlAdmin(str) {
+    return String(str).replace(/[<>&"]/g, function(c) {
+      return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+    });
   }
 
   // ==========================================

@@ -274,6 +274,14 @@
     .btn-primary:active { transform: translateY(0); }
     .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
+    .btn-secondary {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    .btn-secondary:hover:not(:disabled) { background: rgba(15,118,110,.08); }
+    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+
     .btn-whatsapp {
       background: #25d366;
       color: #fff;
@@ -416,6 +424,10 @@
 
       <button class="btn btn-primary" id="activateBtn">
         🔓 Ativar licença
+      </button>
+
+      <button class="btn btn-secondary" id="checkPaymentBtn" style="margin-top:10px">
+        🔄 Já paguei, verificar agora
       </button>
 
       <p class="helper">A chave é de uso único e vinculada a este dispositivo.</p>
@@ -703,29 +715,77 @@
     }
 
     // ── ATIVAR ──
-    document.getElementById("activateBtn").addEventListener("click", async function() {
-      const key = document.getElementById("licenseKey").value.trim();
+    async function activateLicenseKey(key, btn) {
       if (!key) {
         setMsg("Cole a chave de licença no campo acima.", "error", false);
-        return;
+        return false;
       }
 
-      this.disabled = true;
+      if (btn) btn.disabled = true;
       setMsg("Verificando assinatura ECDSA...", "loading", true);
 
       const local = await verifySignedLicense(key);
       if (!local.valid) {
         setMsg(local.message, "error", false);
-        this.disabled = false;
-        return;
+        if (btn) btn.disabled = false;
+        return false;
       }
 
       saveAndRefresh(key, local.payload);
       setMsg("✅ Licença ativada com sucesso!", "success", false);
+      if (btn) btn.disabled = false;
+      return true;
+    }
 
-      document.getElementById("licenseKey").value = "";
-      this.disabled = false;
+    document.getElementById("activateBtn").addEventListener("click", async function() {
+      const key = document.getElementById("licenseKey").value.trim();
+      const ok = await activateLicenseKey(key, this);
+      if (ok) document.getElementById("licenseKey").value = "";
     });
+
+    // ── "JÁ PAGUEI, VERIFICAR AGORA" ──
+    // Consulta o backend por uma licença já emitida pra este deviceId,
+    // sem depender do e-mail chegar nem de copiar/colar nada.
+    document.getElementById("checkPaymentBtn").addEventListener("click", async function() {
+      const btn = this;
+      btn.disabled = true;
+      setMsg("Verificando pagamento...", "loading", true);
+      try {
+        const resp = await fetch(
+          `https://controle-financeiro-d6fd5.web.app/api/licenca-status?deviceId=${encodeURIComponent(deviceId)}`
+        );
+        const data = await resp.json();
+
+        if (!data.found) {
+          setMsg(data.error || "Ainda não encontramos um pagamento aprovado pra este dispositivo. Se você acabou de pagar, aguarde alguns segundos e tente de novo.", "error", false);
+          btn.disabled = false;
+          return;
+        }
+
+        const ok = await activateLicenseKey(data.key, btn);
+        btn.disabled = false;
+        if (!ok) return;
+      } catch (err) {
+        setMsg("Erro ao verificar pagamento: " + err.message, "error", false);
+        btn.disabled = false;
+      }
+    });
+
+    // ── ATIVAÇÃO AUTOMÁTICA VIA LINK DO E-MAIL (?key=...) ──
+    // O backend manda um e-mail com um link "licenca.html?key=CHAVE" assim
+    // que o pagamento é aprovado — a licença ativa sozinha ao abrir o link.
+    (function autoActivateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const keyFromUrl = params.get("key");
+      if (!keyFromUrl) return;
+      document.getElementById("licenseKey").value = keyFromUrl;
+      activateLicenseKey(keyFromUrl, document.getElementById("activateBtn")).then(() => {
+        // Limpa o parâmetro da URL pra não reativar/expor a chave em recarregamentos
+        params.delete("key");
+        const clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+        window.history.replaceState({}, "", clean);
+      });
+    })();
 
     function saveAndRefresh(key, payload) {
       const data = {
