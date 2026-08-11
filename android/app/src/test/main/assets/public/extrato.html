@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Extrato — Controle sua Fortuna</title>
+  <style>
+    :root{
+      --primary:#0f766e;--income:#15803d;--expense:#b42318;--transfer:#1d4ed8;
+      --bg:#f0f7f5;--bg2:#fff;--bg3:#e8f0ee;--text:#17211f;--text2:#61716d;--text3:#9ca3af;
+      --border:#dce5e2;--shadow:0 2px 8px rgba(0,0,0,.06);--radius:14px;--rsm:10px;
+    }
+    [data-theme="dark"]{
+      --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;--text:#f3f4f6;--text2:#9ca3af;
+      --text3:#6b7280;--border:#2d3148;--primary:#14b8a6;--income:#22c55e;
+      --expense:#ef4444;--transfer:#60a5fa;--shadow:0 2px 16px rgba(0,0,0,.3);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    /* TOPBAR */
+    .topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:50}
+    .topbar a{color:#fff;text-decoration:none;font-size:1.4rem;line-height:1;flex-shrink:0}
+    .topbar h1{font-size:1.1rem;font-weight:700;flex:1}
+    .topbar-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .tbtn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s}
+    .tbtn:hover{background:rgba(255,255,255,.3)}
+    .tbtn:active{transform:scale(.95)}
+    .tbtn-theme{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s}
+    .tbtn-theme:hover{background:rgba(255,255,255,.3)}
+
+    .content{padding:1rem;max-width:600px;margin:0 auto;padding-bottom:60px}
+
+    /* FILTROS */
+    .filters{background:var(--bg2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+    .filter-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .filter-row label{flex:1;min-width:110px;display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:600;color:var(--text2)}
+    .filter-row input,.filter-row select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--bg3);color:var(--text);outline:none;width:100%}
+    .filter-row input:focus,.filter-row select:focus{border-color:var(--primary)}
+    
+    .date-actions{display:flex;gap:.5rem;align-items:center;margin-top:.5rem;flex-wrap:wrap}
+    .clear-dates-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .clear-dates-btn:hover{background:var(--border);color:var(--text)}
+    
+    .filter-chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s;user-select:none}
+    .chip:active{transform:scale(.95)}
+    .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .chip.income.active{background:var(--income);border-color:var(--income)}
+    .chip.expense.active{background:var(--expense);border-color:var(--expense)}
+
+    /* RESUMO */
+    .summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1rem}
+    .summary-card{background:var(--bg2);border-radius:var(--rsm);padding:.85rem;text-align:center;box-shadow:var(--shadow)}
+    .summary-card small{font-size:.72rem;color:var(--text2);display:block;margin-bottom:4px}
+    .summary-card strong{font-size:.95rem;font-weight:700;display:block}
+    .income-text{color:var(--income)}
+    .expense-text{color:var(--expense)}
+    .balance-text{color:var(--primary)}
+
+    /* LISTA */
+    .section-label{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.65rem 0 .3rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);margin-bottom:.35rem;position:sticky;top:64px;background:var(--bg);z-index:5}
+    .day-total{font-size:.72rem;font-weight:700}
+    .transaction-item{background:var(--bg2);border-radius:var(--rsm);padding:.85rem 1rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
+    .transaction-info{flex:1;display:flex;flex-direction:column;gap:4px}
+    .transaction-category{font-size:.85rem;font-weight:600;color:var(--text)}
+    .transaction-date{font-size:.72rem;color:var(--text2)}
+    .transaction-amount{font-size:.9rem;font-weight:700;text-align:right}
+    .amount-income{color:var(--income)}
+    .amount-expense{color:var(--expense)}
+    .amount-transfer{color:var(--transfer)}
+
+    /* MODAL */
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .modal-content{background:var(--bg2);border-radius:var(--radius);padding:1.5rem;max-width:90%;width:320px;box-shadow:0 10px 40px rgba(0,0,0,.3);animation:slideUp .3s ease-out}
+    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-title{font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--text)}
+    .modal-actions{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
+    .modal-btn{padding:8px 16px;border:none;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s;width:100%;margin-bottom:.4rem}
+    .modal-btn-cancel{background:var(--bg3);color:var(--text)}
+    .modal-btn-confirm{background:var(--primary);color:#fff}
+    .modal-btn-share{background:#2563eb;color:#fff}
+    .modal-btn-open{background:#7c3aed;color:#fff}
+    .modal-btn:active{transform:scale(.95)}
+
+    /* MODAL VISUALIZADOR PDF */
+    .pdf-viewer-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:2500;flex-direction:column}
+    .pdf-viewer-modal.show{display:flex}
+    .pdf-viewer-header{background:var(--primary);color:#fff;padding:.8rem 1rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-shrink:0}
+    .pdf-viewer-header h3{font-size:.95rem;font-weight:700;flex:1}
+    .pdf-viewer-actions{display:flex;gap:.4rem;flex-wrap:wrap}
+    .pdf-viewer-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:7px 12px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s}
+    .pdf-viewer-btn:hover{background:rgba(255,255,255,.3)}
+    .pdf-viewer-btn.close-btn{background:rgba(239,68,68,.9)}
+    .pdf-viewer-body{flex:1;position:relative;background:#525659;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .pdf-viewer-body iframe{width:100%;height:100%;border:none;background:#fff}
+    .pdf-viewer-fallback{color:#fff;text-align:center;padding:2rem;max-width:90%}
+    .pdf-viewer-fallback h4{font-size:1.1rem;margin-bottom:1rem}
+    .pdf-viewer-fallback p{font-size:.9rem;opacity:.9;margin-bottom:1rem;line-height:1.5}
+    .pdf-viewer-fallback .fallback-actions{display:flex;flex-direction:column;gap:.5rem;margin-top:1.5rem}
+    .pdf-viewer-fallback button{padding:10px 16px;border:none;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;background:#fff;color:#0f766e}
+
+    /* LOADER */
+    .loader{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column}
+    .loader.show{display:flex}
+    .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loader-text{color:#fff;margin-top:1rem;font-size:.9rem;text-align:center}
+    .loader-progress{color:#fff;margin-top:.5rem;font-size:.8rem;opacity:.8}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:1rem 1.5rem;border-radius:8px;box-shadow:var(--shadow);z-index:3000;display:none;max-width:90%;word-break:break-word;animation:toastSlide .3s ease-out;text-align:center}
+    .toast.show{display:block}
+    .toast.error{background:var(--expense)}
+    .toast.success{background:var(--income)}
+    @keyframes toastSlide{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+
+    /* RESPONSIVO */
+    @media (max-width:480px){
+      .topbar{padding:.8rem 1rem}
+      .topbar h1{font-size:1rem}
+      .topbar-actions{gap:4px}
+      .tbtn{padding:7px 10px;font-size:.75rem}
+      .summary{grid-template-columns:1fr}
+      .content{padding:.75rem}
+      .pdf-viewer-header{padding:.6rem .8rem}
+      .pdf-viewer-header h3{font-size:.85rem}
+      .pdf-viewer-btn{padding:6px 10px;font-size:.7rem}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="index.html">←</a>
+    <h1>Extrato</h1>
+    <div class="topbar-actions">
+      <button class="tbtn" id="exportPdfBtn" title="Exportar em PDF">📄 PDF</button>
+      <button class="tbtn-theme" id="themeBtn" title="Alternar tema">🌙</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <!-- FILTROS -->
+    <div class="filters">
+      <div class="filter-chips">
+        <div class="chip active" data-filter="all">Todos</div>
+        <div class="chip income" data-filter="income">Entrada</div>
+        <div class="chip expense" data-filter="expense">Saída</div>
+        <div class="chip transfer" data-filter="transfer">Transferência</div>
+      </div>
+      <div class="filter-row">
+        <label>
+          Data inicial
+          <input type="date" id="dateFrom">
+        </label>
+        <label>
+          Data final
+          <input type="date" id="dateTo">
+        </label>
+      </div>
+      <div class="date-actions">
+        <button class="clear-dates-btn" id="clearDatesBtn">🗓️ Mês atual</button>
+        <button class="clear-dates-btn" id="clearAllDatesBtn">📅 Todas as datas</button>
+      </div>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="summary">
+      <div class="summary-card">
+        <small>Entradas</small>
+        <strong class="income-text" id="totalIncome">R$ 0,00</strong>
+      </div>
+      <div class="summary-card">
+        <small>Saídas</small>
+        <strong class="expense-text" id="totalExpense">R$ 0,00</strong>
+      </div>
+      <div class="summary-card">
+        <small>Saldo</small>
+        <strong class="balance-text" id="totalBalance">R$ 0,00</strong>
+      </div>
+    </div>
+
+    <!-- LISTA DE TRANSAÇÕES -->
+    <div id="transactionsList"></div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <h3 class="modal-title">Exportar Extrato</h3>
+      <p style="font-size:.9rem;color:var(--text2);margin-bottom:1.5rem">Escolha como deseja exportar seu extrato:</p>
+      <div class="modal-actions" style="flex-direction:column">
+        <button class="modal-btn modal-btn-confirm" id="confirmBtn">📥 Baixar PDF</button>
+        <button class="modal-btn modal-btn-share" id="shareBtn" style="display:none">📤 Compartilhar (Android)</button>
+        <button class="modal-btn modal-btn-open" id="openBtn">👁️ Visualizar PDF</button>
+        <button class="modal-btn modal-btn-cancel" id="cancelBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISUALIZADOR DE PDF -->
+  <div class="pdf-viewer-modal" id="pdfViewerModal">
+    <div class="pdf-viewer-header">
+      <h3>📄 Visualização do Extrato</h3>
+      <div class="pdf-viewer-actions">
+        <button class="pdf-viewer-btn" id="viewerDownloadBtn">📥 Baixar</button>
+        <button class="pdf-viewer-btn" id="viewerPrintBtn">🖨️ Imprimir</button>
+        <button class="pdf-viewer-btn close-btn" id="viewerCloseBtn">✕ Fechar</button>
+      </div>
+    </div>
+    <div class="pdf-viewer-body" id="pdfViewerBody">
+      <!-- iframe ou fallback será inserido aqui -->
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div style="text-align:center">
+      <div class="spinner"></div>
+      <div class="loader-text">Gerando PDF...</div>
+      <div class="loader-progress" id="loaderProgress">Aguarde</div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script>
+    // ========== DETECÇÃO DE AMBIENTE ==========
+    function isAndroid() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
+    function isWebView() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      return /(wv|WebView|Cordova|Capacitor)/i.test(ua) || 
+             (typeof window.cordova !== 'undefined') || 
+             (typeof window.Capacitor !== 'undefined');
+    }
+
+    function isAndroidApp() {
+      return isAndroid() && (isWebView() || window.location.protocol === 'file:');
+    }
+
+    function supportsWebShare() {
+      return typeof navigator.share === 'function';
+    }
+
+    // ========== CONEXÃO COM BASE DE DADOS REAL ==========
+    function getTransactionsFromDatabase() {
+      try {
+        const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+        return Array.isArray(data.transactions) ? data.transactions : [];
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+        return [];
+      }
+    }
+
+    function getAccountsFromDatabase() {
+      try {
+        const data = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+        return Array.isArray(data.accounts) ? data.accounts : [
+          {id:"corrente", name:"Conta corrente", kind:"checking", openingBalance:0},
+          {id:"investimentos",name:"Investimentos", kind:"investment", openingBalance:0}
+        ];
+      } catch (error) {
+        console.error('Erro ao carregar contas:', error);
+        return [];
+      }
+    }
+
+    function getAccountNameById(accountId) {
+      const accounts = getAccountsFromDatabase();
+      const account = accounts.find(acc => acc.id === accountId);
+      return account ? account.name : accountId;
+    }
+
+    // ========== FUNÇÕES DE DATA ==========
+    function getCurrentMonthDates() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      
+      const firstDay = new Date(year, month, 1);
+      const firstDayStr = firstDay.toISOString().split('T')[0];
+      
+      const lastDay = new Date(year, month + 1, 0);
+      const lastDayStr = lastDay.toISOString().split('T')[0];
+      
+      return { firstDay: firstDayStr, lastDay: lastDayStr };
+    }
+
+    function setCurrentMonthDates() {
+      const { firstDay, lastDay } = getCurrentMonthDates();
+      document.getElementById('dateFrom').value = firstDay;
+      document.getElementById('dateTo').value = lastDay;
+    }
+
+    function clearAllDates() {
+      document.getElementById('dateFrom').value = '';
+      document.getElementById('dateTo').value = '';
+    }
+
+    let transactions = getTransactionsFromDatabase();
+    let currentFilter = 'all';
+
+    // ========== TEMA ==========
+    const themeBtn = document.getElementById('themeBtn');
+    const htmlEl = document.documentElement;
+
+    function initTheme() {
+      const saved = localStorage.getItem('financas-theme') || 'light';
+      htmlEl.setAttribute('data-theme', saved);
+      updateThemeBtn(saved);
+    }
+
+    function updateThemeBtn(theme) {
+      themeBtn.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      const newTheme = current === 'light' ? 'dark' : 'light';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('financas-theme', newTheme);
+      updateThemeBtn(newTheme);
+    });
+
+    // ========== FORMATAÇÃO ==========
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(Math.abs(value));
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      return new Intl.DateTimeFormat('pt-BR', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit'
+      }).format(date).replace(/,/, '');
+    }
+
+    function getMonthName(monthIndex) {
+      const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return months[monthIndex];
+    }
+
+    // ========== FILTROS ==========
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        renderTransactions();
+      });
+    });
+
+    document.getElementById('dateFrom').addEventListener('change', renderTransactions);
+    document.getElementById('dateTo').addEventListener('change', renderTransactions);
+
+    document.getElementById('clearDatesBtn').addEventListener('click', () => {
+      setCurrentMonthDates();
+      renderTransactions();
+      const now = new Date();
+      const monthName = getMonthName(now.getMonth());
+      showToast(`Filtro aplicado para ${monthName}/${now.getFullYear()}`, 'success');
+    });
+
+    document.getElementById('clearAllDatesBtn').addEventListener('click', () => {
+      clearAllDates();
+      renderTransactions();
+      showToast('Exibindo todas as transações', 'success');
+    });
+
+    // ========== RENDERIZAÇÃO ==========
+    function getFilteredTransactions() {
+      let filtered = [...transactions];
+
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(t => t.type === currentFilter);
+      }
+
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+
+      if (dateFrom) {
+        filtered = filtered.filter(t => t.date >= dateFrom);
+      }
+      if (dateTo) {
+        filtered = filtered.filter(t => t.date <= dateTo);
+      }
+
+      return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function renderTransactions() {
+      const filtered = getFilteredTransactions();
+      const container = document.getElementById('transactionsList');
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        let message = 'Nenhuma transação encontrada';
+        
+        if (dateFrom && dateTo) {
+          message += ` no período de ${formatDate(dateFrom)} a ${formatDate(dateTo)}`;
+        } else if (dateFrom) {
+          message += ` a partir de ${formatDate(dateFrom)}`;
+        } else if (dateTo) {
+          message += ` até ${formatDate(dateTo)}`;
+        }
+        
+        container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text2)">${message}</div>`;
+        updateSummary([]);
+        return;
+      }
+
+      const grouped = {};
+      filtered.forEach(t => {
+        if (!grouped[t.date]) grouped[t.date] = [];
+        grouped[t.date].push(t);
+      });
+
+      Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const items = grouped[date];
+        const dayTotal = items.reduce((sum, t) => {
+          const amount = parseFloat(t.amount) || 0;
+          if (t.type === 'income') return sum + amount;
+          if (t.type === 'expense') return sum - amount;
+          return sum + amount;
+        }, 0);
+
+        const section = document.createElement('div');
+        section.innerHTML = `
+          <div class="section-label">
+            <span>${formatDateDisplay(date)}</span>
+            <span class="day-total">${formatCurrency(dayTotal)}</span>
+          </div>
+        `;
+
+        items.forEach(t => {
+          const item = document.createElement('div');
+          item.className = 'transaction-item';
+          
+          const amount = parseFloat(t.amount) || 0;
+          let displayAmount = amount;
+          let sign = '';
+          let amountClass = '';
+
+          if (t.type === 'income') {
+            sign = '+';
+            amountClass = 'amount-income';
+          } else if (t.type === 'expense') {
+            sign = '-';
+            amountClass = 'amount-expense';
+            displayAmount = Math.abs(amount);
+          } else {
+            amountClass = 'amount-transfer';
+            sign = amount >= 0 ? '+' : '-';
+            displayAmount = Math.abs(amount);
+          }
+
+          let description = t.description || 'Sem descrição';
+          if (t.type === 'transfer') {
+            const fromAccount = getAccountNameById(t.fromAccount);
+            const toAccount = getAccountNameById(t.toAccount);
+            description = `${description} (${fromAccount} → ${toAccount})`;
+          }
+
+          let categoryDisplay = '';
+          if (t.category && t.type !== 'transfer') {
+            categoryDisplay = ` • ${t.category}`;
+          }
+
+          item.innerHTML = `
+            <div class="transaction-info">
+              <span class="transaction-category">${description}${categoryDisplay}</span>
+              <span class="transaction-date">${formatDate(t.date)}</span>
+            </div>
+            <span class="transaction-amount ${amountClass}">${sign}${formatCurrency(displayAmount)}</span>
+          `;
+          section.appendChild(item);
+        });
+
+        container.appendChild(section);
+      });
+
+      updateSummary(filtered);
+    }
+
+    function updateSummary(filtered) {
+      const income = filtered
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+        
+      const expense = filtered
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
+        
+      const transferIn = filtered
+        .filter(t => t.type === 'transfer' && (parseFloat(t.amount) || 0) > 0)
+        .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+        
+      const transferOut = filtered
+        .filter(t => t.type === 'transfer' && (parseFloat(t.amount) || 0) < 0)
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
+
+      const totalIncome = income + transferIn;
+      const totalExpense = expense + transferOut;
+      const balance = totalIncome - totalExpense;
+
+      document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+      document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+      document.getElementById('totalBalance').textContent = formatCurrency(balance);
+    }
+
+    // ========== ATUALIZAÇÃO EM TEMPO REAL ==========
+    function refreshData() {
+      transactions = getTransactionsFromDatabase();
+      renderTransactions();
+    }
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'financas-v3') {
+        refreshData();
+      }
+    });
+
+    window.addEventListener('focus', refreshData);
+
+    // ========== EXPORTAR PDF ==========
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const confirmModal = document.getElementById('confirmModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const openBtn = document.getElementById('openBtn');
+    const loader = document.getElementById('loader');
+    const loaderProgress = document.getElementById('loaderProgress');
+    const toast = document.getElementById('toast');
+
+    // Visualizador
+    const pdfViewerModal = document.getElementById('pdfViewerModal');
+    const pdfViewerBody = document.getElementById('pdfViewerBody');
+    const viewerDownloadBtn = document.getElementById('viewerDownloadBtn');
+    const viewerPrintBtn = document.getElementById('viewerPrintBtn');
+    const viewerCloseBtn = document.getElementById('viewerCloseBtn');
+
+    let currentPdfBlob = null;
+    let currentPdfFilename = '';
+    let currentPdfBlobUrl = null;
+
+    if (supportsWebShare() && isAndroid()) {
+      shareBtn.style.display = 'block';
+    }
+
+    exportPdfBtn.addEventListener('click', () => {
+      confirmModal.classList.add('show');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      confirmModal.classList.remove('show');
+    });
+
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) {
+        confirmModal.classList.remove('show');
+      }
+    });
+
+    // ========== FECHAR VISUALIZADOR ==========
+    function closePdfViewer() {
+      pdfViewerModal.classList.remove('show');
+      pdfViewerBody.innerHTML = '';
+      if (currentPdfBlobUrl) {
+        URL.revokeObjectURL(currentPdfBlobUrl);
+        currentPdfBlobUrl = null;
+      }
+      currentPdfBlob = null;
+    }
+
+    viewerCloseBtn.addEventListener('click', closePdfViewer);
+
+    // ========== BOTÃO BAIXAR DENTRO DO VISUALIZADOR ==========
+    viewerDownloadBtn.addEventListener('click', async () => {
+      if (!currentPdfBlob) {
+        showToast('PDF não disponível', 'error');
+        return;
+      }
+      try {
+        const url = URL.createObjectURL(currentPdfBlob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = currentPdfFilename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
+        showToast('Download iniciado!', 'success');
+      } catch (err) {
+        console.error('Erro no download:', err);
+        showToast('Erro ao baixar. Tente o botão Compartilhar.', 'error');
+      }
+    });
+
+    // ========== BOTÃO IMPRIMIR DENTRO DO VISUALIZADOR ==========
+    viewerPrintBtn.addEventListener('click', () => {
+      if (!currentPdfBlobUrl) {
+        showToast('PDF não disponível', 'error');
+        return;
+      }
+      try {
+        // Abre o PDF em nova aba para imprimir
+        const printWin = window.open(currentPdfBlobUrl, '_blank');
+        if (printWin) {
+          printWin.onload = () => {
+            setTimeout(() => {
+              try { printWin.print(); } catch(e) {}
+            }, 500);
+          };
+          showToast('Use Ctrl+P ou o menu para imprimir', 'info');
+        } else {
+          showToast('Permita popups para imprimir', 'error');
+        }
+      } catch (err) {
+        console.error('Erro ao imprimir:', err);
+        showToast('Erro ao imprimir', 'error');
+      }
+    });
+
+    // ========== BOTÃO: BAIXAR PDF ==========
+    confirmBtn.addEventListener('click', async () => {
+      confirmModal.classList.remove('show');
+      loader.classList.add('show');
+      updateProgress('Preparando documento...');
+
+      try {
+        const { docEl, filename } = buildPDFDocument();
+        
+        updateProgress('Gerando PDF...');
+        const blob = await generatePDFBlob(docEl);
+        
+        updateProgress('Salvando arquivo...');
+        
+        // Tenta Web Share API com arquivo (melhor para Android)
+        if (supportsWebShare() && isAndroid()) {
+          try {
+            const file = new File([blob], filename, { type: 'application/pdf' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: 'Extrato',
+                text: 'Extrato de transações - Controle sua Fortuna'
+              });
+              loader.classList.remove('show');
+              showToast('PDF compartilhado com sucesso!', 'success');
+              return;
+            }
+          } catch (shareErr) {
+            console.log('Web Share falhou, tentando download:', shareErr);
+            if (shareErr.name === 'AbortError') {
+              loader.classList.remove('show');
+              return;
+            }
+          }
+        }
+
+        // Tenta download via Blob URL
+        try {
+          await downloadBlob(blob, filename);
+          loader.classList.remove('show');
+          showToast('PDF baixado com sucesso! Verifique a pasta Downloads.', 'success');
+          return;
+        } catch (downloadErr) {
+          console.log('Download via blob falhou:', downloadErr);
+        }
+
+        // Fallback: abrir visualizador
+        updateProgress('Abrindo visualização...');
+        await openPdfViewer(blob, filename);
+        loader.classList.remove('show');
+
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        loader.classList.remove('show');
+        showToast('Erro ao gerar PDF: ' + (error.message || 'Tente novamente'), 'error');
+      }
+    });
+
+    // ========== BOTÃO: COMPARTILHAR PDF ==========
+    shareBtn.addEventListener('click', async () => {
+      confirmModal.classList.remove('show');
+      loader.classList.add('show');
+      updateProgress('Preparando para compartilhar...');
+
+      try {
+        const { docEl, filename } = buildPDFDocument();
+        
+        updateProgress('Gerando PDF...');
+        const blob = await generatePDFBlob(docEl);
+        
+        updateProgress('Abrindo compartilhamento...');
+        
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Extrato',
+            text: 'Extrato de transações - Controle sua Fortuna'
+          });
+          loader.classList.remove('show');
+          showToast('Compartilhado com sucesso!', 'success');
+        } else {
+          loader.classList.remove('show');
+          showToast('Compartilhamento não suportado neste dispositivo', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao compartilhar:', error);
+        loader.classList.remove('show');
+        if (error.name !== 'AbortError') {
+          showToast('Erro ao compartilhar: ' + (error.message || ''), 'error');
+        }
+      }
+    });
+
+    // ========== BOTÃO: VISUALIZAR PDF (CORRIGIDO) ==========
+    openBtn.addEventListener('click', async () => {
+      confirmModal.classList.remove('show');
+      loader.classList.add('show');
+      updateProgress('Gerando PDF...');
+
+      try {
+        const { docEl, filename } = buildPDFDocument();
+        
+        updateProgress('Processando...');
+        const blob = await generatePDFBlob(docEl);
+        
+        updateProgress('Abrindo visualizador...');
+        
+        // Abre o visualizador interno (funciona em qualquer navegador!)
+        await openPdfViewer(blob, filename);
+        
+        loader.classList.remove('show');
+        showToast('PDF aberto! Use os botões para baixar ou imprimir.', 'success');
+
+      } catch (error) {
+        console.error('Erro ao visualizar PDF:', error);
+        loader.classList.remove('show');
+        showToast('Erro ao gerar visualização: ' + (error.message || ''), 'error');
+      }
+    });
+
+    // ========== VISUALIZADOR INTERNO DE PDF ==========
+    async function openPdfViewer(blob, filename) {
+      currentPdfBlob = blob;
+      currentPdfFilename = filename;
+      
+      // Limpa URL anterior
+      if (currentPdfBlobUrl) {
+        URL.revokeObjectURL(currentPdfBlobUrl);
+      }
+      
+      // Cria Blob URL
+      currentPdfBlobUrl = URL.createObjectURL(blob);
+      
+      // Limpa o body do visualizador
+      pdfViewerBody.innerHTML = '';
+      
+      // Tenta carregar em iframe (funciona na maioria dos navegadores)
+      const iframe = document.createElement('iframe');
+      iframe.src = currentPdfBlobUrl;
+      iframe.style.cssText = 'width:100%;height:100%;border:none;background:#fff';
+      iframe.setAttribute('title', 'Visualização do PDF');
+      
+      // Detecta se o iframe conseguiu carregar
+      let loaded = false;
+      iframe.onload = () => {
+        loaded = true;
+      };
+      
+      pdfViewerBody.appendChild(iframe);
+      
+      // Fallback: se o iframe não carregar em 2 segundos, mostra fallback
+      setTimeout(() => {
+        if (!loaded) {
+          showViewerFallback();
+        }
+      }, 2000);
+      
+      // Mostra o modal
+      pdfViewerModal.classList.add('show');
+    }
+
+    function showViewerFallback() {
+      // Se o iframe não funcionou, mostra fallback com opções
+      pdfViewerBody.innerHTML = `
+        <div class="pdf-viewer-fallback">
+          <h4>📄 PDF Gerado com Sucesso!</h4>
+          <p>O visualizador não conseguiu exibir o PDF neste navegador, mas o arquivo está pronto.</p>
+          <p style="font-size:.8rem;opacity:.7">Tamanho: ${(currentPdfBlob.size / 1024).toFixed(1)} KB<br>Nome: ${currentPdfFilename}</p>
+          <div class="fallback-actions">
+            <button onclick="viewerDownloadBtn.click()">📥 Baixar PDF</button>
+            <button onclick="openPdfInNewTab()">🔗 Abrir em Nova Aba</button>
+            <button onclick="sharePdfDirectly()" style="background:#2563eb;color:#fff">📤 Compartilhar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Função global para abrir em nova aba
+    window.openPdfInNewTab = function() {
+      if (!currentPdfBlobUrl) {
+        showToast('PDF não disponível', 'error');
+        return;
+      }
+      
+      // Tenta abrir em nova aba
+      const newWin = window.open(currentPdfBlobUrl, '_blank');
+      
+      if (!newWin) {
+        // Se popup foi bloqueado, tenta com data URL
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          const win = window.open(dataUrl, '_blank');
+          if (!win) {
+            // Último recurso: cria link para download
+            triggerDownload();
+          }
+        };
+        reader.readAsDataURL(currentPdfBlob);
+      } else {
+        showToast('PDF aberto em nova aba!', 'success');
+      }
+    };
+
+    // Função global para compartilhar diretamente
+    window.sharePdfDirectly = async function() {
+      if (!currentPdfBlob) {
+        showToast('PDF não disponível', 'error');
+        return;
+      }
+      
+      if (!supportsWebShare()) {
+        showToast('Compartilhamento não suportado. Use o botão Baixar.', 'error');
+        return;
+      }
+      
+      try {
+        const file = new File([currentPdfBlob], currentPdfFilename, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Extrato',
+            text: 'Extrato de transações - Controle sua Fortuna'
+          });
+          showToast('Compartilhado com sucesso!', 'success');
+        } else {
+          showToast('Este tipo de arquivo não pode ser compartilhado aqui. Use Baixar.', 'error');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showToast('Erro ao compartilhar', 'error');
+        }
+      }
+    };
+
+    function triggerDownload() {
+      if (!currentPdfBlob) return;
+      try {
+        const url = URL.createObjectURL(currentPdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentPdfFilename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
+        showToast('Download iniciado!', 'success');
+      } catch (err) {
+        showToast('Erro ao baixar', 'error');
+      }
+    }
+
+    function updateProgress(text) {
+      if (loaderProgress) {
+        loaderProgress.textContent = text;
+      }
+    }
+
+    // ========== FUNÇÕES AUXILIARES DE PDF ==========
+    function buildPDFDocument() {
+      const filtered = getFilteredTransactions();
+      const docEl = document.createElement('div');
+      docEl.style.cssText = 'background:#fff;color:#000;padding:20px;font-family:Arial,sans-serif;width:210mm;margin:0 auto';
+
+      const dateFrom = document.getElementById('dateFrom').value;
+      const dateTo = document.getElementById('dateTo').value;
+      let periodText = '';
+      if (dateFrom && dateTo) {
+        periodText = `Período: ${formatDate(dateFrom)} a ${formatDate(dateTo)}`;
+      } else if (dateFrom) {
+        periodText = `A partir de: ${formatDate(dateFrom)}`;
+      } else if (dateTo) {
+        periodText = `Até: ${formatDate(dateTo)}`;
+      } else {
+        periodText = 'Todas as transações';
+      }
+
+      // Cabeçalho
+      const header = document.createElement('div');
+      header.style.cssText = 'text-align:center;margin-bottom:30px;border-bottom:2px solid #0f766e;padding-bottom:15px';
+      header.innerHTML = `
+        <h1 style="margin:0;color:#0f766e;font-size:24px">Extrato de Transações</h1>
+        <p style="margin:5px 0 0 0;color:#666;font-size:12px">Controle sua Fortuna</p>
+        <p style="margin:10px 0 0 0;color:#888;font-size:11px">${periodText}</p>
+      `;
+      docEl.appendChild(header);
+
+      // Data de geração
+      const dateInfo = document.createElement('p');
+      dateInfo.style.cssText = 'text-align:right;color:#999;font-size:11px;margin-bottom:20px';
+      dateInfo.innerHTML = `Gerado em: ${new Date().toLocaleString('pt-BR')}`;
+      docEl.appendChild(dateInfo);
+
+      // Resumo
+      const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+      const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
+      const balance = income - expense;
+
+      const summary = document.createElement('div');
+      summary.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:30px';
+      summary.innerHTML = `
+        <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+          <p style="margin:0;color:#666;font-size:12px">Entradas</p>
+          <p style="margin:5px 0 0 0;color:#15803d;font-size:16px;font-weight:bold">${formatCurrency(income)}</p>
+        </div>
+        <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+          <p style="margin:0;color:#666;font-size:12px">Saídas</p>
+          <p style="margin:5px 0 0 0;color:#b42318;font-size:16px;font-weight:bold">${formatCurrency(expense)}</p>
+        </div>
+        <div style="border:1px solid #ddd;padding:15px;border-radius:8px;text-align:center">
+          <p style="margin:0;color:#666;font-size:12px">Saldo</p>
+          <p style="margin:5px 0 0 0;color:#0f766e;font-size:16px;font-weight:bold">${formatCurrency(balance)}</p>
+        </div>
+      `;
+      docEl.appendChild(summary);
+
+      // Tabela
+      const table = document.createElement('table');
+      table.style.cssText = 'width:100%;border-collapse:collapse;margin-top:20px;font-size:11px';
+      
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr style="background:#f0f7f5;border-bottom:2px solid #0f766e">
+          <th style="padding:10px;text-align:left;font-weight:bold">Data</th>
+          <th style="padding:10px;text-align:left;font-weight:bold">Descrição</th>
+          <th style="padding:10px;text-align:left;font-weight:bold">Categoria</th>
+          <th style="padding:10px;text-align:right;font-weight:bold">Valor</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      filtered.forEach((t, idx) => {
+        const tr = document.createElement('tr');
+        tr.style.cssText = `border-bottom:1px solid #eee;background:${idx % 2 === 0 ? '#fff' : '#f9f9f9'}`;
+        
+        const amount = parseFloat(t.amount) || 0;
+        let color = '#000';
+        let displayAmount = amount;
+        let sign = '';
+
+        if (t.type === 'income') {
+          color = '#15803d';
+          sign = '+';
+        } else if (t.type === 'expense') {
+          color = '#b42318';
+          sign = '-';
+          displayAmount = Math.abs(amount);
+        } else {
+          color = '#1d4ed8';
+          sign = amount >= 0 ? '+' : '-';
+          displayAmount = Math.abs(amount);
+        }
+
+        const category = t.category || (t.type === 'transfer' ? 'Transferência' : '-');
+
+        tr.innerHTML = `
+          <td style="padding:10px">${formatDate(t.date)}</td>
+          <td style="padding:10px">${t.description || 'Sem descrição'}</td>
+          <td style="padding:10px">${category}</td>
+          <td style="padding:10px;text-align:right;color:${color};font-weight:bold">${sign}${formatCurrency(displayAmount)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      docEl.appendChild(table);
+
+      // Rodapé
+      const footer = document.createElement('div');
+      footer.style.cssText = 'margin-top:40px;padding-top:20px;border-top:1px solid #ddd;text-align:center;color:#999;font-size:10px';
+      footer.innerHTML = '© 2024 Controle sua Fortuna. Documento confidencial.';
+      docEl.appendChild(footer);
+
+      const filename = `Extrato_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      return { docEl, filename };
+    }
+
+    function generatePDFBlob(docEl) {
+      return new Promise((resolve, reject) => {
+        const options = {
+          margin: [10, 10, 10, 10],
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf()
+          .set(options)
+          .from(docEl)
+          .outputPdf('blob')
+          .then(blob => {
+            resolve(blob);
+          })
+          .catch(reject);
+      });
+    }
+
+    async function downloadBlob(blob, filename) {
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
+        
+        return true;
+      } catch (e) {
+        console.log('Método 1 falhou:', e);
+        throw e;
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    // ========== INICIALIZAÇÃO ==========
+    function init() {
+      initTheme();
+      setCurrentMonthDates();
+      renderTransactions();
+
+      const now = new Date();
+      const monthName = getMonthName(now.getMonth());
+      
+      setTimeout(() => {
+        showToast(`Exibindo ${monthName}/${now.getFullYear()} • Use os filtros para alterar o período`, 'info');
+      }, 1000);
+
+      if (transactions.length === 0) {
+        setTimeout(() => {
+          showToast('Nenhuma transação encontrada. Adicione lançamentos no painel principal.', 'info');
+        }, 2000);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

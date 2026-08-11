@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Licença — Controle sua Fortuna</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --bg:        #f0f7f5;
+      --bg2:       #ffffff;
+      --bg3:       #e8f2ef;
+      --bg4:       #d4ebe5;
+      --text:      #0d1f1c;
+      --text2:     #4a6660;
+      --text3:     #8aa9a2;
+      --border:    #d0e4df;
+      --primary:   #0f766e;
+      --primary-d: #0a5c56;
+      --primary-l: #e0f2ef;
+      --accent:    #14b8a6;
+      --ok:        #16a34a;
+      --ok-bg:     #dcfce7;
+      --err:       #b91c1c;
+      --err-bg:    #fee2e2;
+      --warn:      #92400e;
+      --warn-bg:   #fef9c3;
+      --info:      #0369a1;
+      --info-bg:   #f0f9ff;
+      --shadow-sm: 0 1px 4px rgba(15,118,110,.08);
+      --shadow:    0 4px 24px rgba(15,118,110,.10);
+      --shadow-lg: 0 8px 48px rgba(15,118,110,.14);
+      --radius:    18px;
+      --radius-sm: 10px;
+    }
+
+    [data-theme="dark"] {
+      --bg:        #0a0f0e;
+      --bg2:       #111918;
+      --bg3:       #182221;
+      --bg4:       #1e2d2b;
+      --text:      #e8f5f2;
+      --text2:     #7db5ac;
+      --text3:     #4a7a72;
+      --border:    #1e3330;
+      --primary:   #14b8a6;
+      --primary-d: #0d9488;
+      --primary-l: #0a2421;
+      --accent:    #2dd4bf;
+      --ok:        #22c55e;
+      --ok-bg:     #052e16;
+      --err:       #ef4444;
+      --err-bg:    #2d0a0a;
+      --warn:      #f59e0b;
+      --warn-bg:   #2d1a00;
+      --info:      #38bdf8;
+      --info-bg:   #082030;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.3);
+      --shadow:    0 4px 24px rgba(0,0,0,.4);
+      --shadow-lg: 0 8px 48px rgba(0,0,0,.5);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Sora', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background .3s, color .3s;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--primary);
+      color: #fff;
+      padding: .9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,.18);
+    }
+    .topbar-left { display: flex; align-items: center; gap: .85rem; }
+    .back-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.18);
+      border: none; border-radius: 50%;
+      color: #fff; font-size: 1.1rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.3); }
+    .topbar h1 { font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+    .topbar-sub { font-size: .7rem; opacity: .75; font-weight: 400; }
+
+    /* Theme toggle */
+    .theme-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.18);
+      border: none; border-radius: 50%;
+      color: #fff; font-size: 1rem;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .theme-btn:hover { background: rgba(255,255,255,.3); }
+
+    /* ── CONTENT ── */
+    .content {
+      padding: 1.25rem 1rem 3rem;
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg2);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.3rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: background .3s, border-color .3s, box-shadow .3s;
+      animation: fadeUp .35s ease both;
+    }
+    .card:nth-child(1) { animation-delay: .04s; }
+    .card:nth-child(2) { animation-delay: .10s; }
+    .card:nth-child(3) { animation-delay: .16s; }
+    .card:nth-child(4) { animation-delay: .22s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 1.1rem;
+    }
+    .card-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--primary-l);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .card-head h2 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    /* ── STATUS HERO ── */
+    .status-hero {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      margin-bottom: 1rem;
+      transition: background .3s, border-color .3s;
+    }
+    .status-orb {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .status-orb.ok    { background: var(--ok-bg);   box-shadow: 0 0 0 4px rgba(22,163,74,.15); }
+    .status-orb.err   { background: var(--err-bg);  box-shadow: 0 0 0 4px rgba(185,28,28,.15); }
+    .status-orb.warn  { background: var(--warn-bg); box-shadow: 0 0 0 4px rgba(146,64,14,.15); }
+    .status-label { font-size: .8rem; color: var(--text2); margin-bottom: 2px; }
+    .status-value { font-size: 1rem; font-weight: 700; }
+    .status-value.ok   { color: var(--ok); }
+    .status-value.err  { color: var(--err); }
+    .status-value.warn { color: var(--warn); }
+
+    /* ── INFO ROWS ── */
+    .info-rows { display: flex; flex-direction: column; gap: 0; }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .65rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .85rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--text2); display: flex; align-items: center; gap: .4rem; }
+    .info-row .val { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--text); }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .badge::before { content: '●'; font-size: .5rem; }
+    .badge.ok   { background: var(--ok-bg);   color: var(--ok); }
+    .badge.err  { background: var(--err-bg);  color: var(--err); }
+    .badge.warn { background: var(--warn-bg); color: var(--warn); }
+
+    /* ── INPUT ── */
+    .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+    .field-label { font-size: .78rem; font-weight: 600; color: var(--text2); }
+    .key-input {
+      padding: .85rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .82rem;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg3);
+      color: var(--text);
+      resize: vertical;
+      outline: none;
+      width: 100%;
+      min-height: 100px;
+      transition: border-color .2s, background .3s;
+      line-height: 1.6;
+    }
+    .key-input:focus { border-color: var(--primary); background: var(--bg2); }
+    .key-input::placeholder { color: var(--text3); font-family: 'Sora', sans-serif; font-size: .82rem; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%;
+      padding: .85rem 1rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 700;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      transition: all .2s;
+      letter-spacing: .01em;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(15,118,110,.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-d);
+      box-shadow: 0 4px 18px rgba(15,118,110,.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(37,211,102,.3);
+    }
+    .btn-whatsapp:hover {
+      background: #1db954;
+      box-shadow: 0 4px 18px rgba(37,211,102,.4);
+      transform: translateY(-1px);
+    }
+
+    .btn + .btn { margin-top: .6rem; }
+
+    /* ── STATUS MSG ── */
+    .status-msg {
+      display: none;
+      padding: .75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: .83rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      align-items: center;
+      gap: .5rem;
+      border-left: 3px solid currentColor;
+    }
+    .status-msg.show { display: flex; }
+    .status-msg.success { background: var(--ok-bg);   color: var(--ok);   }
+    .status-msg.error   { background: var(--err-bg);  color: var(--err);  }
+    .status-msg.loading { background: var(--info-bg); color: var(--info); }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── HELPER ── */
+    .helper {
+      font-size: .76rem;
+      color: var(--text3);
+      line-height: 1.5;
+      margin-top: .5rem;
+    }
+
+    /* ── DEVICE ID BOX ── */
+    .device-box {
+      background: var(--bg3);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: .65rem .9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .73rem;
+      color: var(--text2);
+      word-break: break-all;
+      cursor: pointer;
+      transition: background .2s;
+      position: relative;
+    }
+    .device-box:hover { background: var(--bg4); }
+    .device-box::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: -28px; right: 0;
+      background: var(--text);
+      color: var(--bg);
+      font-size: .68rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      white-space: nowrap;
+      font-family: 'Sora', sans-serif;
+    }
+    .device-box.copied::after { opacity: 1; }
+
+    @media (max-width: 380px) {
+      .content { padding: 1rem .75rem 3rem; }
+      .card { padding: 1.1rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn">&#8592;</a>
+      <div>
+        <div class="topbar-sub">Controle sua Fortuna</div>
+        <h1>Licença de uso</h1>
+      </div>
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">🌙</button>
+  </div>
+
+  <div class="content">
+
+    <!-- STATUS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">🔑</div>
+        <h2>Status da licença</h2>
+        <span class="badge warn" id="statusBadge">Não ativada</span>
+      </div>
+
+      <div class="status-hero" id="statusHero">
+        <div class="status-orb warn" id="statusOrb">⚠️</div>
+        <div>
+          <div class="status-label">Situação atual</div>
+          <div class="status-value warn" id="statusValue">Sem licença ativa</div>
+        </div>
+      </div>
+
+      <div class="info-rows" id="licenseInfo">
+        <div class="info-row">
+          <span class="label">ℹ️ Informação</span>
+          <span class="val" style="color:var(--text2)">Nenhuma chave cadastrada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATIVAR -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">✨</div>
+        <h2>Ativar licença</h2>
+      </div>
+
+      <div class="status-msg" id="activateMsg"></div>
+
+      <div class="field">
+        <div class="field-label">Chave de licença</div>
+        <textarea class="key-input" id="licenseKey" rows="4"
+          placeholder="Cole aqui a chave fornecida pelo administrador..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="activateBtn">
+        🔓 Ativar licença
+      </button>
+
+      <p class="helper">A chave é de uso único e vinculada a este dispositivo.</p>
+    </div>
+
+    <!-- DEVICE ID -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📱</div>
+        <h2>ID do dispositivo</h2>
+      </div>
+      <div class="device-box" id="deviceIdBox" data-tip="Copiado!" title="Clique para copiar"></div>
+      <p class="helper" style="margin-top:.6rem">
+        Informe este código ao solicitar sua licença. Clique para copiar.
+      </p>
+    </div>
+
+    <!-- SOLICITAR -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">💬</div>
+        <h2>Solicitar nova licença</h2>
+      </div>
+      <p class="helper" style="margin-bottom:1rem;font-size:.82rem;color:var(--text2)">
+        Efetue o pagamento e solicite sua licença diretamente via WhatsApp. Informe seu nome, CPF e o ID do dispositivo acima.
+      </p>
+      <button class="btn btn-whatsapp" id="whatsappBtn">
+        💬 Solicitar via WhatsApp
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // ── TEMA ──
+    (function() {
+      var html = document.documentElement;
+      var btn  = document.getElementById("themeBtn");
+      var saved = localStorage.getItem("financas-theme") || "light";
+      html.setAttribute("data-theme", saved);
+      btn.textContent = saved === "dark" ? "☀️" : "🌙";
+      btn.addEventListener("click", function() {
+        var next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", next);
+        localStorage.setItem("financas-theme", next);
+        btn.textContent = next === "dark" ? "☀️" : "🌙";
+      });
+    })();
+
+    // ── CONSTANTES ──
+    const STORAGE_KEY    = "financas-license-v1";
+    const DEVICE_KEY     = "financas-device-id";
+    const PROFILE_KEY    = "financas-user-profile";
+    const WHATSAPP_NUM   = "5549988141894";
+
+    // ── CHAVE PÚBLICA ECDSA P-256 (CORRESPONDENTE À CHAVE PRIVADA DO GERADOR) ──
+    const ECDSA_PUBLIC_KEY_JWK = {
+      kty: "EC",
+      crv: "P-256",
+      x:   "e1XhgU2lsgYidY77PRY32wHggaUlnC1cUBsOHbriGKY",
+      y:   "ewKoqLdZ8lffJ26L2SwoNm85yQsM9WODS-NNq_E1Jr0"
+    };
+
+    // ── GERAÇÃO DE DEVICE ID ──
+    function generateDeviceId() {
+      const part1 = Math.random().toString(36).substring(2, 10);  // 8 chars
+      const part2 = Math.random().toString(36).substring(2, 8);   // 6 chars
+      return `dev-${part1}-${part2}`;
+    }
+
+    // ── VALIDAÇÃO DE DEVICE ID ──
+    function isValidDeviceId(id) {
+      if (!id || typeof id !== 'string') return false;
+      const regex = /^dev-[a-z0-9]{6,}-[a-z0-9]{4,}$/i;
+      return regex.test(id);
+    }
+
+    // ── DEVICE ID ──
+    function getDeviceId() {
+      let id = localStorage.getItem(DEVICE_KEY);
+      if (!id || !isValidDeviceId(id)) {
+        id = generateDeviceId();
+        localStorage.setItem(DEVICE_KEY, id);
+        console.log("🆔 Novo Device ID gerado:", id);
+      }
+      return id;
+    }
+
+    const deviceId = getDeviceId();
+    const deviceBox = document.getElementById("deviceIdBox");
+    deviceBox.textContent = deviceId;
+    deviceBox.addEventListener("click", function() {
+      navigator.clipboard.writeText(deviceId).then(function() {
+        deviceBox.classList.add("copied");
+        setTimeout(function() { deviceBox.classList.remove("copied"); }, 1800);
+      });
+    });
+
+    console.log("📱 Device ID atual:", deviceId);
+
+    // ── CARREGAR DADOS ──
+    function loadLicense() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { active: false }; }
+      catch { return { active: false }; }
+    }
+    function loadProfile() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveLicense(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    let license = loadLicense();
+    const profile = loadProfile();
+
+    // ── RENDER STATUS ──
+    function renderStatus() {
+      const badge   = document.getElementById("statusBadge");
+      const orb     = document.getElementById("statusOrb");
+      const value   = document.getElementById("statusValue");
+      const info    = document.getElementById("licenseInfo");
+      const hero    = document.getElementById("statusHero");
+
+      const now = new Date();
+      const hasExp = license.active && license.expiresAt;
+      const isValid = hasExp && new Date(license.expiresAt) > now;
+      const isExpired = hasExp && new Date(license.expiresAt) <= now;
+
+      if (isValid) {
+        const expDate = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+        const issDate = license.issuedAt ? new Date(license.issuedAt).toLocaleDateString("pt-BR") : "—";
+        const daysLeft = Math.ceil((new Date(license.expiresAt) - now) / 86400000);
+        const daysColor = daysLeft <= 7 ? "var(--warn)" : "var(--ok)";
+
+        badge.textContent = "Ativa";
+        badge.className = "badge ok";
+        orb.textContent = "✅";
+        orb.className = "status-orb ok";
+        value.textContent = "Licença ativa";
+        value.className = "status-value ok";
+        hero.style.borderColor = "var(--ok)";
+
+        info.innerHTML = `
+          <div class="info-row">
+            <span class="label">👤 Titular</span>
+            <span class="val">${esc(license.holder || "—")}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">📅 Emissão</span>
+            <span class="val">${issDate}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">⏳ Validade</span>
+            <span class="val">${expDate}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">📆 Dias restantes</span>
+            <span class="val" style="color:${daysColor}">${daysLeft} dia${daysLeft !== 1 ? "s" : ""}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">📱 Dispositivo</span>
+            <span class="val">${esc(deviceId)}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">🔏 Tipo</span>
+            <span class="val">Assinatura ECDSA P-256</span>
+          </div>`;
+
+      } else if (isExpired) {
+        const expDate = new Date(license.expiresAt).toLocaleDateString("pt-BR");
+        badge.textContent = "Expirada";
+        badge.className = "badge err";
+        orb.textContent = "❌";
+        orb.className = "status-orb err";
+        value.textContent = "Licença expirada";
+        value.className = "status-value err";
+        hero.style.borderColor = "var(--err)";
+
+        info.innerHTML = `
+          <div class="info-row">
+            <span class="label">👤 Titular</span>
+            <span class="val">${esc(license.holder || "—")}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">📅 Expirou em</span>
+            <span class="val" style="color:var(--err)">${expDate}</span>
+          </div>`;
+
+      } else {
+        badge.textContent = "Não ativada";
+        badge.className = "badge warn";
+        orb.textContent = "⚠️";
+        orb.className = "status-orb warn";
+        value.textContent = "Sem licença ativa";
+        value.className = "status-value warn";
+        hero.style.borderColor = "";
+
+        info.innerHTML = `
+          <div class="info-row">
+            <span class="label">ℹ️ Informação</span>
+            <span class="val" style="color:var(--text2)">Nenhuma chave cadastrada</span>
+          </div>
+          <div class="info-row">
+            <span class="label">📱 Dispositivo</span>
+            <span class="val">${esc(deviceId)}</span>
+          </div>`;
+      }
+    }
+
+    function esc(str) {
+      return String(str).replace(/[<>&"]/g, c =>
+        ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;' }[c])
+      );
+    }
+
+    // ── STATUS MSG ──
+    function setMsg(text, type, loading) {
+      const el = document.getElementById("activateMsg");
+      el.className = "status-msg show " + type;
+      el.innerHTML = loading
+        ? `<div class="spinner"></div><span>${text}</span>`
+        : `<span>${text}</span>`;
+    }
+
+    // ── VERIFICAÇÃO ECDSA P-256 ──
+    async function verifySignedLicense(value) {
+      const parts = value.split(".");
+      if (parts.length !== 2) return { valid: false, message: "Formato de chave inválido." };
+
+      try {
+        const [payloadB64, signatureB64] = parts;
+
+        // Importar chave pública ECDSA
+        const publicKey = await crypto.subtle.importKey(
+          "jwk",
+          ECDSA_PUBLIC_KEY_JWK,
+          { name: "ECDSA", namedCurve: "P-256" },
+          false,
+          ["verify"]
+        );
+
+        // Decodificar payload e assinatura
+        const payloadBytes = Uint8Array.from(
+          atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")),
+          c => c.charCodeAt(0)
+        );
+
+        const signatureBytes = Uint8Array.from(
+          atob(signatureB64.replace(/-/g, "+").replace(/_/g, "/")),
+          c => c.charCodeAt(0)
+        );
+
+        // Verificar assinatura ECDSA
+        const verified = await crypto.subtle.verify(
+          { name: "ECDSA", hash: "SHA-256" },
+          publicKey,
+          signatureBytes,
+          payloadBytes
+        );
+
+        if (!verified) return { valid: false, message: "Assinatura inválida. Verifique a chave." };
+
+        // Decodificar payload
+        const payload = JSON.parse(new TextDecoder().decode(payloadBytes));
+
+        // Verificar expiração
+        if (!payload.expiresAt || new Date(payload.expiresAt) <= new Date()) {
+          return { valid: false, message: "Esta chave já está expirada." };
+        }
+
+        // Verificar Device ID
+        if (payload.deviceId && payload.deviceId !== deviceId) {
+          return {
+            valid: false,
+            message: `Esta licença é para outro dispositivo.\n\nDispositivo da licença: ${payload.deviceId}\nSeu dispositivo: ${deviceId}`
+          };
+        }
+
+        return { valid: true, payload };
+      } catch (e) {
+        console.error("Erro ao verificar licença:", e);
+        return { valid: false, message: "Erro ao processar a chave de licença." };
+      }
+    }
+
+    // ── ATIVAR ──
+    document.getElementById("activateBtn").addEventListener("click", async function() {
+      const key = document.getElementById("licenseKey").value.trim();
+      if (!key) {
+        setMsg("Cole a chave de licença no campo acima.", "error", false);
+        return;
+      }
+
+      this.disabled = true;
+      setMsg("Verificando assinatura ECDSA...", "loading", true);
+
+      const local = await verifySignedLicense(key);
+      if (!local.valid) {
+        setMsg(local.message, "error", false);
+        this.disabled = false;
+        return;
+      }
+
+      saveAndRefresh(key, local.payload);
+      setMsg("✅ Licença ativada com sucesso!", "success", false);
+
+      document.getElementById("licenseKey").value = "";
+      this.disabled = false;
+    });
+
+    function saveAndRefresh(key, payload) {
+      const data = {
+        active: true, type: "signed", key,
+        holder:    payload.holder    || "Cliente",
+        issuedAt:  payload.issuedAt  || new Date().toISOString(),
+        expiresAt: payload.expiresAt,
+        deviceId:  payload.deviceId  || deviceId
+      };
+      saveLicense(data);
+      license = data;
+      renderStatus();
+      console.log("✅ Licença salva:", data);
+    }
+
+    // ── WHATSAPP ──
+    (function setupWhatsapp() {
+      const name     = profile.fullname || "Cliente";
+      const username = profile.username || "";
+      const cpf      = profile.cpf      || "";
+      const email    = profile.email    || "";
+      const devId    = deviceId;
+      const msg = encodeURIComponent(
+        `Olá! Gostaria de solicitar uma nova licença do Controle sua Fortuna.\n\n` +
+        `Nome: ${name}\nUsuário: ${username}\nCPF: ${cpf}\nE-mail: ${email}\n` +
+        `ID do dispositivo: ${devId}\n\n`
+      );
+      document.getElementById("whatsappBtn").onclick = function() {
+        window.open(`https://wa.me/${WHATSAPP_NUM}?text=${msg}`, "_blank");
+      };
+    })();
+
+    // ── INIT ──
+    renderStatus();
+    console.log("🔑 Sistema de licenças ECDSA inicializado");
+  </script>
+</body>
+</html>

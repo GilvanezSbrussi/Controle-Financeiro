@@ -1,0 +1,1938 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0f766e"/>
+<title>Controle sua Fortuna Versão 1.0</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+:root{
+--bg:#f0f4f8;--bg2:#fff;--bg3:#e8edf2;--text:#111827;--text2:#6b7280;
+--text3:#9ca3af;--border:#e5e7eb;--primary:#0f766e;--primary-light:#e6f4f3;
+--income:#16a34a;--expense:#dc2626;--transfer:#2563eb;--warning:#f59e0b;
+--shadow:0 2px 12px rgba(0,0,0,.07);--radius:16px;--rsm:10px;
+}
+[data-theme="dark"]{
+--bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;--text:#f3f4f6;--text2:#9ca3af;
+--text3:#6b7280;--border:#2d3148;--primary:#14b8a6;--primary-light:#0f2926;
+--income:#22c55e;--expense:#ef4444;--transfer:#60a5fa;--warning:#f59e0b;
+--shadow:0 2px 16px rgba(0,0,0,.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--primary);color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.topbar .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.topbar h1{font-size:1.3rem;font-weight:800;margin-top:2px}
+.topbar-right{display:flex;gap:8px;align-items:center;position:relative}
+.tbtn{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s}
+.tbtn:hover{background:rgba(255,255,255,.3)}
+.ddmenu{position:absolute;right:0;top:calc(100% + 10px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);min-width:220px;z-index:999;overflow:hidden;display:none}
+.ddmenu.open{display:block}
+.dditem{display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:none;border:none;cursor:pointer;font-size:.93rem;color:var(--text);text-decoration:none;transition:background .15s;border-bottom:1px solid var(--border)}
+.dditem:last-child{border-bottom:none}
+.dditem:hover{background:var(--bg3)}
+.content{padding:1rem;padding-bottom:80px;max-width:640px;margin:0 auto}
+.card{background:var(--bg2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem}
+.card-title h2{font-size:.95rem;font-weight:700}
+.card-title span{font-size:.78rem;color:var(--text2)}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+@media(min-width:480px){.summary{grid-template-columns:repeat(4,1fr)}}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow)}
+.metric span{font-size:.73rem;color:var(--text2);font-weight:600;display:block;margin-bottom:5px}
+.metric strong{font-size:1.15rem;font-weight:800}
+.metric.primary{background:var(--primary)}
+.metric.primary span,.metric.primary strong{color:#fff}
+.acc-list{display:flex;flex-direction:column;gap:8px}
+.acc-card{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:var(--rsm);padding:.75rem 1rem;cursor:pointer;transition:all .2s;border:2px solid transparent}
+.acc-card:hover{border-color:var(--primary);background:var(--primary-light)}
+.acc-card:hover .acc-info em{color:var(--primary)}
+.acc-card-inner{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
+.acc-info small{font-size:.7rem;color:var(--text2);display:block}
+.acc-info strong{font-size:.93rem;font-weight:700;display:block;margin:2px 0;color:var(--text)}
+.acc-info em{font-size:.82rem;color:var(--primary);font-weight:600;font-style:normal}
+.acc-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#fff;flex-shrink:0}
+.acc-icon.checking{background:var(--primary)}
+.acc-icon.investment{background:var(--transfer)}
+.acc-arrow{font-size:.8rem;color:var(--text3);margin-left:4px}
+.segmented{display:flex;background:var(--bg3);border-radius:var(--rsm);padding:3px;gap:3px;margin-bottom:1rem}
+.segmented label{flex:1;cursor:pointer}
+.segmented input{display:none}
+.segmented span{display:block;text-align:center;padding:8px 4px;border-radius:8px;font-size:.83rem;font-weight:600;color:var(--text2);transition:all .2s}
+.segmented input:checked+span{background:var(--bg2);color:var(--primary);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.fgrid label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;color:var(--text2)}
+.fgrid label.full{grid-column:span 2}
+.fgrid input,.fgrid select{padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:.9rem;background:var(--bg3);color:var(--text);outline:none;transition:border-color .2s;width:100%}
+.fgrid input:focus,.fgrid select:focus{border-color:var(--primary)}
+.pbtn{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);font-size:.95rem;font-weight:700;cursor:pointer}
+.pbtn:hover{opacity:.9}
+.pbtn:disabled{opacity:.5;cursor:not-allowed}
+.cbtn{background:none;border:none;color:var(--expense);font-size:.8rem;font-weight:600;cursor:pointer;padding:3px 8px;border-radius:6px}
+.hidden{display:none!important}
+.locked{opacity:.5;pointer-events:none}
+.fav-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.fav-tag{padding:5px 12px;border-radius:20px;background:var(--primary-light);border:1.5px solid var(--primary);color:var(--primary);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s}
+.fav-tag:hover{background:var(--primary);color:#fff}
+.fav-tag.selected{background:var(--primary);color:#fff}
+.fav-tags-label{font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:3px}
+.tx-list{display:flex;flex-direction:column}
+
+/* ===================== NOVO: SCROLL PARA LISTAS DE TRANSAÇÕES ===================== */
+.tx-list-scroll{
+max-height:720px;
+overflow-y:auto;
+-webkit-overflow-scrolling:touch;
+scrollbar-width:thin;
+scrollbar-color:var(--primary) var(--bg3);
+padding-right:4px;
+}
+.tx-list-scroll::-webkit-scrollbar{width:6px}
+.tx-list-scroll::-webkit-scrollbar-track{background:var(--bg3);border-radius:3px}
+.tx-list-scroll::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+.tx-list-scroll::-webkit-scrollbar-thumb:hover{background:var(--primary);opacity:.8}
+@media(max-width:480px){
+.tx-list-scroll{max-height:65vh}
+}
+
+.tx-item{display:flex;align-items:flex-start;gap:10px;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.tx-item:last-child{border-bottom:none}
+.tx-ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.tx-ico.income{background:rgba(22,163,74,.12)}
+.tx-ico.expense{background:rgba(220,38,38,.1)}
+.tx-ico.transfer{background:rgba(37,99,235,.1)}
+.tx-body{flex:1;min-width:0}
+.tx-desc{font-size:.9rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:.74rem;color:var(--text2);margin-top:1px}
+.tx-actions{display:flex;gap:5px;margin-top:6px}
+.tx-right{text-align:right;flex-shrink:0}
+.tx-amt{font-size:.93rem;font-weight:700}
+.tx-date{font-size:.7rem;color:var(--text3);margin-top:2px}
+.abtn{background:var(--bg3);border:none;border-radius:6px;padding:4px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:3px}
+.abtn:hover{background:var(--border)}
+.abtn.del{color:var(--expense)}
+.income-text{color:var(--income)}
+.expense-text{color:var(--expense)}
+.transfer-text{color:var(--transfer)}
+.empty{text-align:center;padding:1.5rem;color:var(--text3);font-size:.85rem}
+.cat-pills{display:flex;flex-direction:column;gap:12px;min-height:40px}
+.cat-pill{padding:14px 16px;border-radius:var(--rsm);background:var(--bg3);border:1.5px solid var(--border);transition:all .2s;position:relative;overflow:hidden}
+.cat-pill:hover{background:var(--primary-light)}
+.cat-pill-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.cat-pill-name{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.cat-pill-amount{font-size:.9rem;color:var(--expense);font-weight:700;text-align:right;line-height:1.2}
+.cat-pill-percent{font-size:.75rem;color:var(--text2);margin-top:1px}
+.cat-limit-info{margin-bottom:8px}
+.cat-limit-text{font-size:.8rem;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.cat-limit-text .limit-label{font-weight:600}
+.cat-limit-text .limit-values{font-weight:700}
+.cat-pill-progress{background:var(--border);height:8px;border-radius:4px;overflow:hidden;position:relative}
+.cat-pill-bar{height:100%;transition:width .3s ease;border-radius:4px;position:relative}
+.cat-pill-bar.normal{background:linear-gradient(90deg, var(--primary), #059669)}
+.cat-pill-bar.warning{background:linear-gradient(90deg, var(--warning), #d97706)}
+.cat-pill-bar.danger{background:linear-gradient(90deg, var(--expense), #b91c1c)}
+.cat-pill-bar::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg, transparent, rgba(255,255,255,.2))}
+.cat-pill.has-limit{border-color:var(--primary);background:var(--primary-light)}
+.cat-pill.near-limit{border-color:var(--warning);background:rgba(245,158,11,.08);box-shadow:0 0 0 1px rgba(245,158,11,.2)}
+.cat-pill.over-limit{border-color:var(--expense);background:rgba(239,68,68,.08);box-shadow:0 0 0 1px rgba(239,68,68,.2)}
+.cat-limit-badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;padding:2px 6px;border-radius:10px;background:var(--primary);color:#fff}
+.cat-limit-badge.warning{background:var(--warning)}
+.cat-limit-badge.danger{background:var(--expense)}
+.cat-pill.no-limit .cat-pill-name{opacity:.8}
+.cat-pill.no-limit{border-style:dashed;opacity:.9}
+.eco-widget{display:flex;align-items:center;flex-wrap:wrap;gap:1.25rem;padding:.5rem 0}
+.eco-ring{position:relative;width:130px;height:130px;flex-shrink:0}
+.eco-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.eco-label strong{font-size:1.6rem;font-weight:800;color:var(--primary)}
+.eco-label small{font-size:.68rem;color:var(--text2)}
+.eco-stats{display:flex;flex-direction:column;gap:.65rem;flex:1;min-width:140px}
+.eco-stat small{font-size:.74rem;color:var(--text2);display:block}
+.eco-stat strong{font-size:1rem;font-weight:700}
+.eco-div{border-top:1px solid var(--border);padding-top:.65rem}
+.month-nav{display:flex;align-items:center;gap:6px}
+.mnbtn{background:var(--bg3);border:none;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:.95rem;color:var(--text2)}
+.mnbtn:hover{background:var(--border)}
+.month-nav span{font-size:.8rem;color:var(--text2);min-width:90px;text-align:center;font-weight:600}
+.rep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+@media(max-width:360px){.rep-grid{grid-template-columns:1fr 1fr}}
+.rep-card{background:var(--bg3);border-radius:var(--rsm);padding:.75rem}
+.rep-card span{font-size:.7rem;color:var(--text2);display:block;margin-bottom:3px;font-weight:600}
+.rep-card strong{font-size:.95rem;font-weight:800;display:block}
+.rep-card small{font-size:.68rem;color:var(--text3)}
+.insights{display:flex;flex-direction:column;gap:6px;margin-top:.75rem}
+.insight{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:8px 12px;font-size:.8rem;line-height:1.5}
+canvas{width:100%!important;display:block}
+#licWarn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--expense);color:#fff;padding:12px 16px;justify-content:space-between;align-items:center;z-index:200;font-size:.88rem;font-weight:600}
+#licWarn a{color:#fff;text-decoration:underline}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:92vh;overflow-y:auto}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 1.25rem}
+.modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.modal-title h3{font-size:1.05rem;font-weight:800}
+.modal-close{background:var(--bg3);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.modal-close:hover{background:var(--border)}
+.account-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.account-modal-overlay.open{opacity:1;pointer-events:all}
+.account-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+.account-modal-overlay.open .account-modal-sheet{transform:translateY(0)}
+.account-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0}
+.account-modal-body{flex:1;overflow-y:auto;padding:0 1.25rem 2rem}
+.acc-modal-top{display:flex;align-items:center;gap:12px;padding:1rem 0 .75rem}
+.acc-modal-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;font-weight:800;flex-shrink:0}
+.acc-modal-icon.checking{background:var(--primary)}
+.acc-modal-icon.investment{background:var(--transfer)}
+.acc-modal-info small{font-size:.75rem;color:var(--text2)}
+.acc-modal-info strong{font-size:1.2rem;font-weight:800;display:block}
+.acc-modal-info em{font-size:1rem;font-weight:700;font-style:normal;color:var(--primary)}
+.day-group{margin-bottom:1rem}
+.day-label{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:.5rem 0 .4rem;border-bottom:1px solid var(--border);margin-bottom:.4rem;position:sticky;top:0;background:var(--bg2);z-index:1}
+.day-subtotal{font-size:.72rem;color:var(--text3);float:right;font-weight:600;margin-top:-1px}
+.cat-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.cat-modal-overlay.open{opacity:1;pointer-events:all}
+.cat-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:88vh;display:flex;flex-direction:column}
+.cat-modal-overlay.open .cat-modal-sheet{transform:translateY(0)}
+.cat-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
+.cat-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
+.cat-form{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin-bottom:1rem}
+.cat-form-title{font-size:.85rem;font-weight:700;margin-bottom:.75rem;color:var(--text)}
+.cat-form-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem}
+.cat-form-row.full{grid-template-columns:1fr}
+.cat-form label{font-size:.76rem;font-weight:600;color:var(--text2);display:flex;flex-direction:column;gap:4px}
+.cat-form input,.cat-form select{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;background:var(--bg2);color:var(--text);outline:none;width:100%}
+.cat-form input:focus,.cat-form select:focus{border-color:var(--primary)}
+.cat-fav-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;padding:.6rem;background:var(--bg2);border-radius:8px;border:1.5px solid var(--border)}
+.cat-fav-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
+.cat-fav-row label{font-size:.83rem;font-weight:600;color:var(--text);cursor:pointer;margin:0}
+.cat-fav-row small{font-size:.72rem;color:var(--text2);display:block;margin-top:1px}
+.cat-add-btn{width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer}
+.cat-add-btn:hover{opacity:.9}
+.cat-limit-section{background:var(--primary-light);border:1.5px solid var(--primary);border-radius:8px;padding:.7rem;margin-bottom:.6rem}
+.cat-limit-header{display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+.cat-limit-header input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer}
+.cat-limit-header label{font-size:.82rem;font-weight:700;color:var(--primary);cursor:pointer;margin:0}
+.cat-limit-fields{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.cat-limit-fields.disabled{opacity:.5;pointer-events:none}
+.cat-list-item{display:flex;align-items:center;gap:10px;padding:.7rem .85rem;background:var(--bg3);border-radius:var(--rsm);margin-bottom:.4rem;position:relative;cursor:pointer}
+.cat-list-item:hover{background:var(--border)}
+.cat-list-item.over-limit{border-left:4px solid var(--expense)}
+.cat-list-item.near-limit{border-left:4px solid var(--warning)}
+.cat-list-item-info{flex:1}
+.cat-list-item-name{font-size:.9rem;font-weight:700;color:var(--text)}
+.cat-list-item-meta{font-size:.72rem;color:var(--text2);margin-top:1px}
+.cat-limit-progress{margin-top:4px}
+.cat-limit-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.cat-limit-fill{height:100%;transition:width .3s;border-radius:2px}
+.cat-limit-fill.normal{background:var(--primary)}
+.cat-limit-fill.warning{background:var(--warning)}
+.cat-limit-fill.danger{background:var(--expense)}
+.cat-limit-text{font-size:.68rem;color:var(--text3);margin-top:2px}
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;margin-left:4px}
+.cat-badge.income{background:rgba(22,163,74,.12);color:var(--income)}
+.cat-badge.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+.cat-badge.investment{background:rgba(37,99,235,.1);color:var(--transfer)}
+.cat-badge.all{background:var(--primary-light);color:var(--primary)}
+.cat-star{font-size:.9rem;flex-shrink:0}
+.cat-edit-btn,.cat-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:.9rem;padding:4px;border-radius:6px}
+.cat-edit-btn:hover{color:var(--primary);background:var(--primary-light)}
+.cat-del-btn:hover{color:var(--expense);background:rgba(220,38,38,.1)}
+.cat-empty{text-align:center;color:var(--text3);font-size:.85rem;padding:2rem}
+.limit-alerts{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin-bottom:1rem;display:none}
+.limit-alerts.show{display:block}
+.limit-alerts h3{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:.5rem}
+.limit-alert{display:flex;align-items:center;gap:8px;padding:.5rem;background:var(--bg2);border-radius:6px;margin-bottom:.5rem;border-left:3px solid var(--expense)}
+.limit-alert.warning{border-left-color:var(--warning)}
+.limit-alert-text{font-size:.8rem;color:var(--text2);flex:1}
+.limit-alert-amount{font-size:.75rem;font-weight:700;color:var(--expense)}
+.limit-alert.warning .limit-alert-amount{color:var(--warning)}
+.cat-edit-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.cat-edit-modal-overlay.open{opacity:1;pointer-events:all}
+.cat-edit-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);height:75vh;display:flex;flex-direction:column}
+.cat-edit-modal-overlay.open .cat-edit-modal-sheet{transform:translateY(0)}
+.cat-edit-modal-header{padding:1.25rem 1.25rem 0;flex-shrink:0;border-bottom:1px solid var(--border);padding-bottom:1rem}
+.cat-edit-modal-body{flex:1;overflow-y:auto;padding:1rem 1.25rem 2rem}
+.success-alert{position:fixed;top:20px;right:20px;background:var(--income);color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;font-weight:600;z-index:9999;animation:slideInAlert .3s ease-out}
+@keyframes slideInAlert{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:480px){.summary{grid-template-columns:1fr 1fr}}
+
+/* ===================== BOTÕES DUPLA AÇÃO ===================== */
+.button-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem}
+.btn-secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+
+/* ===================== MENU NOVO LANÇAMENTO (MENOR) ===================== */
+.new-tx-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.new-tx-menu-overlay.open{opacity:1;pointer-events:all}
+.new-tx-menu-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);padding:1.1rem 1rem}
+.new-tx-menu-overlay.open .new-tx-menu-sheet{transform:translateY(0)}
+.new-tx-menu-title{font-size:.95rem;font-weight:800;margin-bottom:.75rem;text-align:center;color:var(--text)}
+.new-tx-option{display:flex;align-items:center;gap:.7rem;padding:.65rem .75rem;border-radius:10px;margin-bottom:.4rem;cursor:pointer;transition:all .2s;border:2px solid var(--border)}
+.new-tx-option:hover{background:var(--bg3);border-color:var(--primary)}
+.new-tx-option-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.new-tx-option-icon.transfer{background:rgba(37,99,235,.12);color:var(--transfer)}
+.new-tx-option-icon.income{background:rgba(22,163,74,.12);color:var(--income)}
+.new-tx-option-icon.expense{background:rgba(220,38,38,.1);color:var(--expense)}
+.new-tx-option-icon.card{background:rgba(59,130,246,.1);color:#3b82f6}
+.new-tx-option-icon.voice{background:rgba(139,92,246,.12);color:#8b5cf6}
+.new-tx-option-text{flex:1}
+.new-tx-option-label{font-size:.85rem;font-weight:700;color:var(--text);display:block}
+.new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
+
+/* ===================== MODAL DE LANÇAMENTO (MENOR) ===================== */
+.tx-form-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.tx-form-modal-overlay.open{opacity:1;pointer-events:all}
+.tx-form-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:80vh;overflow-y:auto}
+.tx-form-modal-overlay.open .tx-form-modal-sheet{transform:translateY(0)}
+.tx-form-header{padding:.9rem 1rem 0;flex-shrink:0}
+.tx-form-body{padding:0 1rem 1.25rem}
+
+/* ===================== VOZ - COMPACTO PARA MOBILE ===================== */
+.voice-box{border-radius:var(--rsm);padding:.9rem 1rem;text-align:center;margin-bottom:.8rem;background:linear-gradient(135deg,var(--primary-light),var(--bg3));border:2px solid var(--primary)}
+.voice-box.active{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.06));border-color:var(--expense)}
+.voice-box.error-state{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));border-color:var(--warning)}
+.voice-mic-wrap{position:relative;width:60px;height:60px;margin:0 auto .7rem}
+.voice-btn{width:60px;height:60px;border-radius:50%;border:none;color:#fff;font-size:1.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 3px 12px rgba(15,118,110,.35);background:var(--primary)}
+.voice-btn.recording{background:var(--expense);box-shadow:0 3px 12px rgba(220,38,38,.4);animation:micPulse 1.2s ease-in-out infinite}
+@keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.voice-ripple{position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--expense);opacity:0;pointer-events:none}
+.voice-btn.recording + .voice-ripple{animation:rippleOut 1.2s ease-out infinite}
+@keyframes rippleOut{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+.voice-status-text{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:.25rem}
+.voice-hint-text{font-size:.72rem;color:var(--text2);margin-bottom:.6rem;line-height:1.4}
+.voice-transcript-box{background:var(--bg2);border-radius:8px;padding:.6rem .8rem;min-height:36px;font-size:.84rem;color:var(--text);border:1.5px dashed var(--border);line-height:1.4;text-align:left}
+.voice-transcript-box.has-text{border-style:solid;border-color:var(--primary);background:var(--primary-light)}
+
+/* Alerta de permissão HTTPS compacto */
+.voice-https-warn{background:rgba(245,158,11,.12);border:1.5px solid var(--warning);border-radius:var(--rsm);padding:.7rem .8rem;font-size:.8rem;color:var(--text);line-height:1.5;margin-bottom:.8rem}
+.voice-https-warn strong{color:var(--warning);display:block;margin-bottom:.25rem;font-size:.85rem}
+.voice-https-warn code{background:var(--bg3);padding:2px 5px;border-radius:4px;font-size:.75rem;font-family:monospace}
+
+/* Permissão de microfone - tooltip amigável */
+.mic-permission-tip{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:9999;display:none}
+.mic-permission-tip.show{display:block}
+.mic-permission-tip h4{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:.5rem}
+.mic-permission-tip p{font-size:.8rem;color:var(--text2);line-height:1.5;margin-bottom:.8rem}
+.mic-permission-tip button{width:100%;padding:8px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer}
+
+/* ===================== NOVO: TELA DE PERMISSÃO ANDROID ===================== */
+.android-permission-screen{position:fixed;inset:0;background:var(--bg2);z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center}
+.android-permission-screen.show{display:flex}
+.android-permission-icon{width:120px;height:120px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin-bottom:1.5rem}
+.android-permission-screen h2{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:1rem}
+.android-permission-screen p{font-size:.9rem;color:var(--text2);line-height:1.6;margin-bottom:1.5rem;max-width:320px}
+.android-permission-steps{background:var(--bg3);border-radius:var(--rsm);padding:1rem;margin:1rem 0;text-align:left;font-size:.85rem}
+.android-permission-steps ol{padding-left:1.3rem;margin:0}
+.android-permission-steps li{margin-bottom:.5rem;color:var(--text)}
+.android-permission-screen .pbtn{max-width:280px;margin:.5rem}
+.android-permission-screen .pbtn.secondary{background:var(--bg3);color:var(--text);border:2px solid var(--border)}
+
+/* ===================== OCULTAR FORMULÁRIO PRINCIPAL DO CARD ===================== */
+#txFormWrapper{display:none!important}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+<div>
+<p class="eyebrow">Controle financeiro</p>
+<h1>Controle sua Fortuna Versão 1.0</h1>
+</div>
+<div class="topbar-right">
+<button class="tbtn" id="themeBtn" title="Alternar tema">🌙</button>
+<button class="tbtn" id="menuBtn" aria-label="Menu">⋮</button>
+<div class="ddmenu" id="ddMenu">
+<a class="dditem" href="extrato.html">📊 Extrato</a>
+<button class="dditem" id="openCatModal">🏷️ Categorias</button>
+<a class="dditem" href="licenca.html">🔑 Licenca</a>
+<a class="dditem" href="backup.html">💾 Backup</a>
+</div>
+</div>
+</header>
+
+<div class="content">
+<div class="limit-alerts" id="limitAlerts">
+<h3>⚠️ Alertas de Limite</h3>
+<div id="limitAlertsList"></div>
+</div>
+
+<div class="summary">
+<div class="metric primary"><span>Saldo total</span><strong id="totalBalance">R$ 0,00</strong></div>
+<div class="metric"><span>Receitas</span><strong id="incomeTotal">R$ 0,00</strong></div>
+<div class="metric"><span>Despesas</span><strong id="expenseTotal">R$ 0,00</strong></div>
+<div class="metric"><span>Investimentos</span><strong id="investmentTotal">R$ 0,00</strong></div>
+</div>
+
+<div class="card">
+<div class="card-title">
+<h2>🎯 Economia mensal</h2>
+<div class="month-nav">
+<button class="mnbtn" id="prevMon">‹</button>
+<span id="ecoMonth"></span>
+<button class="mnbtn" id="nextMon">›</button>
+</div>
+</div>
+<div class="eco-widget">
+<div class="eco-ring">
+<canvas id="ecoCanvas" width="130" height="130"></canvas>
+<div class="eco-label"><strong id="ecoPercent">0%</strong><small>de economia</small></div>
+</div>
+<div class="eco-stats">
+<div class="eco-stat"><small>Receitas consideradas</small><strong class="income-text" id="ecoInc">R$ 0,00</strong></div>
+<div class="eco-stat"><small>Despesas consideradas</small><strong class="expense-text" id="ecoExp">R$ 0,00</strong></div>
+<div class="eco-stat eco-div"><small>Valor economizado</small><strong id="ecoSaved">R$ 0,00</strong></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>💳 Contas</h2><span id="accountCount">0 contas</span></div>
+<div class="acc-list" id="accountList"></div>
+</div>
+
+<!-- Card novo lançamento - APENAS BOTÃO -->
+<div class="card">
+<div class="card-title">
+<h2 id="formTitle">➕ Novo lançamento</h2>
+<button class="cbtn hidden" id="cancelEditBtn">✕ Cancelar</button>
+</div>
+
+<button class="pbtn" id="openNewTxMenuBtn">➕ Novo Lançamento</button>
+
+<!-- Formulário original oculto — usado pelo app.js (mantido no DOM mas invisível) -->
+<div id="txFormWrapper">
+<form id="txForm" autocomplete="off">
+<div class="segmented" role="radiogroup">
+<label><input type="radio" name="type" value="income" checked/><span>💰 Receita</span></label>
+<label><input type="radio" name="type" value="expense"/><span>💸 Despesa</span></label>
+<label><input type="radio" name="type" value="transfer"/><span>🔄 Transf.</span></label>
+</div>
+<div id="favTagsSection" style="margin-bottom:.75rem">
+<div class="fav-tags-label">⭐ Categorias favoritas</div>
+<div class="fav-tags" id="favTags"></div>
+</div>
+<div class="fgrid">
+<label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" required/></label>
+<label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+<label>Data<input id="dt" name="date" type="date" required/></label>
+<label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
+<label id="toWrap" class="hidden">Destino<select id="toAcc" name="toAccount"></select></label>
+<label id="catWrap">Categoria<select id="cat" name="category"><option value="">Sem categoria</option></select></label>
+</div>
+<div class="button-group">
+<button class="pbtn" id="saveBtn" type="submit">💾 Salvar Lançamento</button>
+<button class="pbtn btn-secondary" id="saveAndNewBtn" type="button">💾 Salvar e Novo</button>
+</div>
+</form>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>💸 Ultimas despesas</h2><span id="expCount">0</span></div>
+<div class="tx-list tx-list-scroll" id="expList"></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>💰 Ultimas receitas</h2><span id="incCount">0</span></div>
+<div class="tx-list tx-list-scroll" id="incList"></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>🗂 Despesas por categoria</h2><span id="catTotal">R$ 0,00</span></div>
+<div class="cat-pills" id="catPills"><div class="empty">💸 Nenhuma despesa categorizada</div></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>🔄 Transferencias</h2><span id="trfCount">0</span></div>
+<div class="tx-list" id="trfList"></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>📊 Resumo geral</h2></div>
+<div class="rep-grid">
+<div class="rep-card"><span>Resultado</span><strong id="netResult">R$ 0,00</strong><small>Receitas - despesas</small></div>
+<div class="rep-card"><span>Maior despesa</span><strong id="topExp">R$ 0,00</strong><small id="topExpLbl">-</small></div>
+<div class="rep-card"><span>Taxa economia</span><strong id="savRate">0%</strong><small>Do total recebido</small></div>
+</div>
+<div class="insights" id="insights"></div>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>📉 Receitas x Despesas</h2><span>Mes atual</span></div>
+<canvas id="flowChart" height="180"></canvas>
+</div>
+
+<div class="card">
+<div class="card-title"><h2>🏦 Saldo por conta</h2></div>
+<canvas id="accChart" height="180"></canvas>
+</div>
+</div>
+
+<!-- MENU NOVO LANÇAMENTO -->
+<div class="new-tx-menu-overlay" id="newTxMenuOverlay">
+<div class="new-tx-menu-sheet">
+<div class="modal-handle"></div>
+<div class="new-tx-menu-title">Escolha o tipo de lançamento</div>
+<div class="new-tx-option" data-type="transfer">
+<div class="new-tx-option-icon transfer">⇅</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Transferência</span>
+<span class="new-tx-option-desc">Mover dinheiro entre contas</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="income">
+<div class="new-tx-option-icon income">+</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Receita</span>
+<span class="new-tx-option-desc">Entrada de dinheiro</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="expense">
+<div class="new-tx-option-icon expense">−</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Despesa</span>
+<span class="new-tx-option-desc">Saída de dinheiro</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="expense-card">
+<div class="new-tx-option-icon card">💳</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Despesa cartão</span>
+<span class="new-tx-option-desc">Gasto no cartão de crédito</span>
+</div>
+</div>
+<div class="new-tx-option" data-type="voice" id="voiceMenuOption">
+<div class="new-tx-option-icon voice">🎤</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Reconhecimento por voz</span>
+<span class="new-tx-option-desc">Fale seu lançamento</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- MODAL DE FORMULÁRIO DE LANÇAMENTO -->
+<div class="tx-form-modal-overlay" id="txFormModalOverlay">
+<div class="tx-form-modal-sheet">
+<div class="tx-form-header">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3 id="txFormModalTitle">Novo Lançamento</h3>
+<button class="modal-close" id="txFormModalClose">✕</button>
+</div>
+</div>
+<div class="tx-form-body">
+<!-- Painel de voz compacto — visível só no modo voz -->
+<div class="voice-box" id="voiceBox" style="display:none">
+<!-- Aviso HTTPS mostrado dinamicamente se necessário -->
+<div id="voiceHttpsWarn" class="voice-https-warn" style="display:none">
+<strong>⚠️ Microfone requer HTTPS</strong>
+O reconhecimento de voz só funciona em conexões seguras (<code>https://</code>) ou em <code>localhost</code>.<br><br>
+<strong>Como resolver:</strong><br>
+• Hospede o app em HTTPS (ex: GitHub Pages, Netlify, Vercel)<br>
+• Ou acesse via <code>localhost</code> em vez de IP<br><br>
+Enquanto isso, você pode preencher o formulário manualmente abaixo. 👇
+</div>
+<div id="voiceMicSection">
+<div class="voice-mic-wrap">
+<button class="voice-btn" id="voiceStartBtn">🎤</button>
+<div class="voice-ripple"></div>
+</div>
+<div class="voice-status-text" id="voiceStatusText">Toque no microfone e fale</div>
+<div class="voice-hint-text">
+Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"</em>
+</div>
+<div class="voice-transcript-box" id="voiceTranscriptBox">Sua fala aparecerá aqui…</div>
+</div>
+</div>
+
+<form id="modalTxForm" autocomplete="off">
+<div class="segmented" role="radiogroup">
+<label><input type="radio" name="mtype" value="income" checked/><span>💰 Receita</span></label>
+<label><input type="radio" name="mtype" value="expense"/><span>💸 Despesa</span></label>
+<label><input type="radio" name="mtype" value="transfer"/><span>🔄 Transf.</span></label>
+</div>
+<div id="modalFavTagsSection" style="margin-bottom:.75rem">
+<div class="fav-tags-label">⭐ Categorias favoritas</div>
+<div class="fav-tags" id="modalFavTags"></div>
+</div>
+<div class="fgrid">
+<label class="full">Descrição<input id="modalDesc" type="text" placeholder="Ex: salário, aluguel" required/></label>
+<label>Valor<input id="modalAmt" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required/></label>
+<label>Data<input id="modalDt" type="date" required/></label>
+<label id="modalFromWrap">Conta<select id="modalFromAcc" required></select></label>
+<label id="modalToWrap" class="hidden">Destino<select id="modalToAcc"></select></label>
+<label id="modalCatWrap">Categoria<select id="modalCat"><option value="">Sem categoria</option></select></label>
+</div>
+<div class="button-group">
+<button class="pbtn" id="modalSaveBtn" type="submit">💾 Salvar</button>
+<button class="pbtn btn-secondary" id="modalSaveAndNewBtn" type="button">💾 Salvar e Novo</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<!-- Tela de Permissão Android -->
+<div class="android-permission-screen" id="androidPermissionScreen">
+<div class="android-permission-icon">🎤</div>
+<h2>Permitir Uso do Microfone</h2>
+<p>O reconhecimento de voz precisa de permissão para funcionar. Siga os passos abaixo:</p>
+<div class="android-permission-steps">
+<ol>
+<li>Toque em <strong>"Configurações"</strong></li>
+<li>Vá em <strong>"Aplicativos"</strong></li>
+<li>Encontre o app <strong>"Controle sua Fortuna"</strong></li>
+<li>Toque em <strong>"Permissões"</strong></li>
+<li>Ative a permissão de <strong>"Microfone"</strong></li>
+</ol>
+</div>
+<button class="pbtn" onclick="openAndroidAppSettings()">🔧 Abrir Configurações do App</button>
+<button class="pbtn secondary" onclick="closeAndroidPermissionScreen()">✕ Fechar e Usar Formulário</button>
+</div>
+
+<!-- Tooltip de permissão de microfone -->
+<div class="mic-permission-tip" id="micPermissionTip">
+<h4>🎤 Permitir uso do microfone</h4>
+<p>Para usar o reconhecimento de voz, clique em <strong>"Permitir"</strong> quando o navegador solicitar acesso ao microfone.</p>
+<button onclick="requestMicPermission()">Tentar novamente</button>
+</div>
+
+<!-- MODAL EDIÇÃO LANÇAMENTO -->
+<div class="modal-overlay" id="editModal">
+<div class="modal-sheet" id="editModalSheet">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3 id="editModalTitle">✏️ Editar lancamento</h3>
+<button class="modal-close" id="editModalClose">✕</button>
+</div>
+<form id="editForm" autocomplete="off">
+<div class="segmented" role="radiogroup">
+<label><input type="radio" name="etype" value="income" checked/><span>💰 Receita</span></label>
+<label><input type="radio" name="etype" value="expense"/><span>💸 Despesa</span></label>
+<label><input type="radio" name="etype" value="transfer"/><span>🔄 Transf.</span></label>
+</div>
+<div id="editFavTagsSection" style="margin-bottom:.75rem">
+<div class="fav-tags-label">⭐ Categorias favoritas</div>
+<div class="fav-tags" id="editFavTags"></div>
+</div>
+<div class="fgrid">
+<label class="full">Descricao<input id="editDesc" name="description" type="text" required/></label>
+<label>Valor<input id="editAmt" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" required/></label>
+<label>Data<input id="editDt" name="date" type="date" required/></label>
+<label>Conta<select id="editFromAcc" name="fromAccount" required></select></label>
+<label id="editToWrap" class="hidden">Destino<select id="editToAcc" name="toAccount"></select></label>
+<label id="editCatWrap">Categoria<select id="editCat" name="category"><option value="">Sem categoria</option></select></label>
+</div>
+<button class="pbtn" type="submit">💾 Salvar alteracoes</button>
+</form>
+</div>
+</div>
+
+<!-- MODAL DETALHE CONTA -->
+<div class="account-modal-overlay" id="accModal">
+<div class="account-modal-sheet">
+<div class="account-modal-header">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3 id="accModalTitle">Lancamentos</h3>
+<button class="modal-close" id="accModalClose">✕</button>
+</div>
+<div class="acc-modal-top">
+<div class="acc-modal-icon" id="accModalIcon">C</div>
+<div class="acc-modal-info">
+<small id="accModalType">Conta corrente</small>
+<strong id="accModalName">-</strong>
+<em id="accModalBalance">R$ 0,00</em>
+</div>
+</div>
+</div>
+<div class="account-modal-body" id="accModalBody"></div>
+</div>
+</div>
+
+<!-- MODAL CATEGORIAS -->
+<div class="cat-modal-overlay" id="catModal">
+<div class="cat-modal-sheet">
+<div class="cat-modal-header">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3>🏷️ Categorias</h3>
+<button class="modal-close" id="catModalClose">✕</button>
+</div>
+</div>
+<div class="cat-modal-body">
+<div class="cat-form">
+<div class="cat-form-title" id="catFormTitle">➕ Nova categoria</div>
+<div class="cat-form-row full">
+<label>Nome da categoria<input type="text" id="catName" placeholder="Ex: Alimentacao, Salario..." maxlength="50"/></label>
+</div>
+<div class="cat-form-row">
+<label>Tipo
+<select id="catType">
+<option value="expense">Despesas</option>
+<option value="income">Receitas</option>
+<option value="investment">Investimento</option>
+<option value="all">Ambos / Todos</option>
+</select>
+</label>
+<label style="justify-content:flex-end">
+<div class="cat-fav-row" style="margin:0">
+<input type="checkbox" id="catFav"/>
+<div>
+<label for="catFav" style="font-size:.83rem;font-weight:600;color:var(--text)">⭐ Favorita</label>
+<small>Aparece em destaque</small>
+</div>
+</div>
+</label>
+</div>
+<div class="cat-limit-section">
+<div class="cat-limit-header">
+<input type="checkbox" id="catHasLimit"/>
+<label for="catHasLimit">🎯 Definir limite mensal</label>
+</div>
+<div class="cat-limit-fields disabled" id="catLimitFields">
+<label>Limite mensal (R$)<input type="number" id="catLimitAmount" min="0" step="0.01" placeholder="1000.00"/></label>
+<label>Alerta em (%)
+<select id="catLimitWarning">
+<option value="80">80% do limite</option>
+<option value="85">85% do limite</option>
+<option value="90">90% do limite</option>
+<option value="95">95% do limite</option>
+</select>
+</label>
+</div>
+</div>
+<button class="cat-add-btn" id="catAddBtn">Adicionar categoria</button>
+</div>
+<div id="catModalList"></div>
+</div>
+</div>
+</div>
+
+<!-- MODAL EDIÇÃO DE CATEGORIA -->
+<div class="cat-edit-modal-overlay" id="catEditModal">
+<div class="cat-edit-modal-sheet">
+<div class="cat-edit-modal-header">
+<div class="modal-handle"></div>
+<div class="modal-title">
+<h3>✏️ Editar categoria</h3>
+<button class="modal-close" id="catEditModalClose">✕</button>
+</div>
+</div>
+<div class="cat-edit-modal-body">
+<div class="cat-form">
+<div class="cat-form-row full">
+<label>Nome da categoria<input type="text" id="editCatName" maxlength="50"/></label>
+</div>
+<div class="cat-form-row">
+<label>Tipo
+<select id="editCatType">
+<option value="expense">Despesas</option>
+<option value="income">Receitas</option>
+<option value="investment">Investimento</option>
+<option value="all">Ambos / Todos</option>
+</select>
+</label>
+<label style="justify-content:flex-end">
+<div class="cat-fav-row" style="margin:0">
+<input type="checkbox" id="editCatFav"/>
+<div>
+<label for="editCatFav" style="font-size:.83rem;font-weight:600;color:var(--text)">⭐ Favorita</label>
+<small>Aparece em destaque</small>
+</div>
+</div>
+</label>
+</div>
+<div class="cat-limit-section">
+<div class="cat-limit-header">
+<input type="checkbox" id="editCatHasLimit"/>
+<label for="editCatHasLimit">🎯 Definir limite mensal</label>
+</div>
+<div class="cat-limit-fields disabled" id="editCatLimitFields">
+<label>Limite mensal (R$)<input type="number" id="editCatLimitAmount" min="0" step="0.01"/></label>
+<label>Alerta em (%)
+<select id="editCatLimitWarning">
+<option value="80">80% do limite</option>
+<option value="85">85% do limite</option>
+<option value="90">90% do limite</option>
+<option value="95">95% do limite</option>
+</select>
+</label>
+</div>
+</div>
+<button class="cat-add-btn" id="editCatSaveBtn">💾 Salvar alterações</button>
+<button class="cat-add-btn" id="editCatDeleteBtn" style="background:var(--expense);margin-top:.5rem">🗑️ Excluir categoria</button>
+</div>
+</div>
+</div>
+</div>
+
+<div id="licWarn">
+<span>⚠ Licenca expirada ou inativa</span>
+<a href="licenca.html">Ativar agora</a>
+</div>
+
+<script>
+(function(){
+if (!localStorage.getItem("financas-user-profile")) {
+window.location.href = "cadastro.html";
+return;
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+
+const money = new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" });
+let editingCategoryId = null;
+let saveAndNewMode = false;
+
+/* ================================================================ DETECÇÃO DE AMBIENTE ANDROID/WEBVIEW ================================================================ */
+function isAndroid() {
+return /Android/i.test(navigator.userAgent);
+}
+
+function isWebView() {
+const ua = navigator.userAgent || navigator.vendor || window.opera;
+return /(wv|WebView|Cordova|Capacitor)/i.test(ua) || 
+(typeof window.cordova !== 'undefined') || 
+(typeof window.Capacitor !== 'undefined');
+}
+
+function isAndroidApp() {
+return isAndroid() && (isWebView() || window.location.protocol === 'file:');
+}
+
+/* ================================================================ UTILITÁRIOS ================================================================ */
+function getTransactions() {
+try {
+const d = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+return Array.isArray(d.transactions) ? d.transactions : [];
+} catch(e){
+return [];
+}
+}
+
+function showSuccessAlert(msg) {
+const ex = document.querySelector('.success-alert');
+if (ex) ex.remove();
+const el = document.createElement('div');
+el.className = 'success-alert';
+el.textContent = msg;
+document.body.appendChild(el);
+setTimeout(() => {
+if (el.parentNode) el.parentNode.removeChild(el);
+}, 3000);
+}
+
+function getBrazilDate() {
+const n = new Date();
+return new Date(n.getTime() - n.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+
+function generateId() {
+return Date.now().toString() + "_" + Math.random().toString(36).substr(2,5);
+}
+
+function getAccounts() {
+if (window.appData && window.appData.accounts) return window.appData.accounts;
+try {
+const d = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+if (d.accounts && Array.isArray(d.accounts)) return d.accounts;
+} catch(e){}
+return [
+{id:"corrente", name:"Conta corrente", kind:"checking", openingBalance:0},
+{id:"investimentos",name:"Investimentos", kind:"investment", openingBalance:0}
+];
+}
+
+/* ================================================================ CATEGORIAS ================================================================ */
+function getDefaultCategories() {
+return [
+{id:"sal", name:"Salario", type:"income", isFavorite:true, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"ali", name:"Alimentacao", type:"expense", isFavorite:true, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"tran", name:"Transporte", type:"expense", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"mor", name:"Moradia", type:"expense", isFavorite:true, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"sau", name:"Saude", type:"expense", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"edu", name:"Educacao", type:"expense", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"laz", name:"Lazer", type:"expense", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"inv", name:"Investimento", type:"investment", isFavorite:true, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"rent", name:"Rendimentos", type:"income", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80},
+{id:"div", name:"Dividendos", type:"all", isFavorite:false, hasLimit:false,monthlyLimit:0,warningPercent:80}
+];
+}
+
+function convertUnifiedToAppFormat(cats) {
+return cats.map(c => ({
+id:c.id||generateId(),
+name:c.name,
+type:c.type||"expense",
+favorite:!!c.isFavorite,
+hasLimit:!!c.hasLimit,
+monthlyLimit:parseFloat(c.monthlyLimit)||0,
+warningPercent:parseInt(c.warningPercent)||80
+}));
+}
+
+function convertAppCategoriesToUnified(cats) {
+return cats.map(c => ({
+id:c.id||generateId(),
+name:c.name,
+type:c.type||"expense",
+isFavorite:!!(c.favorite||c.isFavorite),
+hasLimit:!!c.hasLimit,
+monthlyLimit:parseFloat(c.monthlyLimit)||0,
+warningPercent:parseInt(c.warningPercent)||80
+}));
+}
+
+window.getCategoriesUnified = function() {
+const oldSources = ["financas-categories-v3-final","financas-categories-v2","unified-category-data"];
+for (const src of oldSources) {
+try {
+const raw = localStorage.getItem(src);
+if (raw && raw !== "null") {
+const parsed = JSON.parse(raw);
+if (Array.isArray(parsed) && parsed.length > 0) {
+saveCategoriesToApp(convertUnifiedToAppFormat(parsed));
+localStorage.removeItem(src);
+break;
+}
+}
+} catch(e){}
+}
+
+try {
+const main = JSON.parse(localStorage.getItem("financas-v3") || "{}");
+if (main.categories && Array.isArray(main.categories) && main.categories.length > 0) {
+return main.categories.filter(c => c && c.name).map(c => ({
+id:c.id||generateId(),
+name:c.name.trim(),
+type:c.type||"expense",
+isFavorite:!!(c.isFavorite||c.favorite),
+hasLimit:!!c.hasLimit,
+monthlyLimit:parseFloat(c.monthlyLimit)||0,
+warningPercent:parseInt(c.warningPercent)||80
+}));
+}
+} catch(e){}
+
+try {
+const appCats = JSON.parse(localStorage.getItem("financas-categories-v1") || "null");
+if (Array.isArray(appCats) && appCats.length > 0) return convertAppCategoriesToUnified(appCats);
+} catch(e){}
+
+return getDefaultCategories();
+};
+
+function saveCategoriesToApp(cats) {
+try {
+localStorage.setItem("financas-categories-v1", JSON.stringify(convertUnifiedToAppFormat(cats)));
+return true;
+} catch(e){
+return false;
+}
+}
+
+/* ================================================================ MODAL DE LANÇAMENTO — helpers ================================================================ */
+function populateModalAccounts() {
+const accs = getAccounts();
+const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+const from = document.getElementById('modalFromAcc');
+const to = document.getElementById('modalToAcc');
+if (from) from.innerHTML = opts;
+if (to) to.innerHTML = opts;
+}
+
+function populateAccounts() {
+const accs = getAccounts();
+const opts = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+const from = document.getElementById('fromAcc');
+const to = document.getElementById('toAcc');
+if (from) from.innerHTML = opts;
+if (to) to.innerHTML = opts;
+}
+
+function populateModalCategories(type) {
+const catSel = document.getElementById('modalCat');
+if (!catSel) return;
+const allCats = window.getCategoriesUnified();
+let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type || c.type === 'all');
+let html = '<option value="">Sem categoria</option>';
+filtered.forEach(c => {
+const star = c.isFavorite ? '⭐ ' : '';
+html += `<option value="${c.name}">${star}${c.name}</option>`;
+});
+catSel.innerHTML = html;
+}
+
+function populateCategories(type) {
+const catSel = document.getElementById('cat');
+if (!catSel) return;
+const allCats = window.getCategoriesUnified();
+let filtered = type === 'transfer' ? [] : allCats.filter(c => c.type === type || c.type === 'all');
+let html = '<option value="">Sem categoria</option>';
+filtered.forEach(c => {
+const star = c.isFavorite ? '⭐ ' : '';
+html += `<option value="${c.name}">${star}${c.name}</option>`;
+});
+catSel.innerHTML = html;
+}
+
+function updateModalFormMode(type) {
+const isTransfer = type === 'transfer';
+document.getElementById('modalToWrap')?.classList.toggle('hidden', !isTransfer);
+document.getElementById('modalCatWrap')?.classList.toggle('hidden', isTransfer);
+const favSec = document.getElementById('modalFavTagsSection');
+if (favSec) favSec.style.display = isTransfer ? 'none' : '';
+const toAcc = document.getElementById('modalToAcc');
+if (toAcc) toAcc.required = isTransfer;
+populateModalCategories(type);
+}
+
+function updateFormMode(type) {
+const isTransfer = type === 'transfer';
+document.getElementById('toWrap')?.classList.toggle('hidden', !isTransfer);
+document.getElementById('catWrap')?.classList.toggle('hidden', isTransfer);
+const favSec = document.getElementById('favTagsSection');
+if (favSec) favSec.style.display = isTransfer ? 'none' : '';
+const toAcc = document.getElementById('toAcc');
+if (toAcc) toAcc.required = isTransfer;
+populateCategories(type);
+}
+
+/* ================================================================ MENU NOVO LANÇAMENTO ================================================================ */
+const newTxMenuOverlay = document.getElementById('newTxMenuOverlay');
+const txFormModalOverlay = document.getElementById('txFormModalOverlay');
+const openNewTxMenuBtn = document.getElementById('openNewTxMenuBtn');
+
+// Abrir menu de opções
+if (openNewTxMenuBtn) {
+openNewTxMenuBtn.addEventListener('click', function() {
+newTxMenuOverlay.classList.add('open');
+document.body.style.overflow = 'hidden';
+});
+}
+
+// Fechar menu ao clicar fora
+newTxMenuOverlay.addEventListener('click', function(e) {
+if (e.target === newTxMenuOverlay) {
+newTxMenuOverlay.classList.remove('open');
+document.body.style.overflow = '';
+}
+});
+
+// Selecionar tipo de lançamento
+document.querySelectorAll('.new-tx-option').forEach(option => {
+option.addEventListener('click', function() {
+const type = this.dataset.type;
+newTxMenuOverlay.classList.remove('open');
+
+if (type === 'voice') {
+openVoiceModal();
+} else {
+openTxFormModal(type);
+}
+});
+});
+
+/* ================================================================ MODAL DE FORMULÁRIO ================================================================ */
+function openTxFormModal(type) {
+const titles = {
+transfer:'📤 Nova Transferência',
+income:'💰 Nova Receita',
+expense:'💸 Nova Despesa',
+'expense-card':'💳 Despesa com Cartão'
+};
+
+document.getElementById('txFormModalTitle').textContent = titles[type] || 'Novo Lançamento';
+document.getElementById('voiceBox').style.display = 'none';
+
+const actualType = type === 'expense-card' ? 'expense' : type;
+
+populateModalAccounts();
+const radio = document.querySelector(`input[name="mtype"][value="${actualType}"]`);
+if (radio) radio.checked = true;
+updateModalFormMode(actualType);
+
+document.getElementById('modalDt').value = getBrazilDate();
+document.getElementById('modalDesc').value = '';
+document.getElementById('modalAmt').value = '';
+
+txFormModalOverlay.classList.add('open');
+document.body.style.overflow = 'hidden';
+saveAndNewMode = false;
+}
+
+function closeTxFormModal() {
+txFormModalOverlay.classList.remove('open');
+document.body.style.overflow = '';
+stopRecording();
+}
+
+document.getElementById('txFormModalClose').addEventListener('click', closeTxFormModal);
+txFormModalOverlay.addEventListener('click', function(e) {
+if (e.target === txFormModalOverlay) {
+closeTxFormModal();
+}
+});
+
+/* ================================================================ RECONHECIMENTO DE VOZ ================================================================ */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isRecording = false;
+
+function openVoiceModal() {
+document.getElementById('txFormModalTitle').textContent = '🎤 Lançamento por Voz';
+const voiceBox = document.getElementById('voiceBox');
+const warnEl = document.getElementById('voiceHttpsWarn');
+const micSec = document.getElementById('voiceMicSection');
+
+voiceBox.style.display = 'block';
+voiceBox.className = 'voice-box';
+warnEl.style.display = 'none';
+micSec.style.display = 'block';
+
+populateModalAccounts();
+updateModalFormMode('expense');
+const radio = document.querySelector('input[name="mtype"][value="expense"]');
+if (radio) radio.checked = true;
+document.getElementById('modalDt').value = getBrazilDate();
+
+checkMicCapability().then(cap => {
+if (!cap.ok) {
+if (cap.needsHttps) {
+warnEl.style.display = 'block';
+micSec.style.display = 'none';
+voiceBox.classList.add('error-state');
+} else if (cap.reason === 'unsupported') {
+document.getElementById('voiceStatusText').textContent = '❌ Seu navegador não suporta reconhecimento de voz. Use o Chrome.';
+micSec.querySelector('.voice-hint-text').style.display = 'none';
+}
+} else {
+document.getElementById('voiceStatusText').textContent = 'Toque no microfone e fale';
+document.getElementById('voiceTranscriptBox').textContent = 'Sua fala aparecerá aqui…';
+document.getElementById('voiceTranscriptBox').classList.remove('has-text');
+}
+});
+
+txFormModalOverlay.classList.add('open');
+document.body.style.overflow = 'hidden';
+saveAndNewMode = false;
+}
+
+async function checkMicCapability() {
+if (!SpeechRecognition) {
+return { ok:false, reason:'unsupported', needsHttps:false };
+}
+
+const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '' || location.protocol === 'file:';
+if (!isSecure) {
+return { ok:false, reason:'insecure', needsHttps:true };
+}
+
+if (isAndroidApp()) {
+return { ok:true, reason:'android-app', needsHttps:false, isAndroid: true };
+}
+
+return { ok:true, reason:'ok', needsHttps:false };
+}
+
+function openAndroidAppSettings() {
+if (typeof Capacitor !== 'undefined' && Capacitor.Plugins.App) {
+Capacitor.Plugins.App.openSettings();
+} else if (typeof cordova !== 'undefined' && cordova.plugins) {
+cordova.plugins.settings.open();
+} else {
+showSuccessAlert('Abra as configurações do Android > Aplicativos > Controle sua Fortuna > Permissões');
+}
+closeAndroidPermissionScreen();
+}
+
+function closeAndroidPermissionScreen() {
+document.getElementById('androidPermissionScreen').classList.remove('show');
+}
+
+window.openAndroidAppSettings = openAndroidAppSettings;
+window.closeAndroidPermissionScreen = closeAndroidPermissionScreen;
+
+async function requestMicPermission() {
+try {
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+stream.getTracks().forEach(track => track.stop());
+document.getElementById('micPermissionTip').classList.remove('show');
+showSuccessAlert('✅ Permissão concedida! Agora você pode usar o microfone.');
+return true;
+} catch(error) {
+console.warn('Permissão de microfone negada:', error);
+if (isAndroidApp()) {
+document.getElementById('androidPermissionScreen').classList.add('show');
+}
+return false;
+}
+}
+
+window.requestMicPermission = requestMicPermission;
+
+function buildRecognition() {
+if (!SpeechRecognition) return null;
+const rec = new SpeechRecognition();
+rec.lang = 'pt-BR';
+rec.continuous = false;
+rec.interimResults = true;
+rec.maxAlternatives = 1;
+return rec;
+}
+
+function parseVoiceCommand(text) {
+const lower = text.toLowerCase().trim();
+let type = 'expense', amount = 0, description = '', category = '';
+
+const incomeKw = ['recebi','ganhei','entrada','salario','salário','rendimento','dividendo','lucro','comissao','comissão','bonus','bônus','reembolso','estorno','cashback'];
+const transferKw= ['transferi','enviei','pix','ted','doc','transferencia','transferência','movi','saque'];
+
+if (incomeKw.some(k => lower.includes(k))) type = 'income';
+else if (transferKw.some(k => lower.includes(k))) type = 'transfer';
+
+const patterns = [
+/r\$\s*([\d]+[.,]?[\d]*)/i,
+/([\d]+[.,]\d{2})\b/,
+/([\d]+)\s*reais?/i,
+/\b([\d]+)\b/
+];
+
+for (const p of patterns) {
+const m = lower.match(p);
+if (m) {
+const n = parseFloat((m[1]||'').replace(/\./g,'').replace(',','.'));
+if (!isNaN(n) && n > 0) {
+amount = n;
+break;
+}
+}
+}
+
+const kwCats = {
+'Alimentacao': ['comida','supermercado','restaurante','mercado','pizza','lanche','ifood','delivery','hamburguer'],
+'Transporte': ['uber','taxi','táxi','combustivel','gasolina','onibus','metro','transporte','estacionamento','pedagio','99'],
+'Moradia': ['aluguel','condominio','luz','agua','internet','telefone','moradia','iptu','energia'],
+'Saude': ['medico','farmacia','remedio','consulta','saude','hospital','plano','exame','dentista'],
+'Lazer': ['cinema','parque','viagem','lazer','diversao','streaming','netflix','spotify','jogo','ingresso'],
+'Educacao': ['curso','livro','faculdade','escola','educacao','aula','udemy','alura'],
+'Salario': ['salario','salário','provento','ordenado','holerite'],
+'Investimento':['investimento','acoes','fundos','tesouro','cdb','poupança','bolsa']
+};
+
+const allCats = window.getCategoriesUnified();
+let best = '', bestScore = 0;
+allCats.forEach(cat => {
+if (lower.includes(cat.name.toLowerCase())) {
+best = cat.name;
+bestScore = 100;
+return;
+}
+const kws = kwCats[cat.name] || [];
+kws.forEach(k => {
+if (lower.includes(k) && bestScore < 50) {
+best = cat.name;
+bestScore = 50;
+}
+});
+});
+
+category = best;
+const stop = ['despesa','receita','transferencia','transferência','de','da','do','com','em','por','reais','real','r$','rs','um','uma','ganhei','gastei','paguei','comprei','recebi','transferi'];
+const words = lower.split(/\s+/).filter(w => !stop.includes(w) && !/^\d+[.,]?\d*$/.test(w));
+
+if (category) {
+const kwsForCat = kwCats[category] || [];
+description = words.filter(w => w !== category.toLowerCase() && !kwsForCat.includes(w)).join(' ').trim();
+} else {
+description = words.join(' ').trim();
+}
+
+if (!description) description = category || (type==='income'?'Receita':type==='transfer'?'Transferência':'Despesa');
+
+return { type, amount, description, category };
+}
+
+function applyParsedToModal(parsed) {
+const radio = document.querySelector(`input[name="mtype"][value="${parsed.type}"]`);
+if (radio) {
+radio.checked = true;
+updateModalFormMode(parsed.type);
+}
+const descEl = document.getElementById('modalDesc');
+const amtEl = document.getElementById('modalAmt');
+const catEl = document.getElementById('modalCat');
+const dtEl = document.getElementById('modalDt');
+if (descEl) descEl.value = parsed.description;
+if (amtEl && parsed.amount > 0) amtEl.value = parsed.amount.toFixed(2);
+if (dtEl) dtEl.value = getBrazilDate();
+if (catEl && parsed.category) {
+for (const opt of catEl.options) {
+if (opt.value.toLowerCase() === parsed.category.toLowerCase()) {
+opt.selected = true;
+break;
+}
+}
+}
+}
+
+function startRecording() {
+if (!recognition) recognition = buildRecognition();
+if (!recognition) return;
+
+const btn = document.getElementById('voiceStartBtn');
+const statusEl = document.getElementById('voiceStatusText');
+const transcEl = document.getElementById('voiceTranscriptBox');
+const box = document.getElementById('voiceBox');
+
+recognition.onstart = () => {
+isRecording = true;
+btn.classList.add('recording');
+btn.textContent = '⏹';
+box.classList.add('active');
+statusEl.textContent = '🎙 Ouvindo… fale agora!';
+transcEl.textContent = '';
+transcEl.classList.remove('has-text');
+};
+
+recognition.onresult = (event) => {
+let interim = '', final = '';
+for (let i = event.resultIndex; i < event.results.length; i++) {
+const t = event.results[i][0].transcript;
+if (event.results[i].isFinal) final += t;
+else interim += t;
+}
+transcEl.textContent = final || interim;
+if (final || interim) transcEl.classList.add('has-text');
+if (final) {
+applyParsedToModal(parseVoiceCommand(final));
+showSuccessAlert('✅ Lançamento interpretado! Revise e confirme.');
+}
+};
+
+recognition.onerror = (event) => {
+stopRecording();
+const msgs = {
+'not-allowed': '🔒 Permissão de microfone negada.',
+'no-speech': '🤫 Nenhuma fala detectada. Tente novamente.',
+'network': '📡 Erro de rede. Verifique a conexão.',
+'aborted': '⛔ Cancelado.',
+'audio-capture':'🎤 Microfone não encontrado ou ocupado.',
+'service-not-allowed':'🔒 Serviço de voz bloqueado. Requer HTTPS.'
+};
+statusEl.textContent = msgs[event.error] || ('Erro: ' + event.error);
+box.classList.remove('active');
+box.classList.add('error-state');
+
+if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+if (isAndroidApp()) {
+document.getElementById('androidPermissionScreen').classList.add('show');
+} else {
+document.getElementById('micPermissionTip').classList.add('show');
+setTimeout(() => {
+document.getElementById('micPermissionTip').classList.remove('show');
+}, 10000);
+}
+}
+};
+
+recognition.onend = () => {
+if (isRecording) stopRecording();
+};
+
+try {
+recognition.start();
+} catch(e) {
+statusEl.textContent = '⚠️ Não foi possível iniciar. ' + e.message;
+}
+}
+
+function stopRecording() {
+isRecording = false;
+const btn = document.getElementById('voiceStartBtn');
+const statusEl = document.getElementById('voiceStatusText');
+const box = document.getElementById('voiceBox');
+if (btn) {
+btn.classList.remove('recording');
+btn.textContent = '🎤';
+}
+if (box) box.classList.remove('active');
+if (statusEl && !statusEl.textContent.includes('Erro') && !statusEl.textContent.includes('🔒')) {
+statusEl.textContent = 'Toque no microfone e fale';
+}
+if (recognition) {
+try {
+recognition.stop();
+} catch(e){}
+}
+}
+
+document.getElementById('voiceStartBtn')?.addEventListener('click', function() {
+if (isRecording) stopRecording();
+else {
+if (isAndroidApp()) {
+requestMicPermission().then(granted => {
+if (granted) startRecording();
+});
+} else {
+startRecording();
+}
+}
+});
+
+document.querySelectorAll('input[name="mtype"]').forEach(r => {
+r.addEventListener('change', function() {
+updateModalFormMode(this.value);
+});
+});
+
+document.querySelectorAll('input[name="type"]').forEach(r => {
+r.addEventListener('change', function() {
+updateFormMode(this.value);
+});
+});
+
+/* ================================================================ BOTÕES DUPLA AÇÃO ================================================================ */
+document.getElementById('saveAndNewBtn').addEventListener('click', function() {
+saveAndNewMode = true;
+document.getElementById('txForm').dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+});
+
+document.getElementById('modalSaveAndNewBtn').addEventListener('click', function() {
+saveAndNewMode = true;
+document.getElementById('modalTxForm').dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+});
+
+/* ================================================================ SUBMIT DO MODAL ================================================================ */
+document.getElementById('modalTxForm').addEventListener('submit', function(e) {
+e.preventDefault();
+const mDesc = document.getElementById('modalDesc').value;
+const mAmt = document.getElementById('modalAmt').value;
+const mDt = document.getElementById('modalDt').value;
+const mFrom = document.getElementById('modalFromAcc').value;
+const mTo = document.getElementById('modalToAcc').value;
+const mCat = document.getElementById('modalCat').value;
+const mType = document.querySelector('input[name="mtype"]:checked')?.value;
+
+const typeRadio = document.querySelector(`input[name="type"][value="${mType}"]`);
+if (typeRadio && !typeRadio.checked) {
+typeRadio.checked = true;
+typeRadio.dispatchEvent(new Event('change', { bubbles:true }));
+}
+
+requestAnimationFrame(() => {
+const set = (id, val) => {
+const el = document.getElementById(id);
+if (el) el.value = val;
+};
+set('desc', mDesc);
+set('amt', mAmt);
+set('dt', mDt);
+set('fromAcc', mFrom);
+set('toAcc', mTo);
+
+if (mCat) {
+const catEl = document.getElementById('cat');
+if (catEl) {
+catEl.value = mCat;
+if (catEl.value !== mCat) {
+for (const opt of catEl.options) {
+if (opt.value.toLowerCase() === mCat.toLowerCase()) {
+opt.selected = true;
+break;
+}
+}
+}
+}
+}
+
+// Dispara o submit do form original (app.js captura e salva)
+const origForm = document.getElementById('txForm');
+if (origForm) {
+origForm.dispatchEvent(new Event('submit', { bubbles:true, cancelable:true }));
+}
+
+if (saveAndNewMode) {
+// Limpa apenas os campos do MODAL e mantém aberto
+document.getElementById('modalDesc').value = '';
+document.getElementById('modalAmt').value = '';
+document.getElementById('modalDt').value = getBrazilDate();
+saveAndNewMode = false;
+showSuccessAlert('✅ Salvo! Preencha o próximo lançamento.');
+} else {
+// Fecha o modal normalmente
+closeTxFormModal();
+}
+});
+});
+
+function showMainForm() {
+document.getElementById('txFormWrapper').classList.add('show');
+document.getElementById('formTitle').textContent = '➕ Novo lançamento';
+document.getElementById('cancelEditBtn').classList.add('hidden');
+populateAccounts();
+updateFormMode('income');
+document.getElementById('dt').value = getBrazilDate();
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', function() {
+document.getElementById('txFormWrapper').classList.remove('show');
+document.getElementById('formTitle').textContent = '➕ Novo lançamento';
+this.classList.add('hidden');
+});
+
+/* ================================================================ CATEGORIAS — pills + alertas ================================================================ */
+function renderCategoryPillsFromTransactions() {
+const container = document.getElementById("catPills");
+const totalSpan = document.querySelector("#catTotal");
+if (!container) return;
+
+const transactions = getTransactions();
+const expenses = transactions.filter(t => t.type === "expense");
+
+if (expenses.length === 0) {
+container.innerHTML = '<div class="empty">💸 Nenhuma despesa categorizada</div>';
+if (totalSpan) totalSpan.textContent = money.format(0);
+return;
+}
+
+const categories = window.getCategoriesUnified();
+const spendAll = {}, spendMonth = {};
+let totalAll = 0;
+const now = new Date();
+const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+
+expenses.forEach(tx => {
+const cat = (tx.category || "Sem categoria").trim();
+const amt = parseFloat(tx.amount) || 0;
+spendAll[cat] = (spendAll[cat] || 0) + amt;
+totalAll += amt;
+if ((tx.date||"").startsWith(prefix)) spendMonth[cat] = (spendMonth[cat]||0) + amt;
+});
+
+const sorted = Object.entries(spendAll).map(([name, totalAmount]) => {
+const catDef = categories.find(c => (c.name||"").trim().toLowerCase() === name.toLowerCase());
+const pct = totalAll > 0 ? Math.round((totalAmount/totalAll)*100) : 0;
+const ms = spendMonth[name] || 0;
+let limitInfo = null, statusClass = "no-limit";
+
+if (catDef && catDef.hasLimit && catDef.monthlyLimit > 0) {
+const lp = Math.round((ms/catDef.monthlyLimit)*100);
+const dis = catDef.monthlyLimit - ms;
+statusClass = ms >= catDef.monthlyLimit ? "over-limit" : lp >= (catDef.warningPercent||80) ? "near-limit" : "has-limit";
+const bs = ms >= catDef.monthlyLimit ? "danger" : lp >= (catDef.warningPercent||80) ? "warning" : "normal";
+limitInfo = {
+limiteCadastrado:catDef.monthlyLimit,
+valorUtilizado:ms,
+limiteDisponivel:dis,
+percent:lp,
+barStatus:bs,
+warningPercent:catDef.warningPercent||80
+};
+}
+
+return { name, totalAmount, percentOfTotal:pct, limitInfo, statusClass };
+}).sort((a,b) => b.totalAmount - a.totalAmount);
+
+container.innerHTML = sorted.map(item => {
+if (item.limitInfo) {
+const lim = item.limitInfo;
+const bText = lim.percent >= 100 ? "LIMITE EXCEDIDO" : `${lim.percent}% USADO`;
+return `<div class="cat-pill ${item.statusClass}">
+<div class="cat-pill-header">
+<div class="cat-pill-name"><strong>${item.name}</strong><span class="cat-limit-badge ${lim.barStatus}">${bText}</span></div>
+<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
+</div>
+<div class="cat-limit-info">
+<div class="cat-limit-text"><span class="limit-label">🎯 <strong>Limite cadastrado:</strong></span><span class="limit-values" style="color:var(--primary)">${money.format(lim.limiteCadastrado)}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Utilizado (mês atual):</strong></span><span class="limit-values" style="color:var(--expense)">${money.format(lim.valorUtilizado)} (${lim.percent}%)</span></div>
+<div class="cat-limit-text"><span class="limit-label">💰 <strong>Limite disponível:</strong></span><span class="limit-values" style="color:${lim.limiteDisponivel>=0?'var(--income)':'var(--expense)'}">${money.format(Math.max(0,lim.limiteDisponivel))}${lim.limiteDisponivel<0?" (EXCEDIDO)":""}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📈 <strong>Total da categoria (todos os meses):</strong></span><span class="limit-values" style="color:var(--text)">${money.format(item.totalAmount)} (${item.percentOfTotal}% do total)</span></div>
+</div>
+<div class="cat-pill-progress"><div class="cat-pill-bar ${lim.barStatus}" style="width:${Math.min(lim.percent,100)}%"></div></div>
+</div>`;
+} else {
+return `<div class="cat-pill ${item.statusClass}">
+<div class="cat-pill-header">
+<div class="cat-pill-name"><strong>${item.name}</strong><span style="font-size:.7rem;color:var(--text3);font-weight:500;margin-left:6px">(sem limite)</span></div>
+<div class="cat-pill-amount">${money.format(item.totalAmount)}<div class="cat-pill-percent">${item.percentOfTotal}% do total geral</div></div>
+</div>
+<div class="cat-limit-info">
+<div class="cat-limit-text"><span class="limit-label">📊 <strong>Total da categoria:</strong></span><span class="limit-values" style="color:var(--text)">${money.format(item.totalAmount)}</span></div>
+<div class="cat-limit-text"><span class="limit-label">📈 <strong>% do total geral:</strong></span><span class="limit-values" style="color:var(--text2)">${item.percentOfTotal}%</span></div>
+</div>
+</div>`;
+}
+}).join("");
+
+if (totalSpan) totalSpan.textContent = money.format(totalAll);
+}
+
+function checkCategoryLimits() {
+const categories = window.getCategoriesUnified();
+const now = new Date();
+const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+const transactions = getTransactions();
+const alerts = [];
+
+categories.filter(c => c.hasLimit && c.monthlyLimit > 0).forEach(cat => {
+const spent = transactions
+.filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix))
+.reduce((s,t) => s+(parseFloat(t.amount)||0), 0);
+const pct = (spent/cat.monthlyLimit)*100;
+if (pct >= 100) alerts.push({type:"danger", message:`Limite ultrapassado em ${cat.name}`, spent, limit:cat.monthlyLimit});
+else if (pct >= cat.warningPercent) alerts.push({type:"warning", message:`${Math.round(pct)}% do limite usado em ${cat.name}`, spent, limit:cat.monthlyLimit});
+});
+
+const container = document.getElementById("limitAlerts");
+const list = document.getElementById("limitAlertsList");
+if (!container||!list) return;
+if (!alerts.length) {
+container.classList.remove("show");
+return;
+}
+container.classList.add("show");
+list.innerHTML = alerts.map(a => `<div class="limit-alert ${a.type}"><div class="limit-alert-text">${a.message}</div><div class="limit-alert-amount">${money.format(a.spent)} / ${money.format(a.limit)}</div></div>`).join("");
+}
+
+function refreshCategoryPills() {
+renderCategoryPillsFromTransactions();
+checkCategoryLimits();
+}
+
+function setupMonitoring() {
+const container = document.getElementById("catPills");
+if (container) {
+let blocked = false;
+const obs = new MutationObserver(() => {
+if (blocked) return;
+if (container.querySelector(".cat-pill") && !container.querySelector(".cat-limit-info")) {
+blocked = true;
+refreshCategoryPills();
+requestAnimationFrame(() => {
+blocked = false;
+});
+}
+});
+obs.observe(container, { childList:true, subtree:false });
+}
+
+const _si = Object.getOwnPropertyDescriptor(Storage.prototype, "setItem");
+Object.defineProperty(Storage.prototype, "setItem", {
+configurable:true,
+enumerable:true,
+value: function(k, v) {
+_si.value.call(this, k, v);
+if (k==="financas-v3") setTimeout(refreshCategoryPills, 80);
+}
+});
+
+window.addEventListener("storage", e => {
+if (e.key==="financas-v3"||e.key==="financas-categories-v1") refreshCategoryPills();
+});
+
+setInterval(() => {
+if (document.querySelector("#catPills .cat-pill") && !document.querySelector("#catPills .cat-limit-info")) {
+refreshCategoryPills();
+return;
+}
+const snap = localStorage.getItem("financas-v3")||"";
+if (snap !== _lastSnap) {
+_lastSnap = snap;
+refreshCategoryPills();
+}
+}, 1500);
+
+window.addEventListener("focus", refreshCategoryPills);
+window.addEventListener("financasUpdated", refreshCategoryPills);
+}
+
+var _lastSnap = "";
+
+/* ================================================================ MODAL DE CATEGORIAS ================================================================ */
+function renderCategoryModal() {
+const list = document.getElementById("catModalList");
+if (!list) return;
+const cats = window.getCategoriesUnified();
+if (!cats.length) {
+list.innerHTML = '<div class="cat-empty">🗂️ Nenhuma categoria cadastrada</div>';
+return;
+}
+
+const now = new Date();
+const prefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+const txns = getTransactions();
+
+list.innerHTML = cats.map(cat => {
+const tl = {expense:"Despesas",income:"Receitas",investment:"Investimento",all:"Ambos"}[cat.type]||"Outros";
+const star = cat.isFavorite ? "⭐" : "☆";
+
+if (cat.hasLimit && cat.monthlyLimit > 0) {
+const spent = txns.filter(t => t.type==="expense" && (t.category||"").trim().toLowerCase()===cat.name.trim().toLowerCase() && (t.date||"").startsWith(prefix)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+const pct = Math.min((spent/cat.monthlyLimit)*100, 100);
+const st = pct>=100?"danger":pct>=cat.warningPercent?"warning":"normal";
+const sc = pct>=100?"over-limit":pct>=cat.warningPercent?"near-limit":"";
+const lim = `<div class="cat-limit-progress"><div class="cat-limit-bar"><div class="cat-limit-fill ${st}" style="width:${pct}%"></div></div><div class="cat-limit-text">${money.format(spent)} / ${money.format(cat.monthlyLimit)} (${Math.round(pct)}%)</div></div>`;
+return `<div class="cat-list-item ${sc}"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span><span class="cat-badge expense">🎯 Com limite</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"} • Limite: ${money.format(cat.monthlyLimit)}/mês</div>${lim}</div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+}
+
+return `<div class="cat-list-item"><div class="cat-list-item-info"><div class="cat-list-item-name">${cat.name}<span class="cat-badge ${cat.type}">${tl}</span></div><div class="cat-list-item-meta">${cat.isFavorite?"⭐ Favorita":"Comum"}</div></div><div class="cat-star">${star}</div><button class="cat-edit-btn" onclick="openEditCategoryModal('${cat.id}')">✏️</button><button class="cat-del-btn" onclick="deleteCategory('${cat.id}')">🗑️</button></div>`;
+}).join("");
+}
+
+document.getElementById("catHasLimit")?.addEventListener("change", function() {
+document.getElementById("catLimitFields")?.classList.toggle("disabled", !this.checked);
+if (!this.checked) document.getElementById("catLimitAmount").value = "";
+});
+
+document.getElementById("catAddBtn")?.addEventListener("click", function(e) {
+e.preventDefault();
+const name = document.getElementById("catName")?.value?.trim()||"";
+const type = document.getElementById("catType")?.value||"expense";
+const isFav = document.getElementById("catFav")?.checked||false;
+const hasLim = document.getElementById("catHasLimit")?.checked||false;
+const ml = hasLim ? parseFloat(document.getElementById("catLimitAmount")?.value)||0 : 0;
+const wp = parseInt(document.getElementById("catLimitWarning")?.value)||80;
+
+if (!name) {
+alert("⚠️ Digite um nome");
+return;
+}
+if (hasLim && ml<=0) {
+alert("⚠️ Valor inválido");
+return;
+}
+
+const ex = window.getCategoriesUnified();
+if (ex.find(c => c.name.toLowerCase()===name.toLowerCase())) {
+alert("⚠️ Nome já existe");
+return;
+}
+
+if (saveCategoriesToApp([...ex, {id:generateId(),name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp}])) {
+clearCategoryForm();
+renderCategoryModal();
+refreshCategoryPills();
+showSuccessAlert("✅ Categoria adicionada!");
+setTimeout(() => {
+if (window.render) window.render();
+}, 150);
+} else {
+alert("❌ Erro ao salvar");
+}
+});
+
+function clearCategoryForm() {
+[["catName",""],["catType","expense"],["catLimitAmount",""],["catLimitWarning","80"]].forEach(([id,v])=>{
+const el=document.getElementById(id);
+if(el) el.value=v;
+});
+const cF=document.getElementById("catFav");
+if(cF) cF.checked=false;
+const cL=document.getElementById("catHasLimit");
+if(cL) cL.checked=false;
+document.getElementById("catLimitFields")?.classList.add("disabled");
+}
+
+function openEditCategoryModal(categoryId) {
+const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
+if (!cat) return;
+editingCategoryId = categoryId;
+document.getElementById("editCatName").value = cat.name;
+document.getElementById("editCatType").value = cat.type;
+document.getElementById("editCatFav").checked = cat.isFavorite;
+document.getElementById("editCatHasLimit").checked = cat.hasLimit;
+document.getElementById("editCatLimitAmount").value = cat.monthlyLimit||"";
+document.getElementById("editCatLimitWarning").value = cat.warningPercent||80;
+document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !cat.hasLimit);
+document.getElementById("catEditModal")?.classList.add("open");
+document.body.style.overflow = "hidden";
+}
+
+window.openEditCategoryModal = openEditCategoryModal;
+
+document.getElementById("editCatHasLimit")?.addEventListener("change", function() {
+document.getElementById("editCatLimitFields")?.classList.toggle("disabled", !this.checked);
+if (!this.checked) document.getElementById("editCatLimitAmount").value = "";
+});
+
+document.getElementById("editCatSaveBtn")?.addEventListener("click", function(e) {
+e.preventDefault();
+if (!editingCategoryId) return;
+
+const name = document.getElementById("editCatName").value.trim();
+const type = document.getElementById("editCatType").value;
+const isFav = document.getElementById("editCatFav").checked;
+const hasLim = document.getElementById("editCatHasLimit").checked;
+const ml = hasLim ? parseFloat(document.getElementById("editCatLimitAmount").value)||0 : 0;
+const wp = parseInt(document.getElementById("editCatLimitWarning").value);
+
+if (!name) {
+alert("⚠️ Digite um nome");
+return;
+}
+if (hasLim && ml<=0) {
+alert("⚠️ Valor inválido");
+return;
+}
+
+const cats = window.getCategoriesUnified();
+if (cats.find(c => c.name.toLowerCase()===name.toLowerCase() && c.id!==editingCategoryId)) {
+alert("⚠️ Nome já existe");
+return;
+}
+
+const updated = cats.map(c => c.id===editingCategoryId ? {...c,name,type,isFavorite:isFav,hasLimit:hasLim,monthlyLimit:ml,warningPercent:wp} : c);
+
+if (saveCategoriesToApp(updated)) {
+renderCategoryModal();
+refreshCategoryPills();
+closeEditCategoryModal();
+showSuccessAlert("✅ Categoria atualizada!");
+setTimeout(() => {
+if (window.render) window.render();
+}, 150);
+} else {
+alert("❌ Erro ao salvar");
+}
+});
+
+document.getElementById("editCatDeleteBtn")?.addEventListener("click", function(e) {
+e.preventDefault();
+if (!editingCategoryId) return;
+const cat = window.getCategoriesUnified().find(c => c.id===editingCategoryId);
+if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
+
+const updated = window.getCategoriesUnified().filter(c => c.id!==editingCategoryId);
+if (saveCategoriesToApp(updated)) {
+renderCategoryModal();
+refreshCategoryPills();
+closeEditCategoryModal();
+showSuccessAlert("✅ Categoria excluída!");
+setTimeout(() => {
+if (window.render) window.render();
+}, 150);
+} else {
+alert("❌ Erro ao excluir");
+}
+});
+
+function closeEditCategoryModal() {
+document.getElementById("catEditModal")?.classList.remove("open");
+document.body.style.overflow = "";
+editingCategoryId = null;
+}
+
+document.getElementById("catEditModalClose")?.addEventListener("click", closeEditCategoryModal);
+document.getElementById("catEditModal")?.addEventListener("click", function(e){
+if(e.target===this) closeEditCategoryModal();
+});
+
+window.deleteCategory = function(categoryId) {
+const cat = window.getCategoriesUnified().find(c => c.id===categoryId);
+if (!cat || !confirm(`🗑️ Excluir "${cat.name}"?`)) return;
+
+const updated = window.getCategoriesUnified().filter(c => c.id!==categoryId);
+if (saveCategoriesToApp(updated)) {
+renderCategoryModal();
+refreshCategoryPills();
+showSuccessAlert("✅ Categoria excluída!");
+setTimeout(() => {
+if (window.render) window.render();
+}, 150);
+} else {
+alert("❌ Erro ao excluir");
+}
+};
+
+function openCatModal() {
+clearCategoryForm();
+renderCategoryModal();
+document.getElementById("catModal")?.classList.add("open");
+document.body.style.overflow = "hidden";
+}
+
+document.getElementById("catModalClose")?.addEventListener("click", function() {
+document.getElementById("catModal")?.classList.remove("open");
+document.body.style.overflow = "";
+clearCategoryForm();
+});
+
+document.getElementById("catModal")?.addEventListener("click", function(e) {
+if (e.target===this) {
+this.classList.remove("open");
+document.body.style.overflow = "";
+clearCategoryForm();
+}
+});
+
+/* ================================================================ INICIALIZAÇÃO ================================================================ */
+function init() {
+const dt = document.getElementById("dt");
+if (dt) dt.value = getBrazilDate();
+setupMonitoring();
+refreshCategoryPills();
+populateAccounts();
+}
+
+if (document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
+else init();
+
+window.addEventListener("load", () => {
+setTimeout(refreshCategoryPills, 150);
+setTimeout(refreshCategoryPills, 500);
+setTimeout(refreshCategoryPills, 1000);
+});
+
+/* ================================================================ TEMA ================================================================ */
+const html = document.documentElement;
+const themeBtn = document.getElementById("themeBtn");
+const saved = localStorage.getItem("financas-theme") || "light";
+html.setAttribute("data-theme", saved);
+themeBtn.textContent = saved==="dark" ? "☀️" : "🌙";
+
+themeBtn.addEventListener("click", function() {
+const next = html.getAttribute("data-theme")==="dark" ? "light" : "dark";
+html.setAttribute("data-theme", next);
+localStorage.setItem("financas-theme", next);
+themeBtn.textContent = next==="dark" ? "☀️" : "🌙";
+});
+
+/* ================================================================ MENU ================================================================ */
+const menuBtn = document.getElementById("menuBtn");
+const ddMenu = document.getElementById("ddMenu");
+
+menuBtn.addEventListener("click", e => {
+e.stopPropagation();
+ddMenu.classList.toggle("open");
+});
+
+document.addEventListener("click", () => ddMenu.classList.remove("open"));
+ddMenu.addEventListener("click", e => e.stopPropagation());
+
+document.getElementById("prevMon")?.addEventListener("click", () => {
+let m = window.economyMonth-1, y = window.economyYear;
+if (m<0){m=11;y--;}
+if (window.drawEconomyChart) window.drawEconomyChart(m,y);
+});
+
+document.getElementById("nextMon")?.addEventListener("click", () => {
+let m = window.economyMonth+1, y = window.economyYear;
+if (m>11){m=0;y++;}
+if (window.drawEconomyChart) window.drawEconomyChart(m,y);
+});
+
+document.getElementById("openCatModal")?.addEventListener("click", function() {
+ddMenu.classList.remove("open");
+openCatModal();
+});
+
+})();
+</script>
+<script src="app.js"></script>
+</body>
+</html>

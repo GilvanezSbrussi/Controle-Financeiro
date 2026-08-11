@@ -8,6 +8,7 @@
   "dependencies": {
     "@capacitor/android": "8.4.0",
     "@capacitor/assets": "3.0.5",
+    "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "8.4.0",
     "@capacitor/filesystem": "8.1.2",
     "@capacitor/local-notifications": "8.2.0",

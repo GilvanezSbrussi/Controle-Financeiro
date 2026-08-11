@@ -369,10 +369,33 @@ canvas{width:100%!important;display:block}
 .new-tx-option-icon.expense{background:rgba(220,38,38,.1);color:var(--expense)}
 .new-tx-option-icon.card{background:rgba(59,130,246,.1);color:#3b82f6}
 .new-tx-option-icon.voice{background:rgba(139,92,246,.12);color:#8b5cf6}
+.new-tx-option-icon.photo{background:rgba(217,119,6,.12);color:#d97706}
+.new-tx-option-icon.ocr{background:rgba(13,148,136,.12);color:#0d9488}
+.desc-suggest-box{display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:2px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);max-height:280px;overflow-y:auto}
+.desc-suggest-box.open{display:block}
+.desc-suggest-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;cursor:pointer;font-size:.9rem}
+.desc-suggest-item:hover,.desc-suggest-item.active{background:var(--bg2)}
+.desc-suggest-item:not(:last-child){border-bottom:1px solid var(--border)}
+.desc-suggest-icon{width:32px;height:32px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0}
+.desc-suggest-main{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
+.desc-suggest-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.desc-suggest-highlight{color:var(--primary);font-weight:700}
+.desc-suggest-account{font-size:.74rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.desc-suggest-amount{font-size:.85rem;font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0}
+.desc-suggest-remove{background:none;border:none;color:var(--text3);font-size:1.1rem;line-height:1;cursor:pointer;padding:.2rem .3rem;flex-shrink:0;border-radius:50%}
+.desc-suggest-remove:hover{color:var(--expense);background:var(--bg2)}
+.desc-suggest-cat{font-size:.72rem;color:var(--text2);background:var(--bg2);border-radius:6px;padding:.1rem .45rem;white-space:nowrap}
+.photo-box{display:none;border:2px dashed var(--border);border-radius:12px;padding:1rem;text-align:center;margin-bottom:.75rem}
+.photo-box.active{display:block}
+.photo-box img{max-width:100%;max-height:160px;border-radius:8px;margin-bottom:.5rem;object-fit:contain}
+.photo-box-status{font-size:.85rem;color:var(--text2)}
+.photo-box-status.error{color:var(--expense)}
+.photo-spinner{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top-color:#d97706;border-radius:50%;animation:photo-spin .8s linear infinite;vertical-align:middle;margin-right:.4rem}
+@keyframes photo-spin{to{transform:rotate(360deg)}}
 .new-tx-option-text{flex:1}
 .new-tx-option-label{font-size:.85rem;font-weight:700;color:var(--text);display:block}
 .new-tx-option-desc{font-size:.7rem;color:var(--text2);margin-top:1px}
-.plans-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.plans-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .plans-modal-overlay.open{opacity:1;pointer-events:all}
 .plans-modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:640px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.61,1);max-height:calc(97vh - env(safe-area-inset-top,0px));max-height:calc(97dvh - env(safe-area-inset-top,0px));overflow-y:auto;padding:1.5rem 1.25rem 2rem}
 .plans-modal-overlay.open .plans-modal-sheet{transform:translateY(0)}
@@ -876,7 +899,7 @@ canvas{width:100%!important;display:block}
 <div class="fav-tags" id="favTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label class="full">Descricao<input id="desc" name="description" type="text" placeholder="Ex: salario, aluguel" autocomplete="off" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
 <label>Valor<input id="amt" name="amount" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" placeholder="0,00" required/></label>
 <label>Data<input id="dt" name="date" type="date" required/></label>
 <label id="fromWrap">Conta<select id="fromAcc" name="fromAccount" required></select></label>
@@ -1006,8 +1029,8 @@ canvas{width:100%!important;display:block}
           <div class="plan-duration">30 dias</div>
         </div>
         <div class="plan-price-wrap">
-          <div class="plan-price">R$ 14,90</div>
-          <div class="plan-price-month">R$ 14,90/mês</div>
+          <div class="plan-price">R$ 16,90</div>
+          <div class="plan-price-month">R$ 16,90/mês</div>
           <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
@@ -1018,8 +1041,8 @@ canvas{width:100%!important;display:block}
           <div class="plan-duration">90 dias</div>
         </div>
         <div class="plan-price-wrap">
-          <div class="plan-price">R$ 34,90</div>
-          <div class="plan-price-month">R$ 11,63/mês</div>
+          <div class="plan-price">R$ 37,90</div>
+          <div class="plan-price-month">R$ 12,63/mês</div>
           <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
@@ -1030,8 +1053,8 @@ canvas{width:100%!important;display:block}
           <div class="plan-duration">180 dias</div>
         </div>
         <div class="plan-price-wrap">
-          <div class="plan-price">R$ 59,90</div>
-          <div class="plan-price-month">R$ 9,98/mês</div>
+          <div class="plan-price">R$ 64,90</div>
+          <div class="plan-price-month">R$ 10,82/mês</div>
           <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
@@ -1043,8 +1066,8 @@ canvas{width:100%!important;display:block}
           <div class="plan-duration">365 dias</div>
         </div>
         <div class="plan-price-wrap">
-          <div class="plan-price">R$ 99,90</div>
-          <div class="plan-price-month">R$ 8,32/mês</div>
+          <div class="plan-price">R$ 107,90</div>
+          <div class="plan-price-month">R$ 8,99/mês</div>
           <div class="plan-buy-hint">Assinar →</div>
         </div>
       </div>
@@ -1124,8 +1147,25 @@ canvas{width:100%!important;display:block}
 <span class="new-tx-option-desc">Fale seu lançamento</span>
 </div>
 </div>
+<div class="new-tx-option" data-type="photo" id="photoMenuOption">
+<div class="new-tx-option-icon photo">📷</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Lançar por foto (IA)</span>
+<span class="new-tx-option-desc">Foto do comprovante · até 40/mês</span>
 </div>
 </div>
+<div class="new-tx-option hidden" data-type="photo-ocr" id="photoOcrMenuOption">
+<div class="new-tx-option-icon ocr">🔍</div>
+<div class="new-tx-option-text">
+<span class="new-tx-option-label">Lançar por foto (OCR grátis)</span>
+<span class="new-tx-option-desc">Lê a foto no próprio navegador, sem custo</span>
+</div>
+</div>
+</div>
+</div>
+
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="photoInputOcr" accept="image/*" capture="environment" style="display:none">
 
 <div class="tx-form-modal-overlay" id="txFormModalOverlay">
 <div class="tx-form-modal-sheet">
@@ -1158,6 +1198,11 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 </div>
 </div>
 
+<div class="photo-box" id="photoBox">
+<img id="photoPreviewImg" style="display:none" alt="Comprovante selecionado">
+<div class="photo-box-status" id="photoBoxStatus">Selecione a foto do comprovante</div>
+</div>
+
 <form id="modalTxForm" autocomplete="off">
 <div class="segmented" role="radiogroup">
 <label><input type="radio" name="mtype" value="income" checked/><span>💰 Receita</span></label>
@@ -1169,7 +1214,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="fav-tags" id="modalFavTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descrição<input id="modalDesc" name="description" type="text" placeholder="Ex: salário, aluguel" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label class="full">Descrição<input id="modalDesc" name="description" type="text" placeholder="Ex: salário, aluguel" autocomplete="off" autocapitalize="words" autocorrect="on" spellcheck="true" required/></label>
 <label>Valor<input id="modalAmt" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" placeholder="0,00" required/></label>
 <label>Data<input id="modalDt" type="date" required/></label>
 <label id="modalFromWrap">Conta<select id="modalFromAcc" required></select></label>
@@ -1269,12 +1314,13 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <label><input type="radio" name="rtype" value="income"/><span>💰 Receita</span></label>
 </div>
 <div class="fgrid">
-<label class="full">Descrição<input id="recorrDesc" name="description" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true"/></label>
+<label class="full">Descrição<input id="recorrDesc" name="description" type="text" required maxlength="60" placeholder="Ex: Aluguel, Netflix, Salário" autocomplete="off" autocapitalize="sentences" autocorrect="on" spellcheck="true"/></label>
 <label>Valor (R$)<input id="recorrAmt" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" required placeholder="0,00"/></label>
 <label>Dia do mês<input id="recorrDay" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="28" required placeholder="1-28"/></label>
 <label>Parcelas<input id="recorrParcelas" type="number" inputmode="numeric" pattern="[0-9]*" min="1" placeholder="Deixe vazio p/ sem fim"/></label>
 <label class="full">Conta<select id="recorrAcc"></select></label>
 <label class="full">Categoria<select id="recorrCat"><option value="">Sem categoria</option></select></label>
+<label id="recorrKindWrap" class="hidden full">Tipo de despesa<select id="recorrExpKind"><option value="">Não informado</option><option value="fixed">📌 Fixo</option><option value="variable">🔀 Variável</option><option value="emotional">❤️ Emocional</option></select></label>
 </div>
 <button class="pbtn" type="submit" id="recorrSaveBtn">Salvar recorrente</button>
 </form>
@@ -1379,7 +1425,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
 <div class="fav-tags" id="editFavTags"></div>
 </div>
 <div class="fgrid">
-<label class="full">Descricao<input id="editDesc" name="description" type="text" autocomplete="on" autocapitalize="sentences" autocorrect="on" spellcheck="true" required/></label>
+<label class="full">Descricao<input id="editDesc" name="description" type="text" autocomplete="off" autocapitalize="words" autocorrect="on" spellcheck="true" required/></label>
 <label>Valor<input id="editAmt" name="amount" type="number" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*" min="0.01" step="0.01" required/></label>
 <label>Data<input id="editDt" name="date" type="date" required/></label>
 <label>Conta<select id="editFromAcc" name="fromAccount" required></select></label>
@@ -1546,7 +1592,7 @@ Ex: <em>"Gastei 150 reais no supermercado"</em> ou <em>"Recebi 3000 de salário"
     <div class="admin-icon">🔐</div>
     <h2>Acesso Administrativo</h2>
     <p>Digite seu CPF para acessar o gerador de licenças</p>
-    <input type="text" id="adminCpf" placeholder="000.000.000-00" autocomplete="off"/>
+    <input type="tel" id="adminCpf" placeholder="000.000.000-00" autocomplete="off" inputmode="numeric" pattern="[0-9]*"/>
     <button class="admin-btn" id="btnAdminLogin">Entrar</button>
     <button class="admin-btn-cancel" id="btnAdminCancel">Cancelar</button>
     <div class="admin-error" id="adminError">CPF não encontrado ou não autorizado</div>
@@ -2261,6 +2307,163 @@ document.body.style.overflow = '';
 }
 });
 
+// ============================================================
+// AUTOCOMPLETAR DESCRIÇÃO — sugere, conforme o usuário digita,
+// descrições já usadas antes (com a categoria mais associada a elas).
+// Preferido a depender do teclado do Android porque usa o histórico
+// real do PRÓPRIO app (então "Uber", "Mercado X" etc. aparecem certos
+// desde a primeira letra), funciona igual em qualquer aparelho/navegador
+// e já vem com a categoria pré-selecionada.
+// ============================================================
+const DESC_SUGGEST_DISMISSED_KEY = 'financas-desc-suggest-dismissed-v1';
+
+function getDismissedDescSuggestions() {
+    try { return new Set(JSON.parse(localStorage.getItem(DESC_SUGGEST_DISMISSED_KEY) || '[]')); }
+    catch { return new Set(); }
+}
+
+function dismissDescSuggestion(desc) {
+    const set = getDismissedDescSuggestions();
+    set.add(normalize(desc));
+    try { localStorage.setItem(DESC_SUGGEST_DISMISSED_KEY, JSON.stringify([...set])); } catch {}
+}
+
+function getAccountLabel(accountId) {
+    if (!accountId) return '';
+    const acc = getAccounts().find(a => a.id === accountId);
+    return acc ? acc.name : '';
+}
+
+function getDescriptionHistory() {
+    const map = new Map();
+    const dismissed = getDismissedDescSuggestions();
+    (window.appData?.transactions || []).forEach(t => {
+        const raw = (t.description || '').trim();
+        if (!raw) return;
+        const key = normalize(raw);
+        if (dismissed.has(key)) return;
+        if (!map.has(key)) map.set(key, { count: 0, categories: {}, variants: {}, lastDate: '', lastAmount: 0, lastAccountId: '' });
+        const entry = map.get(key);
+        entry.count++;
+        entry.variants[raw] = (entry.variants[raw] || 0) + 1;
+        if (t.category) entry.categories[t.category] = (entry.categories[t.category] || 0) + 1;
+        // guarda os dados da ocorrência mais recente (por data) pra mostrar valor/conta na sugestão
+        if (!entry.lastDate || (t.date || '') >= entry.lastDate) {
+            entry.lastDate = t.date || '';
+            entry.lastAmount = Number(t.amount) || 0;
+            entry.lastAccountId = t.fromAccount || '';
+        }
+    });
+    return Array.from(map.values()).map(e => {
+        let bestCat = '', bestCatCount = 0;
+        Object.entries(e.categories).forEach(([c, n]) => { if (n > bestCatCount) { bestCat = c; bestCatCount = n; } });
+        let bestVariant = '', bestVariantCount = 0;
+        Object.entries(e.variants).forEach(([v, n]) => { if (n > bestVariantCount) { bestVariant = v; bestVariantCount = n; } });
+        return {
+            desc: bestVariant,
+            count: e.count,
+            category: bestCat,
+            amount: e.lastAmount,
+            accountLabel: getAccountLabel(e.lastAccountId)
+        };
+    }).sort((a, b) => b.count - a.count);
+}
+
+function attachDescriptionAutosuggest(inputEl, opts = {}) {
+    if (!inputEl || inputEl.dataset.autosuggestAttached) return;
+    inputEl.dataset.autosuggestAttached = '1';
+
+    const wrapper = inputEl.parentElement;
+    if (wrapper && getComputedStyle(wrapper).position === 'static') wrapper.style.position = 'relative';
+
+    const box = document.createElement('div');
+    box.className = 'desc-suggest-box';
+    wrapper.appendChild(box);
+
+    function hide() { box.classList.remove('open'); box.innerHTML = ''; }
+
+    // Divide o texto da sugestão em "parte já digitada" + "parte completada",
+    // pra destacar a segunda parte igual a barra de sugestão do teclado.
+    function highlightMatch(desc, typedRaw) {
+        const descNorm = normalize(desc);
+        const typedNorm = normalize(typedRaw);
+        if (!typedNorm || !descNorm.startsWith(typedNorm)) return escapeHtml(desc);
+        const typedPart = desc.slice(0, typedRaw.length);
+        const restPart = desc.slice(typedRaw.length);
+        return `${escapeHtml(typedPart)}<span class="desc-suggest-highlight">${escapeHtml(restPart)}</span>`;
+    }
+
+    function render(list, typedRaw) {
+        if (!list.length) { hide(); return; }
+        box.innerHTML = list.map(item => {
+            const initial = (item.category || item.desc || '?').trim().charAt(0).toUpperCase();
+            return `<div class="desc-suggest-item" data-desc="${escapeHtml(item.desc)}" data-cat="${escapeHtml(item.category || '')}">
+                <div class="desc-suggest-icon">${escapeHtml(initial)}</div>
+                <div class="desc-suggest-main">
+                    <span class="desc-suggest-text">${highlightMatch(item.desc, typedRaw)}</span>
+                    ${item.accountLabel ? `<span class="desc-suggest-account">${escapeHtml(item.accountLabel)}</span>` : ''}
+                </div>
+                ${item.amount ? `<span class="desc-suggest-amount">${money.format(item.amount)}</span>` : ''}
+                <button type="button" class="desc-suggest-remove" data-remove="${escapeHtml(item.desc)}" aria-label="Remover sugestão">×</button>
+            </div>`;
+        }).join('');
+        box.classList.add('open');
+    }
+
+    inputEl.addEventListener('input', () => {
+        const typedRaw = inputEl.value.trim();
+        const q = normalize(typedRaw);
+        if (!q) { hide(); return; }
+        const history = getDescriptionHistory().filter(h => normalize(h.desc) !== q);
+        const starts = history.filter(h => normalize(h.desc).startsWith(q));
+        const contains = history.filter(h => !normalize(h.desc).startsWith(q) && normalize(h.desc).includes(q));
+        render([...starts, ...contains].slice(0, 6), typedRaw);
+    });
+
+    // mousedown (não click) pra disparar antes do blur fechar a caixa
+    box.addEventListener('mousedown', (e) => {
+        const removeBtn = e.target.closest('.desc-suggest-remove');
+        if (removeBtn) {
+            e.preventDefault();
+            dismissDescSuggestion(removeBtn.dataset.remove);
+            removeBtn.closest('.desc-suggest-item')?.remove();
+            if (!box.querySelector('.desc-suggest-item')) hide();
+            return;
+        }
+        const item = e.target.closest('.desc-suggest-item');
+        if (!item) return;
+        e.preventDefault();
+        inputEl.value = item.dataset.desc;
+        if (opts.onSelect) opts.onSelect(item.dataset.desc, item.dataset.cat);
+        hide();
+    });
+
+    inputEl.addEventListener('blur', () => setTimeout(hide, 150));
+    inputEl.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+}
+
+function selectCategoryInSelect(selectEl, categoryName) {
+    if (!selectEl || !categoryName) return;
+    for (const opt of selectEl.options) {
+        if (opt.value.toLowerCase() === categoryName.toLowerCase()) { opt.selected = true; return; }
+    }
+}
+
+attachDescriptionAutosuggest(document.getElementById('modalDesc'), {
+    onSelect: (desc, cat) => selectCategoryInSelect(document.getElementById('modalCat'), cat)
+});
+attachDescriptionAutosuggest(document.getElementById('editDesc'), {
+    onSelect: (desc, cat) => selectCategoryInSelect(document.getElementById('editCat'), cat)
+});
+// Nova Despesa/Receita (tela principal) e lançamento recorrente também usam
+// a mesma caixa de sugestões, no lugar do autocomplete nativo do navegador.
+attachDescriptionAutosuggest(document.getElementById('desc'), {
+    onSelect: (desc, cat) => selectCategoryInSelect(document.getElementById('cat'), cat)
+});
+attachDescriptionAutosuggest(document.getElementById('recorrDesc'), {
+    onSelect: (desc, cat) => selectCategoryInSelect(document.getElementById('recorrCat'), cat)
+});
+
 document.querySelectorAll('.new-tx-option').forEach(option => {
 option.addEventListener('click', function() {
 const type = this.dataset.type;
@@ -2268,10 +2471,250 @@ newTxMenuOverlay.classList.remove('open');
 
 if (type === 'voice') {
 openVoiceModal();
+} else if (type === 'photo') {
+document.getElementById('photoInput').click();
+} else if (type === 'photo-ocr') {
+document.getElementById('photoInputOcr').click();
 } else {
 openTxFormModal(type);
 }
 });
+});
+
+// ============================================================
+// LANÇAMENTO POR FOTO — envia a imagem pra Cloud Function, que usa
+// a Claude API pra ler o comprovante e devolver os dados prontos.
+// ============================================================
+async function fileToCompressedBase64(file, maxDim = 1400, quality = 0.75) {
+    const bitmap = await createImageBitmap(file);
+    let { width, height } = bitmap;
+    if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    return { base64: dataUrl.split(',')[1], mediaType: 'image/jpeg', dataUrl };
+}
+
+function setPhotoStatus(text, isError) {
+    const statusEl = document.getElementById('photoBoxStatus');
+    if (!statusEl) return;
+    statusEl.innerHTML = text;
+    statusEl.classList.toggle('error', !!isError);
+}
+
+function applyParsedPhotoToModal(parsed) {
+    const radio = document.querySelector(`input[name="mtype"][value="${parsed.type}"]`);
+    if (radio) { radio.checked = true; updateModalFormMode(parsed.type); }
+    const descEl = document.getElementById('modalDesc');
+    const amtEl = document.getElementById('modalAmt');
+    const catEl = document.getElementById('modalCat');
+    const dtEl = document.getElementById('modalDt');
+    if (descEl && parsed.description) descEl.value = parsed.description;
+    if (amtEl && parsed.amount > 0) amtEl.value = parsed.amount.toFixed(2);
+    if (dtEl && parsed.date) dtEl.value = parsed.date;
+    if (catEl && parsed.category) {
+        for (const opt of catEl.options) {
+            if (opt.value.toLowerCase() === parsed.category.toLowerCase()) { opt.selected = true; break; }
+        }
+    }
+}
+
+// Abre o modal de lançamento em modo "foto" (usado tanto pela versão com
+// IA quanto pela versão com OCR grátis) e devolve o <img> de preview.
+function openPhotoModalShell(title) {
+    document.getElementById('txFormModalTitle').textContent = title;
+    document.getElementById('voiceBox').style.display = 'none';
+    const photoBox = document.getElementById('photoBox');
+    photoBox.classList.add('active');
+    const previewImg = document.getElementById('photoPreviewImg');
+    previewImg.style.display = 'none';
+
+    populateModalAccounts();
+    updateModalFormMode('expense');
+    const radio = document.querySelector('input[name="mtype"][value="expense"]');
+    if (radio) radio.checked = true;
+    document.getElementById('modalDesc').value = '';
+    document.getElementById('modalAmt').value = '';
+    document.getElementById('modalDt').value = getBrazilDate();
+
+    txFormModalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    saveAndNewMode = false;
+
+    return previewImg;
+}
+
+document.getElementById('photoInput').addEventListener('change', async function() {
+    const file = this.files && this.files[0];
+    this.value = ''; // permite selecionar a mesma foto de novo depois
+    if (!file) return;
+
+    const previewImg = openPhotoModalShell('📷 Lançamento por Foto');
+    setPhotoStatus('<span class="photo-spinner"></span>Lendo o comprovante…', false);
+
+    try {
+        const { base64, mediaType, dataUrl } = await fileToCompressedBase64(file);
+        previewImg.src = dataUrl;
+        previewImg.style.display = 'block';
+
+        if (!auth.currentUser) {
+            setPhotoStatus('⚠️ Faça login pra usar o lançamento por foto.', true);
+            return;
+        }
+        const idToken = await auth.currentUser.getIdToken();
+        const categorias = (window.getCategoriesUnified ? window.getCategoriesUnified() : []).map(c => c.name);
+
+        const resp = await fetch('https://controle-financeiro-d6fd5.web.app/api/extrair-comprovante', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+            },
+            body: JSON.stringify({ imageBase64: base64, mediaType, categorias })
+        });
+        const result = await resp.json();
+
+        if (!resp.ok || !result.ok) {
+            if (result.error === 'limite_mensal_atingido') {
+                setPhotoStatus(`🚫 Você atingiu o limite de ${result.limite || 40} leituras por foto neste mês. O limite renova no início do próximo mês. Preencha manualmente abaixo.`, true);
+            } else {
+                setPhotoStatus(`⚠️ Não consegui ler essa imagem (${escapeHtml(result.error || resp.status)}). Preencha manualmente abaixo.`, true);
+            }
+            return;
+        }
+
+        applyParsedPhotoToModal(result.data);
+
+        const restanteTxt = typeof result.restante === 'number' ? ` (${result.restante} leitura(s) restante(s) este mês)` : '';
+        if (result.data.confidence === 'low' || result.data.amount === 0) {
+            setPhotoStatus('🤔 Não tenho certeza dos dados — confira tudo antes de salvar.' + restanteTxt, true);
+        } else {
+            setPhotoStatus('✅ Dados extraídos! Revise e confirme antes de salvar.' + restanteTxt, false);
+        }
+    } catch (err) {
+        console.error('Erro ao processar foto do comprovante:', err);
+        const detalhe = (err && err.message) ? err.message : String(err);
+        setPhotoStatus(`⚠️ Erro ao processar a foto: ${escapeHtml(detalhe)}. Preencha manualmente abaixo.`, true);
+    }
+});
+
+// ============================================================
+// LANÇAMENTO POR FOTO — OCR GRÁTIS (Tesseract.js, roda no navegador)
+// Sem custo de API: o texto é lido localmente e depois interpretado
+// com as mesmas regras de palavras-chave usadas no lançamento por voz.
+// ============================================================
+let tesseractLoadPromise = null;
+function loadTesseract() {
+    if (window.Tesseract) return Promise.resolve();
+    if (tesseractLoadPromise) return tesseractLoadPromise;
+    tesseractLoadPromise = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Falha ao carregar biblioteca de OCR'));
+        document.head.appendChild(s);
+    });
+    return tesseractLoadPromise;
+}
+
+function parseReceiptText(text) {
+    const lower = normalize(text);
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+    // ---- valor: procura a linha do "TOTAL" (evitando "SUBTOTAL"); se não achar, usa o maior valor da nota ----
+    const moneyRe = /(\d{1,3}(?:\.\d{3})*,\d{2})/g;
+    let amount = 0;
+    const totalLine = lines.find(l => /\btotal\b/i.test(l) && !/subtotal/i.test(l));
+    if (totalLine) {
+        const matches = totalLine.match(moneyRe);
+        if (matches) amount = parseFloat(matches[matches.length - 1].replace(/\./g, '').replace(',', '.'));
+    }
+    if (!amount) {
+        const all = [...text.matchAll(moneyRe)].map(m => parseFloat(m[1].replace(/\./g, '').replace(',', '.')));
+        if (all.length) amount = Math.max(...all);
+    }
+
+    // ---- data: formato dd/mm/aaaa, dd-mm-aaaa ou dd.mm.aaaa ----
+    let date = '';
+    const dateMatch = text.match(/(\d{2})[\/\.\-](\d{2})[\/\.\-](\d{2,4})/);
+    if (dateMatch) {
+        let [, d, mo, y] = dateMatch;
+        if (y.length === 2) y = '20' + y;
+        const dt = new Date(`${y}-${mo}-${d}T12:00:00`);
+        if (!isNaN(dt.getTime())) date = `${y}-${mo}-${d}`;
+    }
+
+    // ---- tipo: receita se parecer depósito/recebimento; senão despesa (padrão pra comprovantes de compra) ----
+    const incomeKw = ['recebido','deposito','credito recebido','pix recebido','estorno','reembolso'];
+    const type = incomeKw.some(k => includesWord(lower, normalize(k))) ? 'income' : 'expense';
+
+    // ---- categoria: mesmas palavras-chave usadas no lançamento por voz (com normalização de acentos) ----
+    const allCats = window.getCategoriesUnified ? window.getCategoriesUnified() : [];
+    let category = '';
+    allCats.forEach(cat => {
+        if (category) return;
+        const catNorm = normalize(cat.name);
+        if (includesWord(lower, catNorm)) { category = cat.name; return; }
+        const kws = KEYWORD_CATEGORIES_NORM[catNorm] || [];
+        if (kws.some(k => includesWord(lower, normalize(k)))) category = cat.name;
+    });
+
+    // ---- descrição: primeira linha não vazia (geralmente o nome do estabelecimento) ----
+    const description = lines.length ? lines[0].slice(0, 40) : '';
+
+    return {
+        type,
+        amount,
+        date: date || getBrazilDate(),
+        category,
+        description,
+        confidence: amount > 0 ? 'medium' : 'low'
+    };
+}
+
+document.getElementById('photoInputOcr').addEventListener('change', async function() {
+    const file = this.files && this.files[0];
+    this.value = '';
+    if (!file) return;
+
+    const previewImg = openPhotoModalShell('🔍 Lançamento por Foto (OCR grátis)');
+    setPhotoStatus('<span class="photo-spinner"></span>Carregando OCR…', false);
+
+    try {
+        const { dataUrl } = await fileToCompressedBase64(file);
+        previewImg.src = dataUrl;
+        previewImg.style.display = 'block';
+
+        await loadTesseract();
+        setPhotoStatus('<span class="photo-spinner"></span>Lendo texto da imagem… 0%', false);
+
+        const { data: { text } } = await Tesseract.recognize(file, 'por', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    setPhotoStatus(`<span class="photo-spinner"></span>Lendo texto da imagem… ${Math.round(m.progress * 100)}%`, false);
+                }
+            }
+        });
+
+        const parsed = parseReceiptText(text);
+        applyParsedPhotoToModal(parsed);
+
+        if (parsed.confidence === 'low') {
+            setPhotoStatus('🤔 OCR não teve certeza dos dados — confira tudo antes de salvar.', true);
+        } else {
+            setPhotoStatus('✅ Dados extraídos localmente (OCR grátis)! Revise e confirme antes de salvar.', false);
+        }
+    } catch (err) {
+        console.error('Erro no OCR local:', err);
+        setPhotoStatus('⚠️ Erro ao ler a imagem. Preencha manualmente abaixo.', true);
+    }
 });
 
 function openTxFormModal(type) {
@@ -2284,6 +2727,7 @@ expense:'💸 Nova Despesa',
 
 document.getElementById('txFormModalTitle').textContent = titles[type] || 'Novo Lançamento';
 document.getElementById('voiceBox').style.display = 'none';
+document.getElementById('photoBox').classList.remove('active');
 
 const actualType = type === 'expense-card' ? 'expense' : type;
 
@@ -2321,6 +2765,7 @@ document.getElementById('txFormModalTitle').textContent = '🎤 Lançamento por 
 const voiceBox = document.getElementById('voiceBox');
 const warnEl = document.getElementById('voiceHttpsWarn');
 const micSec = document.getElementById('voiceMicSection');
+document.getElementById('photoBox').classList.remove('active');
 
 voiceBox.style.display = 'block';
 voiceBox.className = 'voice-box';
@@ -2507,7 +2952,7 @@ function initializeRecognition() {
     recognition.lang = 'pt-BR';
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 3;
 
     const btn = document.getElementById('voiceStartBtn');
     const statusEl = document.getElementById('voiceStatusText');
@@ -2530,16 +2975,20 @@ function initializeRecognition() {
     };
 
     recognition.onresult = (event) => {
-        let interim = '', final = '';
+        let interim = '';
+        const finalAlternatives = [];
         for (let i = event.resultIndex; i < event.results.length; i++) {
-            const t = event.results[i][0].transcript;
-            if (event.results[i].isFinal) final += t;
-            else interim += t;
+            const result = event.results[i];
+            if (result.isFinal) {
+                for (let a = 0; a < result.length; a++) finalAlternatives.push(result[a].transcript);
+            } else {
+                interim += result[0].transcript;
+            }
         }
-        transcEl.textContent = final || interim;
-        if (final || interim) transcEl.classList.add('has-text');
-        if (final) {
-            applyParsedToModal(parseVoiceCommand(final));
+        transcEl.textContent = finalAlternatives[0] || interim;
+        if (finalAlternatives.length || interim) transcEl.classList.add('has-text');
+        if (finalAlternatives.length) {
+            applyParsedToModal(pickBestVoiceParse(finalAlternatives));
             showSuccessAlert('✅ Lançamento interpretado! Revise e confirme.');
         }
     };
@@ -2724,67 +3173,147 @@ function buildRecognition() {
     rec.lang = 'pt-BR';
     rec.continuous = false;
     rec.interimResults = true;
-    rec.maxAlternatives = 1;
+    rec.maxAlternatives = 3;
     return rec;
 }
 
+// Remove acentos e baixa a caixa — usado em todo o parser de voz pra não
+// perder matches por causa de acento (ex: transcrição sem acento vs categoria com acento)
+function normalize(str) {
+    return String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// Compara por PALAVRA INTEIRA (com espaços de borda), não por substring solta —
+// evita falso positivo tipo "gas" batendo dentro de "gastei".
+function includesWord(haystack, needle) {
+    return (' ' + haystack + ' ').includes(' ' + needle + ' ');
+}
+
+// Palavras-chave por categoria, compartilhadas entre o parser de voz e o OCR
+const KEYWORD_CATEGORIES = {
+    'Alimentacao': ['comida','supermercado','restaurante','mercado','mercadinho','feira','padaria','acougue','pizza','lanche','lanchonete','ifood','delivery','hamburguer','sushi','japones','marmita','almoco','janta','jantar','cafe'],
+    'Transporte': ['uber','99','taxi','táxi','combustivel','gasolina','álcool','etanol','onibus','ônibus','metro','metrô','transporte','estacionamento','pedagio','pedágio','posto','abastecimento','passagem','carro','moto','oficina','mecanico','mecânico'],
+    'Moradia': ['aluguel','condominio','condomínio','luz','agua','água','internet','telefone','moradia','iptu','energia','gas','gás','manutencao','manutenção','reforma'],
+    'Saude': ['medico','médico','farmacia','farmácia','remedio','remédio','consulta','saude','saúde','hospital','plano de saude','exame','dentista','psicologo','psicólogo','convenio','convênio','vacina','academia'],
+    'Lazer': ['cinema','parque','viagem','lazer','diversao','diversão','streaming','netflix','spotify','jogo','ingresso','show','bar','balada','passeio','festa','viajem'],
+    'Educacao': ['curso','livro','faculdade','escola','educacao','educação','aula','udemy','alura','mensalidade','material escolar','livraria'],
+    'Salario': ['salario','salário','provento','ordenado','holerite','pagamento','freela','freelance'],
+    'Investimento':['investimento','acoes','ações','fundos','tesouro','cdb','poupanca','poupança','bolsa','renda fixa','criptomoeda','bitcoin']
+};
+
+// Mesma tabela acima, mas indexada por chave normalizada (sem acento), pra
+// funcionar mesmo se o nome da categoria do usuário tiver acentos diferentes
+const KEYWORD_CATEGORIES_NORM = {};
+Object.keys(KEYWORD_CATEGORIES).forEach(k => {
+    KEYWORD_CATEGORIES_NORM[normalize(k)] = KEYWORD_CATEGORIES[k];
+});
+
+// Extrai o valor em reais do texto falado, tentando os formatos mais
+// específicos primeiro (mais confiáveis) até cair no fallback genérico.
+function extractAmount(lowerText) {
+    let m;
+
+    // "50 reais e 30 centavos" → 50.30
+    m = lowerText.match(/(\d+)\s*reais?\s*e\s*(\d{1,2})\s*centavos?/);
+    if (m) return parseFloat(`${m[1]}.${m[2].padStart(2, '0')}`);
+
+    // "2 mil reais" / "1,5 mil" → multiplica por 1000
+    m = lowerText.match(/(\d+(?:[.,]\d+)?)\s*mil\s*reais?/);
+    if (m) { const n = parseFloat(m[1].replace(',', '.')); if (!isNaN(n)) return n * 1000; }
+
+    // "R$ 45,90" ou "R$45,9"
+    m = lowerText.match(/r\$\s*(\d+(?:[.,]\d{1,2})?)/);
+    if (m) { const n = parseFloat(m[1].replace(',', '.')); if (!isNaN(n) && n > 0) return n; }
+
+    // "45,90 reais" / "45.90 reais"
+    m = lowerText.match(/(\d+[.,]\d{2})\s*reais?/);
+    if (m) { const n = parseFloat(m[1].replace('.', '').replace(',', '.')); if (!isNaN(n) && n > 0) return n; }
+
+    // "45,90" solto (com centavos)
+    m = lowerText.match(/(\d+[.,]\d{2})\b/);
+    if (m) { const n = parseFloat(m[1].replace('.', '').replace(',', '.')); if (!isNaN(n) && n > 0) return n; }
+
+    // "45 reais" (inteiro)
+    m = lowerText.match(/(\d+)\s*reais?/);
+    if (m) { const n = parseFloat(m[1]); if (!isNaN(n) && n > 0) return n; }
+
+    // fallback: primeiro número solto no texto
+    m = lowerText.match(/\b(\d+)\b/);
+    if (m) { const n = parseFloat(m[1]); if (!isNaN(n) && n > 0) return n; }
+
+    return 0;
+}
+
 function parseVoiceCommand(text) {
-    const lower = text.toLowerCase().trim();
-    let type = 'expense', amount = 0, description = '', category = '';
+    const lower = normalize(text.trim());
+    let type = 'expense', description = '', category = '';
 
-    const incomeKw = ['recebi','ganhei','entrada','salario','salário','rendimento','dividendo','lucro','comissao','comissão','bonus','bônus','reembolso','estorno','cashback'];
-    const transferKw= ['transferi','enviei','pix','ted','doc','transferencia','transferência','movi','saque'];
+    const incomeKw = ['recebi','ganhei','entrada','salario','rendimento','dividendo','lucro','comissao','bonus','reembolso','estorno','cashback','caiu na conta','depositaram'];
+    const transferKw= ['transferi','enviei','pix','ted','doc','transferencia','movi','saque','sacar'];
+    const expenseKw = ['gastei','paguei','comprei','gasto','despesa'];
 
-    if (incomeKw.some(k => lower.includes(k))) type = 'income';
-    else if (transferKw.some(k => lower.includes(k))) type = 'transfer';
+    const incomeScore = incomeKw.filter(k => includesWord(lower, normalize(k))).length;
+    const transferScore = transferKw.filter(k => includesWord(lower, normalize(k))).length;
+    const expenseScore = expenseKw.filter(k => includesWord(lower, normalize(k))).length;
 
-    const patterns = [
-        /r\$\s*([\d]+[.,]?[\d]*)/i,
-        /([\d]+[.,]\d{2})\b/,
-        /([\d]+)\s*reais?/i,
-        /\b([\d]+)\b/
-    ];
+    const amount = extractAmount(lower);
 
-    for (const p of patterns) {
-        const m = lower.match(p);
-        if (m) {
-            const n = parseFloat((m[1]||'').replace(/\./g,'').replace(',','.'));
-            if (!isNaN(n) && n > 0) { amount = n; break; }
-        }
-    }
-
-    const kwCats = {
-        'Alimentacao': ['comida','supermercado','restaurante','mercado','pizza','lanche','ifood','delivery','hamburguer'],
-        'Transporte': ['uber','taxi','táxi','combustivel','gasolina','onibus','metro','transporte','estacionamento','pedagio','99'],
-        'Moradia': ['aluguel','condominio','luz','agua','internet','telefone','moradia','iptu','energia'],
-        'Saude': ['medico','farmacia','remedio','consulta','saude','hospital','plano','exame','dentista'],
-        'Lazer': ['cinema','parque','viagem','lazer','diversao','streaming','netflix','spotify','jogo','ingresso'],
-        'Educacao': ['curso','livro','faculdade','escola','educacao','aula','udemy','alura'],
-        'Salario': ['salario','salário','provento','ordenado','holerite'],
-        'Investimento':['investimento','acoes','fundos','tesouro','cdb','poupança','bolsa']
-    };
-
+    const kwCats = KEYWORD_CATEGORIES_NORM;
     const allCats = window.getCategoriesUnified();
-    let best = '', bestScore = 0;
+    let best = '', bestScore = 0, bestCatType = '';
     allCats.forEach(cat => {
-        if (lower.includes(cat.name.toLowerCase())) { best = cat.name; bestScore = 100; return; }
-        const kws = kwCats[cat.name] || [];
-        kws.forEach(k => { if (lower.includes(k) && bestScore < 50) { best = cat.name; bestScore = 50; } });
+        const catNorm = normalize(cat.name);
+        if (includesWord(lower, catNorm)) { best = cat.name; bestScore = 100; bestCatType = cat.type; return; }
+        const kws = kwCats[catNorm] || [];
+        kws.forEach(k => { if (includesWord(lower, normalize(k)) && bestScore < 50) { best = cat.name; bestScore = 50; bestCatType = cat.type; } });
     });
 
+    // Decide o tipo do lançamento. Palavra explícita ("recebi", "transferi",
+    // "paguei"...) sempre manda mais. Só quando NADA foi dito explicitamente
+    // é que usamos o tipo da categoria reconhecida como desempate — por
+    // exemplo, "Salário, dois mil reais" deve virar receita mesmo sem a
+    // pessoa falar "recebi", já que Salário é cadastrada como categoria
+    // de receita.
+    if (incomeScore > 0 && incomeScore >= transferScore && incomeScore >= expenseScore) type = 'income';
+    else if (transferScore > 0 && transferScore >= expenseScore) type = 'transfer';
+    else if (expenseScore > 0) type = 'expense';
+    else if (bestCatType === 'income') type = 'income';
+
     category = best;
-    const stop = ['despesa','receita','transferencia','transferência','de','da','do','com','em','por','reais','real','r$','rs','um','uma','ganhei','gastei','paguei','comprei','recebi','transferi'];
+    const stop = ['despesa','receita','transferencia','de','da','do','com','em','por','reais','real','r$','rs','um','uma','ganhei','gastei','paguei','comprei','recebi','transferi','e','tipo','entao','ai','ne','ta','ah','la','no','na','os','as','um pouco','centavos','centavo'];
+    const catNormForFilter = normalize(category);
     const words = lower.split(/\s+/).filter(w => !stop.includes(w) && !/^\d+[.,]?\d*$/.test(w));
 
     if (category) {
-        const kwsForCat = kwCats[category] || [];
-        description = words.filter(w => w !== category.toLowerCase() && !kwsForCat.includes(w)).join(' ').trim();
+        const kwsForCat = (kwCats[catNormForFilter] || []).map(normalize);
+        description = words.filter(w => w !== catNormForFilter && !kwsForCat.some(k => k.split(' ').includes(w))).join(' ').trim();
     } else {
         description = words.join(' ').trim();
     }
 
     if (!description) description = category || (type==='income'?'Receita':type==='transfer'?'Transferência':'Despesa');
     return { type, amount, description, category };
+}
+
+// Pontua uma interpretação: valor > 0 e categoria reconhecida contam mais
+// que só ter uma descrição — usado pra escolher a melhor entre as
+// alternativas que o reconhecimento de voz devolve pro mesmo áudio.
+function scoreVoiceParse(parsed) {
+    let score = 0;
+    if (parsed.amount > 0) score += 2;
+    if (parsed.category) score += 1;
+    if (parsed.description && parsed.description.length > 2) score += 1;
+    return score;
+}
+
+function pickBestVoiceParse(transcripts) {
+    let best = null, bestScore = -1;
+    transcripts.forEach(t => {
+        const parsed = parseVoiceCommand(t);
+        const score = scoreVoiceParse(parsed);
+        if (score > bestScore) { bestScore = score; best = parsed; }
+    });
+    return best || parseVoiceCommand(transcripts[0] || '');
 }
 
 function applyParsedToModal(parsed) {
@@ -3677,7 +4206,16 @@ leftDdMenu.addEventListener("click", e => e.stopPropagation()); // NOVO
         if (!resp.ok || !data.checkoutUrl) {
           throw new Error(data.error || "Não foi possível iniciar o pagamento.");
         }
-        window.location.href = data.checkoutUrl;
+        // Dentro do app (Capacitor), abre no navegador do sistema — o checkout
+        // do Mercado Pago trava o botão "Pagar" quando roda numa WebView embutida
+        // (proteção antifraude dele). No navegador normal, segue como antes.
+        if (typeof isAndroidCapacitor === 'function' && isAndroidCapacitor() && window.Capacitor?.Plugins?.Browser) {
+          await window.Capacitor.Plugins.Browser.open({ url: data.checkoutUrl });
+          card.classList.remove("loading");
+          if (hint) hint.textContent = hintOriginal;
+        } else {
+          window.location.href = data.checkoutUrl;
+        }
       } catch (err) {
         alert("Não foi possível iniciar o pagamento agora. Tente novamente em instantes.\n\n" + err.message);
         card.classList.remove("loading");

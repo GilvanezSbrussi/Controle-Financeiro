@@ -1,0 +1,51 @@
+RECUPERAÇÃO: arquivos do Gradle que sumiram da pasta android
+==============================================================
+
+O QUE ACONTECEU
+----------------
+Ao extrair o patch anterior, o programa usado (provavelmente o
+extrator padrão do Windows ou alguma opção de "sobrescrever pasta")
+substituiu a pasta "android" inteira pelo conteúdo do zip, em vez
+de apenas somar/mesclar os 2 arquivos que estavam lá dentro
+(capacitor.settings.gradle e app/capacitor.build.gradle).
+
+Com isso, sumiram os arquivos principais que fazem a pasta
+"android" ser reconhecida como um projeto Gradle:
+  - build.gradle
+  - settings.gradle
+  - gradle.properties
+  - gradlew / gradlew.bat
+  - variables.gradle
+  - a pasta gradle/wrapper (gradle-wrapper.jar e .properties)
+  - .gitignore
+
+Por isso o Android Studio deu o erro "does not contain a Gradle
+build".
+
+COMO APLICAR
+------------
+1. Feche o Android Studio.
+2. Extraia este zip DENTRO da pasta raiz do projeto
+   (D:\Projetos\www\Controle-Financeiro), deixando ele SOMAR os
+   arquivos dentro da pasta "android" que já existe — não escolha
+   nenhuma opção de "substituir pasta inteira", apenas "sobrescrever
+   arquivos" se perguntar (só tem arquivo novo aqui, então na
+   prática não deve nem perguntar nada, só vai adicionar o que
+   falta).
+3. Confira com o comando abaixo (no terminal MINGW64) se agora
+   aparecem os arquivos:
+      ls -la /d/Projetos/www/Controle-Financeiro/android
+   Deve mostrar build.gradle, settings.gradle, gradlew, gradlew.bat,
+   variables.gradle, gradle.properties e a pasta gradle/, além do
+   que já estava lá (app/, capacitor-cordova-android-plugins/,
+   capacitor.settings.gradle, .gradle/, .idea/).
+4. Abra o projeto de novo no Android Studio (ou feche e reabra) e
+   deixe sincronizar.
+
+DICA PARA A PRÓXIMA VEZ
+------------------------
+Ao extrair um .7z/.zip por cima de uma pasta que já existe, use a
+opção "Extrair aqui" (Extract Here) do 7-Zip/WinRAR normal — ela
+mescla os arquivos, só substituindo os que têm o mesmo nome. Evite
+opções como "sincronizar pasta" ou apps que espelham/replace a
+pasta de destino inteira.

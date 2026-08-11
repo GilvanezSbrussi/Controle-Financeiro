@@ -1938,7 +1938,8 @@ function launchRecorrente(rec) {
     date: `${yr}-${mo}-${day}`,
     fromAccount: rec.fromAccount,
     toAccount: "",
-    category: rec.category || ""
+    category: rec.category || "",
+    expenseKind: rec.type === "expense" ? (rec.expenseKind || "") : ""
   };
   state.transactions.unshift(tx);
   markLaunched(rec);
@@ -2019,6 +2020,7 @@ function openRecorrModal(rec) {
   accEl.innerHTML = state.accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join("");
   const catEl = document.getElementById("recorrCat");
   catEl.innerHTML = `<option value="">Sem categoria</option>` + cats.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
+  const kindEl = document.getElementById("recorrExpKind");
 
   if (rec) {
     document.querySelector(`input[name="rtype"][value="${rec.type}"]`).checked = true;
@@ -2028,6 +2030,7 @@ function openRecorrModal(rec) {
     document.getElementById("recorrParcelas").value = rec.installments || "";
     accEl.value = rec.fromAccount;
     catEl.value = rec.category || "";
+    if (kindEl) kindEl.value = rec.expenseKind || "";
   } else {
     document.querySelector('input[name="rtype"][value="expense"]').checked = true;
     document.getElementById("recorrDesc").value = "";
@@ -2036,14 +2039,22 @@ function openRecorrModal(rec) {
     document.getElementById("recorrParcelas").value = "";
     accEl.value = state.accounts[0]?.id || "";
     catEl.value = "";
+    if (kindEl) kindEl.value = "";
   }
+  updateRecorrKindVisibility();
   modal?.classList.add("open");
+}
+
+function updateRecorrKindVisibility() {
+  const type = document.querySelector('input[name="rtype"]:checked')?.value || "expense";
+  document.getElementById("recorrKindWrap")?.classList.toggle("hidden", type !== "expense");
 }
 
 function setupRecorrentesUI() {
   document.getElementById("addRecorrBtn")?.addEventListener("click", () => openRecorrModal(null));
   document.getElementById("recorrModalClose")?.addEventListener("click", () => document.getElementById("recorrModal")?.classList.remove("open"));
   document.getElementById("recorrModal")?.addEventListener("click", e => { if (e.target.id === "recorrModal") e.target.classList.remove("open"); });
+  document.querySelectorAll('input[name="rtype"]').forEach(r => r.addEventListener("change", updateRecorrKindVisibility));
 
   document.getElementById("recorrForm")?.addEventListener("submit", e => {
     e.preventDefault();
@@ -2061,6 +2072,7 @@ function setupRecorrentesUI() {
       day:         Number(document.getElementById("recorrDay").value),
       fromAccount: document.getElementById("recorrAcc").value,
       category:    document.getElementById("recorrCat").value,
+      expenseKind: type === "expense" ? String(document.getElementById("recorrExpKind")?.value || "") : "",
       installments,
       installmentsDone,
       active:      existing ? (existing.active !== false) : true,

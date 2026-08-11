@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema principal do app -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#0f766e</item>
+        <item name="colorPrimaryDark">#0f766e</item>
+        <item name="colorAccent">#14b8a6</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:statusBarColor">#0f766e</item>
+        <item name="android:navigationBarColor">#0f766e</item>
+    </style>
+    
+    <!-- Tela de splash (se quiser) -->
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:statusBarColor">#0f766e</item>
+    </style>
+</resources>
