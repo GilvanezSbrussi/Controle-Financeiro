@@ -1,14 +1,8 @@
 {
-  "name": "functions",
-  "description": "Cloud Functions - lembretes com Firebase Cloud Messaging",
-  "engines": {
-    "node": "20"
-  },
-  "main": "index.js",
+  "name": "controle-financeiro-app",
+  "description": "App/site (Capacitor Android/iOS) — biometria nativa via NativeBiometric",
   "dependencies": {
-    "@capgo/capacitor-native-biometric": "^8.6.3",
-    "firebase-admin": "^12.0.0",
-    "firebase-functions": "^5.0.0"
+    "@capgo/capacitor-native-biometric": "^8.6.3"
   },
   "private": true
 }

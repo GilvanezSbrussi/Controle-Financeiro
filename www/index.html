@@ -4545,6 +4545,16 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
     if (tapCount >= SECRET_TAPS_REQUIRED) {
       tapCount = 0;
       hideHint();
+
+      // O painel admin (Gerador.html) só existe rodando local via
+      // license-admin/server.js (abrir-gerador-licencas.bat), na porta 8789.
+      // No app (Capacitor) e no site publicado esse arquivo não é servido
+      // de propósito, então nem tenta abrir o overlay nesses casos.
+      if (window.location.port !== '8789') {
+        showHint('Painel admin só roda no computador (license-admin).');
+        return;
+      }
+
       openAdminOverlay();
     }
   }
@@ -4665,7 +4675,7 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
     if (localAdmin) {
       // Sem backend, não há token real: abre o gerador.html diretamente.
       closeAdminOverlay();
-      window.location.href = 'license-admin/Gerador.html';
+      window.location.href = 'Gerador.html';
       return;
     }
 
@@ -4687,8 +4697,8 @@ document.getElementById('modalCat')?.addEventListener('change', function() {
     
     if (!panel || !iframe) return;
     
-    // Monta URL do gerador protegido
-    iframe.src = 'license-admin/Gerador.html';
+    // Monta URL do gerador protegido (checagem de token no server.js)
+    iframe.src = '/admin/gerador?token=' + encodeURIComponent(token);
     switchAdminTab('gerador');
     
     if (info) {
