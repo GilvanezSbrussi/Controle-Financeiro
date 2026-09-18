@@ -1,0 +1,42 @@
+{
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local",
+        "license-admin",
+        "css",
+        "js"
+      ]
+    }
+  ],
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "license-admin/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/criar-pagamento",
+        "function": { "functionId": "criarPagamento", "region": "southamerica-east1" }
+      },
+      {
+        "source": "/api/webhook",
+        "function": { "functionId": "mercadoPagoWebhook", "region": "southamerica-east1" }
+      },
+      {
+        "source": "/api/licencas",
+        "function": { "functionId": "listarLicencas", "region": "southamerica-east1" }
+      }
+    ]
+  }
+}

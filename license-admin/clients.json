@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1779819401211-e2c65027179d5",
+    "name": "Lovani da Rosa Sbrussi",
+    "document": "05425502966",
+    "email": "lovanidarosasbrussi652@gmail.com",
+    "profile": "Administrador",
+    "updatedAt": "2026-06-21T00:58:14.598Z"
+  },
+  {
+    "id": "1779818857142-0db4424153fc4",
+    "name": "Gilvanez Sbrussi",
+    "document": "03466068967",
+    "email": "gilvanezmh@gmail.com",
+    "profile": "Administrador",
+    "updatedAt": "2026-06-21T00:58:11.098Z",
+    "adminToken": "506385812f16c880ca6afb8bfecc76dc276d25261a3137edab03129cfa36469f",
+    "tokenExpires": 1783554285291
+  },
+  {
+    "id": "1786926118980-f584398d32877c5d",
+    "name": "Eduardo Matheus Sbrussi",
+    "document": "088.812.419-86",
+    "email": "eduardos.sbrussi@gmail.com",
+    "profile": "Usuário",
+    "updatedAt": "2026-08-17T00:21:58.980Z"
+  }
+]

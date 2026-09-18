@@ -549,7 +549,6 @@ let editId  = null;
 let economyMonth = new Date().getMonth();
 let economyYear  = new Date().getFullYear();
 let currentEditingCategoryId = null;
-let summaryDetailType = null; // "income" | "expense" | null (fechado) — modal de expandir Receitas/Despesas
 
 // --- ELEMENTOS ---
 const el = {
@@ -591,10 +590,6 @@ const el = {
   insights:      document.getElementById("insights"),
   flowChart:     document.getElementById("flowChart"),
   accChart:      document.getElementById("accChart"),
-  accChartLegend: document.getElementById("accChartLegend"),
-  summaryDetailModal: document.getElementById("summaryDetailModal"),
-  summaryDetailTitle: document.getElementById("summaryDetailTitle"),
-  summaryDetailList:  document.getElementById("summaryDetailList"),
   licWarn:       document.getElementById("licWarn"),
   favTags:       document.getElementById("favTags"),
   catName:              document.getElementById("catName"),
@@ -628,13 +623,6 @@ el.cancelEditBtn.addEventListener("click", resetForm);
 el.expList.addEventListener("click", onTxClick);
 el.incList.addEventListener("click", onTxClick);
 el.trfList.addEventListener("click", onTxClick);
-document.getElementById("incomeExpandBtn")?.addEventListener("click", () => openSummaryDetailModal("income"));
-document.getElementById("expenseExpandBtn")?.addEventListener("click", () => openSummaryDetailModal("expense"));
-document.getElementById("incListExpandBtn")?.addEventListener("click", () => openSummaryDetailModal("income"));
-document.getElementById("expListExpandBtn")?.addEventListener("click", () => openSummaryDetailModal("expense"));
-document.getElementById("summaryDetailModalClose")?.addEventListener("click", closeSummaryDetailModal);
-el.summaryDetailModal?.addEventListener("click", (e) => { if (e.target === el.summaryDetailModal) closeSummaryDetailModal(); });
-el.summaryDetailList?.addEventListener("click", onTxClick);
 window.addEventListener("resize", () => { try { drawCharts(calcSummary()); drawEconomyChart(); } catch(e){} });
 
 render();
@@ -748,29 +736,6 @@ function loadLicense() {
   try { return JSON.parse(localStorage.getItem(LICENSE_KEY) || "null") || { active:false }; }
   catch { return { active:false }; }
 }
-
-// Licença sincronizada pela conta (Firestore, users/{uid}/data/licenca),
-// gravada pelo licenca.html quando a pessoa ativa estando logada com uma
-// conta de verdade (não anônima). Só "sobe o nível" da licença local se a
-// da nuvem for ativa e tiver validade igual ou maior — nunca derruba uma
-// licença local válida por causa de um documento vazio/antigo na nuvem.
-// Quem usa o app sem conta (sessão anônima) não é afetado por isso.
-function mergeCloudLicense(remote) {
-  if (!remote || !remote.active || !remote.expiresAt) return;
-  const remoteExp = new Date(remote.expiresAt).getTime();
-  const localExp  = (license.active && license.expiresAt) ? new Date(license.expiresAt).getTime() : -Infinity;
-  if (remoteExp > localExp) {
-    license = remote;
-    localStorage.setItem(LICENSE_KEY, JSON.stringify(license));
-    renderLicense();
-    // Também reavalia/derruba a tela de bloqueio de licença (licBlockOverlay),
-    // que usa sua própria checagem independente desta.
-    if (window.LicenseModule) {
-      window.LicenseModule.check().then(window.LicenseModule.apply);
-    }
-    console.log("☁️ Licença sincronizada pela conta:", license);
-  }
-}
 function getDeviceId() {
   let id = localStorage.getItem(DEVICE_KEY);
   if (!id) { id = "dev-" + Date.now() + "-" + crypto.randomUUID(); localStorage.setItem(DEVICE_KEY, id); }
@@ -867,19 +832,6 @@ function initFirebaseSync() {
     const recorrDoc = await cloudDocPath("recorrentes").get().catch(() => null);
     if (recorrDoc && !recorrDoc.exists && recorrentes.length) {
       cloudSave("recorrentes", { items: recorrentes });
-    }
-
-    // Licença por conta: só para login de verdade (não anônimo). Permite
-    // usar a mesma licença em vários dispositivos ao logar com a mesma
-    // conta — ver licenca.html para onde a licença é gravada na nuvem.
-    if (!user.isAnonymous) {
-      const licDoc = await cloudDocPath("licenca").get().catch(() => null);
-      if (licDoc && licDoc.exists) mergeCloudLicense(licDoc.data());
-
-      cloudDocPath("licenca").onSnapshot((snap) => {
-        if (!snap.exists) return;
-        mergeCloudLicense(snap.data());
-      });
     }
 
     cloudDocPath("state").onSnapshot((snap) => {
@@ -1517,39 +1469,6 @@ function render() {
   renderProjecao();
   try { drawCharts(summary); } catch(e) {}
   try { drawEconomyChart(); } catch(e) {}
-  renderSummaryDetailModal();
-}
-
-// ============================================================
-// EXPANDIR RECEITAS/DESPESAS (cards do topo) — mostra TODOS os
-// lançamentos daquele tipo (mesmo total exibido no card, que é
-// somado sobre todo o histórico, não só o mês em exibição).
-// ============================================================
-function openSummaryDetailModal(type) {
-  summaryDetailType = type;
-  el.summaryDetailModal?.classList.add("open");
-  document.body.style.overflow = "hidden";
-  renderSummaryDetailModal();
-}
-function closeSummaryDetailModal() {
-  summaryDetailType = null;
-  el.summaryDetailModal?.classList.remove("open");
-  document.body.style.overflow = "";
-}
-function renderSummaryDetailModal() {
-  if (!summaryDetailType || !el.summaryDetailModal?.classList.contains("open")) return;
-  const list = state.transactions
-    .filter(t => t.type === summaryDetailType)
-    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  if (el.summaryDetailTitle) {
-    el.summaryDetailTitle.textContent = summaryDetailType === "income" ? "💰 Todas as receitas" : "💸 Todas as despesas";
-  }
-  if (el.summaryDetailList) {
-    el.summaryDetailList.innerHTML = txHTML(
-      list,
-      summaryDetailType === "income" ? "Nenhuma receita registrada." : "Nenhuma despesa registrada."
-    );
-  }
 }
 
 function fillSelects() {
@@ -1804,71 +1723,11 @@ function drawCharts(s) {
     { label:"Receitas", value:s.income,  color:"#16a34a" },
     { label:"Despesas", value:s.expense, color:"#dc2626" }
   ]);
-  drawPie(el.accChart, el.accChartLegend, state.accounts.map((a,i) => ({
+  drawBar(el.accChart, state.accounts.map(a => ({
     label: a.name,
     value: s.balances[a.id]||0,
-    color: PIE_COLORS[i % PIE_COLORS.length]
+    color: a.kind==="investment"?"#2563eb":"#0f766e"
   })));
-}
-
-// Paleta de cores para o gráfico de pizza (cicla se houver mais contas que cores)
-const PIE_COLORS = ["#0f766e","#2563eb","#f59e0b","#dc2626","#7c3aed","#db2777","#059669","#ea580c","#4f46e5","#0891b2","#65a30d","#be123c"];
-
-function drawPie(canvas, legendEl, rows) {
-  const ctx = canvas.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const size = 170;
-  canvas.width  = size*dpr;
-  canvas.height = size*dpr;
-  canvas.style.width  = size+"px";
-  canvas.style.height = size+"px";
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.scale(dpr,dpr);
-  ctx.clearRect(0,0,size,size);
-
-  const cx = size/2, cy = size/2, r = size/2 - 6;
-  const total = rows.reduce((sum,row) => sum + Math.abs(row.value), 0);
-
-  if (!rows.length || total <= 0) {
-    ctx.beginPath();
-    ctx.arc(cx,cy,r,0,2*Math.PI);
-    ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = "600 12px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Sem saldo", cx, cy+4);
-    ctx.textAlign = "left";
-    if (legendEl) legendEl.innerHTML = `<li class="acc-chart-empty">Cadastre uma conta para ver o gráfico</li>`;
-    return;
-  }
-
-  let start = -Math.PI/2;
-  rows.forEach(row => {
-    const frac = Math.abs(row.value)/total;
-    const end  = start + frac*2*Math.PI;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,start,end);
-    ctx.closePath();
-    ctx.fillStyle = row.color;
-    ctx.fill();
-    ctx.strokeStyle = "var(--bg2,#fff)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    start = end;
-  });
-
-  if (legendEl) {
-    legendEl.innerHTML = rows.map(row => `
-      <li>
-        <span class="acc-chart-dot" style="background:${row.color}"></span>
-        <span class="acc-chart-name">${escapeHtml(row.label)}</span>
-        <span class="acc-chart-val money-value">${money.format(row.value)}</span>
-      </li>
-    `).join("");
-  }
 }
 
 function drawBar(canvas, rows) {
@@ -2018,8 +1877,7 @@ function launchRecorrente(rec) {
     date: `${yr}-${mo}-${day}`,
     fromAccount: rec.fromAccount,
     toAccount: "",
-    category: rec.category || "",
-    expenseKind: rec.type === "expense" ? (rec.expenseKind || "") : ""
+    category: rec.category || ""
   };
   state.transactions.unshift(tx);
   markLaunched(rec);
@@ -2100,7 +1958,6 @@ function openRecorrModal(rec) {
   accEl.innerHTML = state.accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join("");
   const catEl = document.getElementById("recorrCat");
   catEl.innerHTML = `<option value="">Sem categoria</option>` + cats.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join("");
-  const kindEl = document.getElementById("recorrExpKind");
 
   if (rec) {
     document.querySelector(`input[name="rtype"][value="${rec.type}"]`).checked = true;
@@ -2110,7 +1967,6 @@ function openRecorrModal(rec) {
     document.getElementById("recorrParcelas").value = rec.installments || "";
     accEl.value = rec.fromAccount;
     catEl.value = rec.category || "";
-    if (kindEl) kindEl.value = rec.expenseKind || "";
   } else {
     document.querySelector('input[name="rtype"][value="expense"]').checked = true;
     document.getElementById("recorrDesc").value = "";
@@ -2119,22 +1975,14 @@ function openRecorrModal(rec) {
     document.getElementById("recorrParcelas").value = "";
     accEl.value = state.accounts[0]?.id || "";
     catEl.value = "";
-    if (kindEl) kindEl.value = "";
   }
-  updateRecorrKindVisibility();
   modal?.classList.add("open");
-}
-
-function updateRecorrKindVisibility() {
-  const type = document.querySelector('input[name="rtype"]:checked')?.value || "expense";
-  document.getElementById("recorrKindWrap")?.classList.toggle("hidden", type !== "expense");
 }
 
 function setupRecorrentesUI() {
   document.getElementById("addRecorrBtn")?.addEventListener("click", () => openRecorrModal(null));
   document.getElementById("recorrModalClose")?.addEventListener("click", () => document.getElementById("recorrModal")?.classList.remove("open"));
   document.getElementById("recorrModal")?.addEventListener("click", e => { if (e.target.id === "recorrModal") e.target.classList.remove("open"); });
-  document.querySelectorAll('input[name="rtype"]').forEach(r => r.addEventListener("change", updateRecorrKindVisibility));
 
   document.getElementById("recorrForm")?.addEventListener("submit", e => {
     e.preventDefault();
@@ -2152,7 +2000,6 @@ function setupRecorrentesUI() {
       day:         Number(document.getElementById("recorrDay").value),
       fromAccount: document.getElementById("recorrAcc").value,
       category:    document.getElementById("recorrCat").value,
-      expenseKind: type === "expense" ? String(document.getElementById("recorrExpKind")?.value || "") : "",
       installments,
       installmentsDone,
       active:      existing ? (existing.active !== false) : true,

@@ -274,14 +274,6 @@
     .btn-primary:active { transform: translateY(0); }
     .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-    .btn-secondary {
-      background: transparent;
-      color: var(--primary);
-      border: 2px solid var(--primary);
-    }
-    .btn-secondary:hover:not(:disabled) { background: rgba(15,118,110,.08); }
-    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
-
     .btn-whatsapp {
       background: #25d366;
       color: #fff;
@@ -426,10 +418,6 @@
         🔓 Ativar licença
       </button>
 
-      <button class="btn btn-secondary" id="checkPaymentBtn" style="margin-top:10px">
-        🔄 Já paguei, verificar agora
-      </button>
-
       <p class="helper">A chave é de uso único e vinculada a este dispositivo.</p>
     </div>
 
@@ -442,13 +430,6 @@
       <div class="device-box" id="deviceIdBox" data-tip="Copiado!" title="Clique para copiar"></div>
       <p class="helper" style="margin-top:.6rem">
         Informe este código ao solicitar sua licença. Clique para copiar.
-      </p>
-      <div class="info-row" id="accountInfoBox" style="display:none;margin-top:.6rem">
-        <span class="label">👤 Conta</span>
-        <span class="val"></span>
-      </div>
-      <p class="helper" style="margin-top:.6rem" id="accountHint">
-        Quer usar a mesma licença em mais de um aparelho? Faça login com sua conta (e-mail e senha) — a licença acompanha a conta em qualquer dispositivo.
       </p>
     </div>
 
@@ -468,10 +449,6 @@
 
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
   <script>
     // ── TEMA ──
     (function() {
@@ -554,98 +531,6 @@
 
     let license = loadLicense();
     const profile = loadProfile();
-
-    // ============================================================
-    // LICENÇA POR CONTA (multi-dispositivo)
-    // ============================================================
-    // Se a pessoa estiver logada com uma conta de verdade (não anônima),
-    // a licença passa a ser sincronizada também pelo Firestore, no mesmo
-    // documento que o app.js já usa (users/{uid}/data/licenca). Assim,
-    // qualquer aparelho onde ela logar com a mesma conta reconhece a
-    // licença automaticamente — sem depender do Device ID.
-    //
-    // Quem usa o app sem conta (sessão anônima) continua exatamente como
-    // antes: licença presa a este dispositivo via chave ECDSA.
-    let cloudUser = null;
-    let cloudLicenseUnsub = null;
-
-    function cloudLicenseDoc(uid) {
-      return db.collection("users").doc(uid).collection("data").doc("licenca");
-    }
-
-    // Se a licença que chegou da nuvem for melhor que a local (ativa e
-    // com validade igual ou maior), adota ela. Nunca "rebaixa" uma
-    // licença local válida por causa de um documento antigo/vazio na nuvem.
-    function mergeCloudLicense(remote) {
-      if (!remote || !remote.active || !remote.expiresAt) return;
-      const remoteExp = new Date(remote.expiresAt).getTime();
-      const localExp  = (license.active && license.expiresAt) ? new Date(license.expiresAt).getTime() : -Infinity;
-      if (remoteExp > localExp) {
-        license = remote;
-        saveLicense(license);
-        renderStatus();
-        console.log("☁️ Licença sincronizada pela conta:", license);
-      }
-    }
-
-    function watchAccountBox() {
-      const box  = document.getElementById("accountInfoBox");
-      const hint = document.getElementById("accountHint");
-      if (!box) return;
-      if (cloudUser) {
-        box.style.display = "flex";
-        box.querySelector(".val").textContent = cloudUser.email || cloudUser.uid;
-        if (hint) hint.style.display = "none";
-      } else {
-        box.style.display = "none";
-        if (hint) hint.style.display = "block";
-      }
-    }
-
-    // Se a licença local for melhor (mais válida) que a que está salva na
-    // conta, envia ela pra nuvem. Cobre o caso de a ativação ter
-    // acontecido antes do login terminar de carregar (ou offline) — sem
-    // isso, aquela ativação nunca chegaria à conta.
-    function pushLocalIfBetter(remote) {
-      if (!license.active || !license.expiresAt) return;
-      const localExp  = new Date(license.expiresAt).getTime();
-      const remoteExp = (remote && remote.active && remote.expiresAt) ? new Date(remote.expiresAt).getTime() : -Infinity;
-      if (localExp > remoteExp) syncLicenseToAccount(license);
-    }
-
-    auth.onAuthStateChanged(function(user) {
-      if (cloudLicenseUnsub) { cloudLicenseUnsub(); cloudLicenseUnsub = null; }
-
-      if (!user || user.isAnonymous) {
-        cloudUser = null;
-        watchAccountBox();
-        return;
-      }
-
-      cloudUser = user;
-      watchAccountBox();
-
-      cloudLicenseUnsub = cloudLicenseDoc(user.uid).onSnapshot(function(snap) {
-        const remote = snap.exists ? snap.data() : null;
-        if (remote) mergeCloudLicense(remote);
-        pushLocalIfBetter(remote);
-      }, function(err) {
-        console.warn("Não foi possível ler a licença da conta (provável offline):", err);
-      });
-    });
-
-    // Grava a licença também na conta logada, para valer em outros
-    // dispositivos. Se não houver conta (uso anônimo), não faz nada —
-    // a licença continua só local, como hoje.
-    async function syncLicenseToAccount(data) {
-      if (!cloudUser) return;
-      try {
-        await cloudLicenseDoc(cloudUser.uid).set(data, { merge: false });
-        console.log("☁️ Licença enviada para a conta:", cloudUser.email || cloudUser.uid);
-      } catch (err) {
-        console.warn("Não foi possível salvar a licença na conta (provável offline):", err);
-      }
-    }
 
     // ── RENDER STATUS ──
     function renderStatus() {
@@ -846,34 +731,6 @@
       if (ok) document.getElementById("licenseKey").value = "";
     });
 
-    // ── "JÁ PAGUEI, VERIFICAR AGORA" ──
-    // Consulta o backend por uma licença já emitida pra este deviceId,
-    // sem depender do e-mail chegar nem de copiar/colar nada.
-    document.getElementById("checkPaymentBtn").addEventListener("click", async function() {
-      const btn = this;
-      btn.disabled = true;
-      setMsg("Verificando pagamento...", "loading", true);
-      try {
-        const resp = await fetch(
-          `https://controle-financeiro-d6fd5.web.app/api/licenca-status?deviceId=${encodeURIComponent(deviceId)}`
-        );
-        const data = await resp.json();
-
-        if (!data.found) {
-          setMsg(data.error || "Ainda não encontramos um pagamento aprovado pra este dispositivo. Se você acabou de pagar, aguarde alguns segundos e tente de novo.", "error", false);
-          btn.disabled = false;
-          return;
-        }
-
-        const ok = await activateLicenseKey(data.key, btn);
-        btn.disabled = false;
-        if (!ok) return;
-      } catch (err) {
-        setMsg("Erro ao verificar pagamento: " + err.message, "error", false);
-        btn.disabled = false;
-      }
-    });
-
     // ── ATIVAÇÃO AUTOMÁTICA VIA LINK DO E-MAIL (?key=...) ──
     // O backend manda um e-mail com um link "licenca.html?key=CHAVE" assim
     // que o pagamento é aprovado — a licença ativa sozinha ao abrir o link.
@@ -901,7 +758,6 @@
       saveLicense(data);
       license = data;
       renderStatus();
-      syncLicenseToAccount(data);
       console.log("✅ Licença salva:", data);
     }
 

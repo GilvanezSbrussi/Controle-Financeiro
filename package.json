@@ -1,19 +1,8 @@
 {
   "name": "controle-financeiro-app",
-  "description": "App Android/iOS (Capacitor) — Minha Fortuna",
-  "private": true,
+  "description": "App/site (Capacitor Android/iOS) — biometria nativa via NativeBiometric",
   "dependencies": {
-    "@capacitor/android": "8.4.0",
-    "@capacitor/assets": "3.0.5",
-    "@capacitor/browser": "^8.0.4",
-    "@capacitor/core": "8.4.0",
-    "@capacitor/filesystem": "8.1.2",
-    "@capacitor/local-notifications": "8.2.0",
-    "@capacitor/share": "8.0.1",
-    "@capacitor/synapse": "1.0.4",
     "@capgo/capacitor-native-biometric": "^8.6.3"
   },
-  "devDependencies": {
-    "@capacitor/cli": "8.4.0"
-  }
+  "private": true
 }

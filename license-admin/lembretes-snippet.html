@@ -1,0 +1,258 @@
+<!--
+=========================================================
+  LEMBRETES - snippet para inserir no seu index.html
+=========================================================
+  Onde colar:
+  1) O bloco <section id="viewLembretes">...</section> vai junto com as
+     outras "views/abas" do seu app (perto de onde estão as outras
+     seções de conteúdo, ex: extrato, categorias, etc).
+  2) O <script> vai ANTES da tag <script src="app.js"></script>, e DEPOIS
+     dos scripts do Firebase (firebase-app-compat.js, firebase-auth-compat.js,
+     firebase-firestore-compat.js, firebase-config.js).
+  3) Adicione o SDK de Messaging junto com os outros SDKs do Firebase:
+     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
+  4) Se seu app tem um menu/tabs, adicione um botão/link que chame
+     showView('lembretes') (ou o equivalente do seu app) apontando pra
+     essa seção.
+========================================================= -->
+
+<section id="viewLembretes" class="hidden">
+  <div class="card">
+    <div class="card-title">
+      <h2>🔔 Lembretes</h2>
+      <span id="lembretesPermStatus"></span>
+    </div>
+
+    <form id="formLembrete" class="fgrid">
+      <label class="full">
+        Não quero esquecer de...
+        <input type="text" id="lembreteTexto" placeholder="Ex: Pagar o boleto do cartão" required maxlength="140"/>
+      </label>
+      <label>
+        Data
+        <input type="date" id="lembreteData" required/>
+      </label>
+      <label>
+        Hora
+        <input type="time" id="lembreteHora" required/>
+      </label>
+      <label class="full">
+        Repetir
+        <select id="lembreteRepeticao">
+          <option value="none">Não repetir</option>
+          <option value="daily">Todo dia</option>
+          <option value="weekly">Toda semana</option>
+          <option value="monthly">Todo mês</option>
+        </select>
+      </label>
+      <div class="full">
+        <button type="submit" class="pbtn">Salvar lembrete</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <h2>Seus lembretes</h2>
+    </div>
+    <div class="tx-list" id="listaLembretes">
+      <div class="empty">Nenhum lembrete cadastrado ainda.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  // ==========================================
+  // CONFIG - troque pela sua VAPID key do Firebase
+  // (Console Firebase > Configurações do projeto > Cloud Messaging >
+  //  Certificados push da Web > gerar par de chaves)
+  // ==========================================
+  const VAPID_KEY = 'COLE_SUA_VAPID_KEY_AQUI';
+
+  let messaging = null;
+  let currentUser = null; // assume que seu app já expõe o usuário logado do Firebase Auth
+
+  function getDb() {
+    return firebase.firestore();
+  }
+
+  // ==========================================
+  // Pedir permissão de notificação e salvar token FCM
+  // ==========================================
+  async function ativarNotificacoes() {
+    const statusEl = document.getElementById('lembretesPermStatus');
+    try {
+      if (!('Notification' in window)) {
+        if (statusEl) statusEl.textContent = 'Notificações não suportadas neste navegador';
+        return;
+      }
+
+      const permissao = await Notification.requestPermission();
+      if (permissao !== 'granted') {
+        if (statusEl) statusEl.textContent = 'Permissão negada';
+        return;
+      }
+
+      messaging = firebase.messaging();
+
+      // Registra o service worker de mensagens (arquivo separado, na raiz do site)
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+      const token = await messaging.getToken({
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration
+      });
+
+      if (token && currentUser) {
+        await getDb().collection('users').doc(currentUser.uid).set(
+          { fcmToken: token, fcmTokenAtualizadoEm: firebase.firestore.FieldValue.serverTimestamp() },
+          { merge: true }
+        );
+        if (statusEl) statusEl.textContent = 'Notificações ativadas ✅';
+      }
+
+      // Notificação chegando com app aberto em primeiro plano
+      messaging.onMessage((payload) => {
+        const titulo = payload.notification?.title || 'Lembrete';
+        const corpo = payload.notification?.body || '';
+        if (Notification.permission === 'granted') {
+          new Notification(titulo, { body: corpo, icon: '/icon-192.png' });
+        }
+        carregarLembretes();
+      });
+
+    } catch (err) {
+      console.error('Erro ao ativar notificações:', err);
+      if (statusEl) statusEl.textContent = 'Erro ao ativar notificações';
+    }
+  }
+
+  // ==========================================
+  // Salvar novo lembrete no Firestore
+  // ==========================================
+  async function salvarLembrete(e) {
+    e.preventDefault();
+    if (!currentUser) {
+      alert('Você precisa estar logado para criar lembretes.');
+      return;
+    }
+
+    const texto = document.getElementById('lembreteTexto').value.trim();
+    const data = document.getElementById('lembreteData').value;
+    const hora = document.getElementById('lembreteHora').value;
+    const repeticao = document.getElementById('lembreteRepeticao').value;
+
+    if (!texto || !data || !hora) return;
+
+    const dataHora = new Date(`${data}T${hora}:00`);
+    if (isNaN(dataHora.getTime()) || dataHora < new Date()) {
+      alert('Escolha uma data/hora no futuro.');
+      return;
+    }
+
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+
+    try {
+      await getDb().collection('lembretes').add({
+        uid: currentUser.uid,
+        texto,
+        dataHora: firebase.firestore.Timestamp.fromDate(dataHora),
+        repeticao,           // 'none' | 'daily' | 'weekly' | 'monthly'
+        enviado: false,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      e.target.reset();
+      carregarLembretes();
+    } catch (err) {
+      console.error('Erro ao salvar lembrete:', err);
+      alert('Não foi possível salvar o lembrete. Tente novamente.');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ==========================================
+  // Listar / excluir lembretes
+  // ==========================================
+  async function carregarLembretes() {
+    const lista = document.getElementById('listaLembretes');
+    if (!currentUser || !lista) return;
+
+    try {
+      const snap = await getDb().collection('lembretes')
+        .where('uid', '==', currentUser.uid)
+        .orderBy('dataHora', 'asc')
+        .get();
+
+      if (snap.empty) {
+        lista.innerHTML = '<div class="empty">Nenhum lembrete cadastrado ainda.</div>';
+        return;
+      }
+
+      lista.innerHTML = '';
+      snap.forEach((doc) => {
+        const l = doc.data();
+        const dt = l.dataHora?.toDate ? l.dataHora.toDate() : new Date(l.dataHora);
+        const item = document.createElement('div');
+        item.className = 'tx-item';
+        item.innerHTML = `
+          <div class="tx-ico ${l.enviado ? 'transfer' : 'income'}">🔔</div>
+          <div class="tx-body">
+            <div class="tx-desc">${escapeHtml(l.texto)}</div>
+            <div class="tx-meta">${dt.toLocaleDateString('pt-BR')} às ${dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})} ${l.repeticao && l.repeticao !== 'none' ? '· repete: ' + traduzirRepeticao(l.repeticao) : ''} ${l.enviado ? '· enviado' : ''}</div>
+            <div class="tx-actions">
+              <button class="abtn del" data-id="${doc.id}">Excluir</button>
+            </div>
+          </div>
+        `;
+        lista.appendChild(item);
+      });
+
+      lista.querySelectorAll('.abtn.del').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Excluir este lembrete?')) return;
+          await getDb().collection('lembretes').doc(btn.dataset.id).delete();
+          carregarLembretes();
+        });
+      });
+    } catch (err) {
+      console.error('Erro ao carregar lembretes:', err);
+    }
+  }
+
+  function traduzirRepeticao(r) {
+    return { daily: 'diário', weekly: 'semanal', monthly: 'mensal' }[r] || r;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ==========================================
+  // Inicialização
+  // ==========================================
+  function initLembretes(user) {
+    currentUser = user;
+    ativarNotificacoes();
+    carregarLembretes();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('formLembrete');
+    if (form) form.addEventListener('submit', salvarLembrete);
+  });
+
+  // Exponha para o resto do seu app chamar quando o usuário logar
+  // (ex: dentro do seu firebase.auth().onAuthStateChanged existente,
+  //  chame window.initLembretes(user))
+  window.initLembretes = initLembretes;
+  window.carregarLembretes = carregarLembretes;
+})();
+</script>
